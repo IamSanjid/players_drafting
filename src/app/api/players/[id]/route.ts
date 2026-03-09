@@ -1,11 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { getErrorMessage, idParamSchema, playerPatchSchema, toNullableBigInt } from "@/lib/validation";
 
-export async function PATCH(request: Request, context: any) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
-    const data = await request.json();
+    const paramParse = idParamSchema.safeParse(await context.params);
+    if (!paramParse.success) {
+      return NextResponse.json(
+        { error: "Invalid route params", details: paramParse.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { id } = paramParse.data;
+    const body = await request.json();
+    const bodyParse = playerPatchSchema.safeParse(body);
+    if (!bodyParse.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: bodyParse.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = bodyParse.data;
 
     // 1. Fetch current player state
     const currentPlayer = await prisma.player.findUnique({
@@ -17,13 +36,13 @@ export async function PATCH(request: Request, context: any) {
       return NextResponse.json({ error: "Player not found" }, { status: 404 });
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.PlayerUncheckedUpdateInput = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.subCategory !== undefined) updateData.subCategory = data.subCategory;
     if (data.position !== undefined) updateData.position = data.position;
-    if (data.priceBDT !== undefined) updateData.priceBDT = data.priceBDT ? BigInt(data.priceBDT) : null;
-    if (data.priceUSD !== undefined) updateData.priceUSD = data.priceUSD ? BigInt(data.priceUSD) : null;
+    if (data.priceBDT !== undefined) updateData.priceBDT = toNullableBigInt(data.priceBDT) ?? null;
+    if (data.priceUSD !== undefined) updateData.priceUSD = toNullableBigInt(data.priceUSD) ?? null;
     if (data.country !== undefined) updateData.country = data.country;
     if (data.availability !== undefined) updateData.availability = data.availability;
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
@@ -33,8 +52,10 @@ export async function PATCH(request: Request, context: any) {
     const newTeamId = data.teamId === undefined ? currentPlayer.teamId : data.teamId;
     const teamChanged = newTeamId !== currentPlayer.teamId;
 
-    const priceBDT = BigInt(data.priceBDT !== undefined ? data.priceBDT : (currentPlayer.priceBDT || 0));
-    const priceUSD = BigInt(data.priceUSD !== undefined ? data.priceUSD : (currentPlayer.priceUSD || 0));
+    const resolvedPriceBDT = data.priceBDT !== undefined ? (toNullableBigInt(data.priceBDT) ?? null) : currentPlayer.priceBDT;
+    const resolvedPriceUSD = data.priceUSD !== undefined ? (toNullableBigInt(data.priceUSD) ?? null) : currentPlayer.priceUSD;
+    const priceBDT = resolvedPriceBDT ?? BigInt(0);
+    const priceUSD = resolvedPriceUSD ?? BigInt(0);
     const isLocal = (data.category || currentPlayer.category) === "Local";
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -125,24 +146,30 @@ export async function PATCH(request: Request, context: any) {
       });
     });
 
-    return new NextResponse(JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return jsonWithBigInt(result);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }
 
-export async function DELETE(request: Request, context: any) {
+export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
+    const paramParse = idParamSchema.safeParse(await context.params);
+    if (!paramParse.success) {
+      return NextResponse.json(
+        { error: "Invalid route params", details: paramParse.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { id } = paramParse.data;
 
     // Cleanup picks before deleting the player
     await prisma.pick.deleteMany({ where: { playerId: id } });
     await prisma.player.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

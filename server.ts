@@ -2,6 +2,12 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
+import type {
+  ClientToServerEvents,
+  InterServerEvents,
+  ServerToClientEvents,
+  SocketData,
+} from "@/lib/socketTypes";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -10,6 +16,22 @@ const port = parseInt(process.env.PORT || "3000", 10);
 // Initialize Next.js app
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
+const STATE_CHANGED_EMIT_DEBOUNCE_MS = 75;
+
+let pendingStateChangedTimer: NodeJS.Timeout | null = null;
+
+const scheduleStateChangedEmit = (
+  io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>,
+) => {
+  if (pendingStateChangedTimer) {
+    return;
+  }
+
+  pendingStateChangedTimer = setTimeout(() => {
+    pendingStateChangedTimer = null;
+    io.emit("state_changed");
+  }, STATE_CHANGED_EMIT_DEBOUNCE_MS);
+};
 
 app.prepare().then(() => {
   const server = createServer(async (req, res) => {
@@ -23,14 +45,14 @@ app.prepare().then(() => {
     }
   });
 
-  const io = new Server(server);
+  const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server);
 
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
     // Relay events to ALL clients (including sender) so the drafter's own UI refreshes too
     socket.on("state_changed", () => {
-      io.emit("state_changed");
+      scheduleStateChangedEmit(io);
     });
     
     socket.on("pick_made", (data) => {

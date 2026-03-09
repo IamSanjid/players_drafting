@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { draftPickSchema, getErrorMessage } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const { teamId, playerId, forcePick } = data;
-
-    if (!teamId || !playerId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const body = await request.json();
+    const parsed = draftPickSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
+
+    const { teamId, playerId } = parsed.data;
 
     // Wrap in a transaction to ensure integrity
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -17,8 +23,7 @@ export async function POST(request: Request) {
       if (!session) throw new Error("No active draft session");
       if (!session.isActive) throw new Error("Draft session is currently paused");
 
-      // Valid turn check (bypass if forcePick is true from Admin)
-      if (!forcePick && session.currentTurnTeamId !== teamId) {
+      if (session.currentTurnTeamId !== teamId) {
         throw new Error("It is not your turn to pick");
       }
 
@@ -30,7 +35,7 @@ export async function POST(request: Request) {
         throw new Error(`Only ${session.allowedCategories} players can be drafted currently.`);
       }
       
-      if (!forcePick && session.activeCategory !== player.category) {
+      if (session.activeCategory !== player.category) {
         throw new Error(`You must pick a player from the ${session.activeCategory} category right now.`);
       }
 
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
       let nextTurnTeamId = session.currentTurnTeamId;
 
       if (allTeams.length > 0) {
-        const currentIndex = allTeams.findIndex((t: { id: string }) => t.id === session.currentTurnTeamId);
+        const currentIndex = allTeams.findIndex((t) => t.id === session.currentTurnTeamId);
         const nextIndex = (currentIndex + 1) % allTeams.length;
         nextTurnTeamId = allTeams[nextIndex].id;
       }
@@ -96,10 +101,8 @@ export async function POST(request: Request) {
       return { ...pick, draftAutoEnded: allTeamsDrafted };
     });
 
-    return new NextResponse(JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return jsonWithBigInt(result);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

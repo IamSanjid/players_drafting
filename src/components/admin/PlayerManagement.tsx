@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { getSocket } from "@/lib/socketClient";
 import CSVBulkUploader from "@/components/admin/CSVBulkUploader";
+import { useDraftStore } from "@/lib/draftStore";
+import type { ApiPlayer, ApiTeam } from "@/types/domain";
 
-export default function PlayerManagement({ teams }: { teams: any[] }) {
-  const [players, setPlayers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
+  const players = useDraftStore((state) => state.players);
+  const loading = useDraftStore((state) => state.loading);
+  const fetchAll = useDraftStore((state) => state.fetchAll);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Oversea");
@@ -33,21 +37,11 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
 
   const socket = getSocket();
 
-  const fetchPlayers = async () => {
-    setLoading(true);
-    const res = await fetch("/api/players");
-    const data = await res.json();
-    setPlayers(data);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    fetchPlayers();
-    socket.on("state_changed", fetchPlayers);
-    return () => {
-      socket.off("state_changed", fetchPlayers);
-    };
-  }, []);
+    if (players.length === 0) {
+      void fetchAll();
+    }
+  }, [fetchAll, players.length]);
 
   // Reset to page 1 on filter changes
   useEffect(() => {
@@ -82,6 +76,7 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
     });
 
     socket.emit("state_changed");
+    await fetchAll({ silent: true, force: true });
     resetForm();
   };
 
@@ -89,15 +84,17 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
     if (!confirm("Delete player?")) return;
     await fetch(`/api/players/${id}`, { method: "DELETE" });
     socket.emit("state_changed");
+    await fetchAll({ silent: true, force: true });
   };
 
   const handleDeleteAllByCategory = async (cat: string) => {
     if (!confirm(`Are you absolutely sure you want to delete ALL ${cat} players? This cannot be undone.`)) return;
     await fetch(`/api/players/bulk?category=${cat}`, { method: "DELETE" });
     socket.emit("state_changed");
+    await fetchAll({ silent: true, force: true });
   };
 
-  const startEdit = (player: any) => {
+  const startEdit = (player: ApiPlayer) => {
     setEditingPlayerId(player.id);
     setName(player.name);
     setCategory(player.category);
@@ -132,7 +129,7 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
       if (data.url) {
         setImageUrl(data.url);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Upload failed", err);
     } finally {
       setUploading(false);
@@ -159,13 +156,14 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
           body: JSON.stringify({ imageUrl: data.url }),
         });
         socket.emit("state_changed");
+        await fetchAll({ silent: true, force: true });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Direct upload failed", err);
     }
   };
 
-  const filteredPlayers = players.filter(p => {
+  const filteredPlayers = players.filter((p) => {
     if (p.category !== listCategory) return false;
     if (listSubCategory !== "All" && p.subCategory !== listSubCategory) return false;
     if (listSearch && !p.name.toLowerCase().includes(listSearch.toLowerCase())) return false;
@@ -188,10 +186,10 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
 
     setAssigningId(playerId);
     try {
-      const res = await fetch("/api/draft/assign", {
+      const res = await fetch(`/api/players/${playerId}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, teamId }),
+        body: JSON.stringify({ teamId }),
       });
       const data = await res.json();
 
@@ -203,18 +201,18 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
         });
 
         socket.emit("state_changed");
-        fetchPlayers();
+        await fetchAll({ silent: true, force: true });
       } else {
         alert(data.error || "Assignment failed");
       }
-    } catch (err) {
+    } catch {
       alert("Error assigning player");
     } finally {
       setAssigningId(null);
     }
   };
 
-  const triggerAnimation = (player: any) => {
+  const triggerAnimation = (player: ApiPlayer) => {
     if (!player.team) {
       alert("Cannot trigger animation for a player without a team!");
       return;
@@ -241,7 +239,7 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
       <div className="p-6">
         {showCsvUploader && (
           <div className="mb-8 p-1 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl">
-            <CSVBulkUploader onImportComplete={() => { setShowCsvUploader(false); fetchPlayers(); }} />
+            <CSVBulkUploader onImportComplete={() => { void fetchAll({ silent: true, force: true }); setShowCsvUploader(false); }} />
           </div>
         )}
 
@@ -323,7 +321,9 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
               </div>
               {imageUrl && (
                 <div className="mt-2 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border overflow-hidden"><img src={imageUrl} className="w-full h-full object-cover" /></div>
+                  <div className="w-8 h-8 rounded border overflow-hidden">
+                    <Image src={imageUrl} alt="Player preview" width={32} height={32} className="w-full h-full object-cover" />
+                  </div>
                   <span className="text-[10px] text-gray-400 truncate max-w-[200px]">{imageUrl}</span>
                 </div>
               )}
@@ -416,7 +416,11 @@ export default function PlayerManagement({ teams }: { teams: any[] }) {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 border overflow-hidden flex items-center justify-center font-bold text-gray-400 shadow-sm border-white">
-                            {player.imageUrl ? <img src={player.imageUrl} className="w-full h-full object-cover" /> : player.name.charAt(0)}
+                            {player.imageUrl ? (
+                              <Image src={player.imageUrl} alt={`${player.name} photo`} width={40} height={40} className="w-full h-full object-cover" />
+                            ) : (
+                              player.name.charAt(0)
+                            )}
                           </div>
                           <div>
                             <div className="font-black text-gray-900 leading-tight">{player.name}</div>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getErrorMessage } from "@/lib/validation";
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const teams = await prisma.team.findMany({
       orderBy: { serialNumber: "asc" }
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

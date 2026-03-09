@@ -1,16 +1,32 @@
 import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
+import { z } from "zod";
+import { getErrorMessage } from "@/lib/validation";
+
+const uploadTypeSchema = z.enum(["player", "team", "banner", "logo"]).or(z.string().min(1));
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const type = (formData.get("type") || "player") as string;
+    const fileEntry = formData.get("file");
+    const typeEntry = formData.get("type") ?? "player";
 
-    if (!file) {
+    if (!(fileEntry instanceof File)) {
       return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
     }
+
+    const typeParsed = uploadTypeSchema.safeParse(String(typeEntry));
+    if (!typeParsed.success) {
+      return NextResponse.json(
+        { error: "Invalid upload type", details: typeParsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const file = fileEntry;
+    const type = typeParsed.data;
+
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = `${type}-${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
@@ -21,7 +37,7 @@ export async function POST(request: Request) {
 
     const publicUrl = `/uploads/${filename}`;
     return NextResponse.json({ url: publicUrl });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

@@ -1,23 +1,27 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { getSocket } from "@/lib/socketClient";
+import type { ApiDraftSession, ApiPlayer, ApiTeam } from "@/types/domain";
 
-export default function PlayerSelectionGrid({ 
+type PlayerSelectionGridProps = {
+  players: ApiPlayer[];
+  session: ApiDraftSession | null;
+  currentTeamId?: string | null;
+  teams: ApiTeam[];
+  readOnly?: boolean;
+  showAllCategories?: boolean;
+};
+
+export default function PlayerSelectionGrid({
   players, 
   session, 
   currentTeamId,
   teams,
   readOnly = false,
   showAllCategories = false,
-}: { 
-  players: any[], 
-  session: any, 
-  currentTeamId?: string | null,
-  teams: any[],
-  readOnly?: boolean,
-  showAllCategories?: boolean,
-}) {
+}: PlayerSelectionGridProps) {
   const socket = getSocket();
   const [activeTabCategory, setActiveTabCategory] = useState<"Oversea" | "Local">("Oversea");
   const [activeSubCategory, setActiveSubCategory] = useState<string>("All");
@@ -34,9 +38,12 @@ export default function PlayerSelectionGrid({
   const lockedCategory = isTabsLocked ? (session?.allowedCategories === "Local" ? "Local" : session?.allowedCategories === "Oversea" ? "Oversea" : null) : null;
   const currentCategory = lockedCategory || activeTabCategory;
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeSubCategory, currentCategory, searchQuery]);
+
   const filteredPlayers = useMemo(() => {
-    setCurrentPage(1); // Reset to first page on filter change
-    return players.filter(p => {
+    return players.filter((p) => {
       if (p.category !== currentCategory) return false;
       if (activeSubCategory !== "All" && p.subCategory !== activeSubCategory) return false;
       if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -70,15 +77,15 @@ export default function PlayerSelectionGrid({
       socket.emit("pick_made", data); // Custom animated event for Public UI
       socket.emit("state_changed");   // Generic refresh state
       
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Draft failed");
     } finally {
       setDraftingPlayerId(null);
     }
   };
 
   const getSubcategories = () => {
-    const cats = new Set(players.filter(p => p.category === currentCategory).map(p => p.subCategory));
+    const cats = new Set(players.filter((p) => p.category === currentCategory).map((p) => p.subCategory));
     return Array.from(cats).sort();
   };
 
@@ -180,7 +187,7 @@ export default function PlayerSelectionGrid({
                   const price = p.category === "Local" ? p.priceBDT : p.priceUSD;
                   const currency = p.category === "Local" ? "BDT" : "USD";
                   
-                  const draftingTeam = p.teamId ? teams.find(t => t.id === p.teamId) : null;
+                  const draftingTeam = p.teamId ? teams.find((t) => t.id === p.teamId) : null;
                   
                   let rowStyle = "bg-white border-gray-200 hover:shadow-md hover:border-blue-200";
                   let bgInlineStyle = {};
@@ -201,7 +208,11 @@ export default function PlayerSelectionGrid({
                       <td className="px-4 py-3 rounded-l-xl">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center font-bold text-gray-400">
-                            {p.imageUrl ? <img src={p.imageUrl} className="object-cover w-full h-full" alt="" /> : p.name.charAt(0)}
+                            {p.imageUrl ? (
+                              <Image src={p.imageUrl} alt={`${p.name} photo`} width={40} height={40} className="object-cover w-full h-full" />
+                            ) : (
+                              p.name.charAt(0)
+                            )}
                           </div>
                           <div className="min-w-0">
                            <div className={`font-bold truncate ${isDrafted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{p.name}</div>

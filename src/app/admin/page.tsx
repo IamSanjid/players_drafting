@@ -5,21 +5,31 @@ import SessionControls from "@/components/admin/SessionControls";
 import TeamManagement from "@/components/admin/TeamManagement";
 import PlayerManagement from "@/components/admin/PlayerManagement";
 import AdminAuthWrapper from "@/components/admin/AdminAuthWrapper";
+import { getSocket } from "@/lib/socketClient";
+import { useDraftStore } from "@/lib/draftStore";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"session" | "teams" | "players">("session");
-  const [teams, setTeams] = useState<any[]>([]);
-
-  // We need teams globally available in this view so PlayerManagement can use them for Pre-Bought
-  const fetchTeams = async () => {
-    const res = await fetch("/api/teams");
-    const data = await res.json();
-    setTeams(data);
-  };
+  const teams = useDraftStore((state) => state.teams);
+  const fetchAll = useDraftStore((state) => state.fetchAll);
+  const socket = getSocket();
 
   useEffect(() => {
-    fetchTeams();
-  }, [activeTab]); // Refetch when tab changes just in case
+    const refresh = () => {
+      void fetchAll({ silent: true });
+    };
+
+    void fetchAll();
+    socket.on("state_changed", refresh);
+
+    return () => {
+      socket.off("state_changed", refresh);
+    };
+  }, [fetchAll, socket]);
+
+  useEffect(() => {
+    void fetchAll({ silent: true });
+  }, [activeTab, fetchAll]);
 
   return (
     <AdminAuthWrapper>

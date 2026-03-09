@@ -1,12 +1,32 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { getErrorMessage, idParamSchema, parseInteger, teamPatchSchema } from "@/lib/validation";
 
-export async function PATCH(request: Request, context: any) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
-    const data = await request.json();
+    const paramParse = idParamSchema.safeParse(await context.params);
+    if (!paramParse.success) {
+      return NextResponse.json(
+        { error: "Invalid route params", details: paramParse.error.flatten() },
+        { status: 400 }
+      );
+    }
 
-    const allowedUpdates: any = {};
+    const { id } = paramParse.data;
+    const body = await request.json();
+    const bodyParse = teamPatchSchema.safeParse(body);
+    if (!bodyParse.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: bodyParse.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = bodyParse.data;
+
+    const allowedUpdates: Prisma.TeamUpdateInput = {};
     if (data.name !== undefined) allowedUpdates.name = data.name;
     if (data.budgetBDT !== undefined) allowedUpdates.budgetBDT = BigInt(data.budgetBDT);
     if (data.budgetUSD !== undefined) allowedUpdates.budgetUSD = BigInt(data.budgetUSD);
@@ -15,7 +35,10 @@ export async function PATCH(request: Request, context: any) {
     if (data.bannerUrl !== undefined) allowedUpdates.bannerUrl = data.bannerUrl;
 
     if (data.serialNumber !== undefined) {
-      const newSerial = parseInt(data.serialNumber);
+      const newSerial = parseInteger(data.serialNumber);
+      if (!Number.isInteger(newSerial)) {
+        return NextResponse.json({ error: "serialNumber must be an integer" }, { status: 400 });
+      }
       const targetTeam = await prisma.team.findUnique({ where: { id } });
       
       if (targetTeam && targetTeam.serialNumber !== newSerial) {
@@ -38,22 +61,28 @@ export async function PATCH(request: Request, context: any) {
       data: allowedUpdates
     });
 
-    return new NextResponse(JSON.stringify(updatedTeam, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return jsonWithBigInt(updatedTeam);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }
 
-export async function DELETE(request: Request, context: any) {
+export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
+    const paramParse = idParamSchema.safeParse(await context.params);
+    if (!paramParse.success) {
+      return NextResponse.json(
+        { error: "Invalid route params", details: paramParse.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { id } = paramParse.data;
     await prisma.pick.deleteMany({ where: { teamId: id }});
     await prisma.player.updateMany({ where: { teamId: id }, data: { teamId: null } });
     await prisma.team.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

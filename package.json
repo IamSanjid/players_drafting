@@ -1,15 +1,15 @@
 {
   "name": "players_drafting",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "tsx server.ts",
     "build": "next build",
     "start": "tsx server.ts",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.0.0",
     "@types/papaparse": "^5.5.2",
     "framer-motion": "^12.35.1",
     "lucide-react": "^0.577.0",
@@ -19,6 +19,7 @@
     "react-dom": "19.2.3",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "zod": "^3.23.8",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -28,7 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "prisma": "^5.22.0",
+    "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",

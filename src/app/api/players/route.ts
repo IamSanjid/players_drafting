@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { getErrorMessage, playerCreateSchema, toNullableBigInt } from "@/lib/validation";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const search = searchParams.get("search");
 
-  let whereClause: any = {};
+  const whereClause: Prisma.PlayerWhereInput = {};
   if (category) {
     whereClause.category = category;
   }
@@ -20,25 +23,32 @@ export async function GET(request: Request) {
     orderBy: [{ subCategory: "asc" }, { name: "asc" }]
   });
 
-  return new NextResponse(JSON.stringify(players, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-    headers: { "Content-Type": "application/json" }
-  });
+  return jsonWithBigInt(players);
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const parsed = playerCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = parsed.data;
     const newPlayer = await prisma.player.create({
       data: {
         name: data.name,
         category: data.category,
         subCategory: data.subCategory,
         position: data.position,
-        priceBDT: data.priceBDT ? BigInt(data.priceBDT) : null,
-        priceUSD: data.priceUSD ? BigInt(data.priceUSD) : null,
-        country: data.country,
-        availability: data.availability,
-        imageUrl: data.imageUrl,
+        priceBDT: toNullableBigInt(data.priceBDT) ?? null,
+        priceUSD: toNullableBigInt(data.priceUSD) ?? null,
+        country: data.country ?? null,
+        availability: data.availability ?? null,
+        imageUrl: data.imageUrl ?? null,
         isPreBought: data.isPreBought || false,
         teamId: data.teamId || null,
       }
@@ -54,10 +64,8 @@ export async function POST(request: Request) {
        })
     }
 
-    return new NextResponse(JSON.stringify(newPlayer, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return jsonWithBigInt(newPlayer);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

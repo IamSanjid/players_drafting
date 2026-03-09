@@ -1,23 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { idParamSchema, assignTeamSchema, getErrorMessage } from "@/lib/validation";
 
-// Helper to handle BigInt serialization
-function serialize(obj: any) {
-  return JSON.parse(
-    JSON.stringify(obj, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    )
-  );
-}
-
-export async function POST(req: Request) {
+export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { playerId, teamId } = await req.json();
-
-    if (!playerId || !teamId) {
-      return NextResponse.json({ error: "Missing playerId or teamId" }, { status: 400 });
+    const paramParse = idParamSchema.safeParse(await context.params);
+    if (!paramParse.success) {
+      return NextResponse.json(
+        { error: "Invalid route params", details: paramParse.error.flatten() },
+        { status: 400 }
+      );
     }
+
+    const body = await req.json();
+    const parsed = assignTeamSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const playerId = paramParse.data.id;
+    const { teamId } = parsed.data;
 
     // 1. Fetch player and team
     const player = await prisma.player.findUnique({
@@ -99,13 +106,10 @@ export async function POST(req: Request) {
       return { player: updatedPlayer, team: targetTeam };
     });
 
-    return new NextResponse(JSON.stringify(serialize({ success: true, ...result })), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonWithBigInt({ success: true, ...result }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Assignment error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

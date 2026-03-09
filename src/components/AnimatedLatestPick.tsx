@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { getSocket } from "@/lib/socketClient";
 import { motion, AnimatePresence } from "framer-motion";
+import type { PickMadePayload } from "@/types/domain";
 
 export default function AnimatedLatestPick() {
-  const [pick, setPick] = useState<any>(null);
+  const [pick, setPick] = useState<PickMadePayload | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [canClose, setCanClose] = useState(false);
   const socket = getSocket();
@@ -15,7 +17,7 @@ export default function AnimatedLatestPick() {
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const handlePickMade = (data: any) => {
+    const handlePickMade = (data: PickMadePayload) => {
       // 1. Cancel any existing timers from previous picks
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -41,7 +43,7 @@ export default function AnimatedLatestPick() {
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
-  }, []);
+  }, [socket]);
 
   const handleManualClose = () => {
     if (canClose) setIsVisible(false);
@@ -133,7 +135,13 @@ export default function AnimatedLatestPick() {
               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
                 <div className="flex items-center gap-6 mb-4">
                   {pick.team.logoUrl && (
-                    <img src={pick.team.logoUrl} className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" alt="Team Logo" />
+                    <Image
+                      src={pick.team.logoUrl}
+                      alt={`${pick.team.name} logo`}
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                    />
                   )}
                   <div>
                     <p className="text-cyan-400 uppercase tracking-[0.3em] font-black text-xs mb-1">Franchise Secured</p>

@@ -1,12 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { getSocket } from "@/lib/socketClient";
+import { useDraftStore } from "@/lib/draftStore";
+import type { ApiPlayer, ApiTeam } from "@/types/domain";
+
+type TeamUpdatePayload = Partial<{
+  name: string;
+  budgetBDT: string | number;
+  budgetUSD: string | number;
+  password: string;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  serialNumber: number;
+}>;
 
 export default function TeamManagement() {
-  const [teams, setTeams] = useState<any[]>([]);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const teams = useDraftStore((state) => state.teams);
+  const session = useDraftStore((state) => state.session);
+  const loading = useDraftStore((state) => state.loading);
+  const fetchAll = useDraftStore((state) => state.fetchAll);
 
   // New Team State
   const [newTeamName, setNewTeamName] = useState("");
@@ -19,27 +33,19 @@ export default function TeamManagement() {
 
   const socket = getSocket();
 
-  const fetchData = async () => {
-    setLoading(true);
-    const [sRes, tRes] = await Promise.all([fetch("/api/session"), fetch("/api/teams")]);
-    setSession(await sRes.json());
-    setTeams(await tRes.json());
-    setLoading(false);
-  };
-
   useEffect(() => {
-    fetchData();
-    socket.on("state_changed", fetchData);
-    return () => { socket.off("state_changed", fetchData); };
-  }, []);
+    if (!session && teams.length === 0) {
+      void fetchAll();
+    }
+  }, [fetchAll, session, teams.length]);
 
   const handleAddTeam = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (session.draftStatus === "active") {
+    if (session?.draftStatus === "active") {
       alert("Draft is active. You cannot add new teams.");
       return;
     }
-    const nextSerial = teams.length > 0 ? Math.max(...teams.map(t => t.serialNumber)) + 1 : 1;
+    const nextSerial = teams.length > 0 ? Math.max(...teams.map((t) => t.serialNumber)) + 1 : 1;
 
     await fetch("/api/teams", {
       method: "POST",
@@ -55,7 +61,7 @@ export default function TeamManagement() {
       }),
     });
 
-    await fetchData();
+    await fetchAll({ silent: true, force: true });
     socket.emit("state_changed");
 
     // Reset form
@@ -86,7 +92,7 @@ export default function TeamManagement() {
       //   if (type === "logo") setNewTeamLogo(data.url);
       //   else setNewTeamBanner(data.url);
       // }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Upload failed", err);
     } finally {
       setUploading(null);
@@ -129,15 +135,15 @@ export default function TeamManagement() {
   };
 
   const handleTeamSerialSwap = async (teamId: string, newSerialNumber: number) => {
-    if (session.draftStatus === "active") {
+    if (session?.draftStatus === "active") {
       alert("Draft is active. You cannot change team serials.");
       return;
     }
     await updateTeam(teamId, { serialNumber: newSerialNumber });
-    await fetchData();
+    await fetchAll({ silent: true, force: true });
   };
 
-  const updateTeam = async (id: string, updates: any) => {
+  const updateTeam = async (id: string, updates: TeamUpdatePayload) => {
     await fetch(`/api/teams/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -149,19 +155,19 @@ export default function TeamManagement() {
   const deleteTeam = async (id: string) => {
     if (!confirm("Are you sure you want to delete this team?")) return;
     await fetch(`/api/teams/${id}`, { method: "DELETE" });
-    await fetchData();
+    await fetchAll({ silent: true, force: true });
     socket.emit("state_changed");
   };
 
   const reverseDraftOrder = async () => {
     if (!confirm("Reverse the draft order for all teams?")) return;
     await fetch("/api/teams/reverse", { method: "POST" });
-    await fetchData();
+    await fetchAll({ silent: true, force: true });
     socket.emit("state_changed");
   };
 
-  const handleExportCSV = (team: any) => {
-    const players = team.players || [];
+  const handleExportCSV = (team: ApiTeam) => {
+    const players: ApiPlayer[] = team.players || [];
 
     // Header
     let csv = `Team Report: ${team.name}\n\n`;
@@ -171,10 +177,10 @@ export default function TeamManagement() {
     let totalSpentBDT = BigInt(0);
     let totalSpentUSD = BigInt(0);
 
-    players.forEach((p: any) => {
+    players.forEach((p) => {
       const priceBDT = p.isPreBought ? BigInt(0) : BigInt(p.priceBDT || 0);
       const priceUSD = p.isPreBought ? BigInt(0) : BigInt(p.priceUSD || 0);
-      const country = p.category == "Local" ? "BD" : (p.country || "");
+      const country = p.category === "Local" ? "BD" : (p.country || "");
 
       totalSpentBDT += priceBDT;
       totalSpentUSD += priceUSD;
@@ -328,7 +334,11 @@ export default function TeamManagement() {
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded bg-gray-100 border flex flex-shrink-0 items-center justify-center overflow-hidden">
-                          {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" /> : <span className="text-[10px] font-bold text-gray-400">LOGO</span>}
+                          {team.logoUrl ? (
+                            <Image src={team.logoUrl} alt={`${team.name} logo`} width={40} height={40} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-gray-400">LOGO</span>
+                          )}
                         </div>
                         <div>
                           <div className="font-bold text-gray-900 text-base">{team.name}</div>

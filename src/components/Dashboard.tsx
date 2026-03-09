@@ -1,6 +1,8 @@
 "use client";
 
-export default function Dashboard({ teams, activeTurnTeamId }: { teams: any[], activeTurnTeamId?: string | null }) {
+import type { ApiPlayer, ApiTeam } from "@/types/domain";
+
+export default function Dashboard({ teams, activeTurnTeamId }: { teams: ApiTeam[]; activeTurnTeamId?: string | null }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {teams.map((team) => (
@@ -40,7 +42,7 @@ export default function Dashboard({ teams, activeTurnTeamId }: { teams: any[], a
             <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 border-b pb-1">Drafted Players ({team.players?.length || 0})</h4>
             <div className="space-y-1 mt-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
               {team.players && team.players.length > 0 ? (
-                team.players.map((p: any) => (
+                team.players.map((p: ApiPlayer) => (
                   <div key={p.id} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
                     <div className="truncate pr-2 border-l-2 border-indigo-400 pl-2">
                        <p className="text-sm font-semibold text-gray-800 truncate">{p.name}</p>

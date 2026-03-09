@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { jsonWithBigInt } from "@/lib/serialization";
+import { getErrorMessage, parseInteger, teamCreateSchema, toNullableBigInt } from "@/lib/validation";
 
 export async function GET() {
   const teams = await prisma.team.findMany({
@@ -11,29 +13,39 @@ export async function GET() {
     },
     orderBy: { serialNumber: "asc" }
   });
-  return new NextResponse(JSON.stringify(teams, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-    headers: { "Content-Type": "application/json" }
-  });
+  return jsonWithBigInt(teams);
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const parsed = teamCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = parsed.data;
+    const serialNumber = parseInteger(data.serialNumber);
+    if (!Number.isInteger(serialNumber)) {
+      return NextResponse.json({ error: "serialNumber must be an integer" }, { status: 400 });
+    }
+
     const newTeam = await prisma.team.create({
       data: {
         name: data.name,
-        serialNumber: parseInt(data.serialNumber),
-        budgetBDT: BigInt(data.budgetBDT || "0"),
-        budgetUSD: BigInt(data.budgetUSD || "0"),
+        serialNumber,
+        budgetBDT: toNullableBigInt(data.budgetBDT) ?? BigInt(0),
+        budgetUSD: toNullableBigInt(data.budgetUSD) ?? BigInt(0),
         password: data.password,
         logoUrl: data.logoUrl || null,
         bannerUrl: data.bannerUrl || null,
       }
     });
-    return new NextResponse(JSON.stringify(newTeam, (_, v) => typeof v === 'bigint' ? v.toString() : v), {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return jsonWithBigInt(newTeam);
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }

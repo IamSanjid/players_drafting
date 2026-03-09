@@ -1,6 +1,14 @@
 import { useState } from "react";
+import Image from "next/image";
+import type { ApiDraftSession, ApiPick, ApiPlayer, ApiTeam } from "@/types/domain";
 
-export default function DraftOrderList({ teams, activeTurnTeamId, session }: { teams: any[], activeTurnTeamId?: string | null, session?: any }) {
+type DraftOrderListProps = {
+  teams: ApiTeam[];
+  activeTurnTeamId?: string | null;
+  session?: ApiDraftSession | null;
+};
+
+export default function DraftOrderList({ teams, activeTurnTeamId, session }: DraftOrderListProps) {
   // Sort teams by serial
   const sortedTeams = [...teams].sort((a, b) => a.serialNumber - b.serialNumber);
   
@@ -37,27 +45,31 @@ export default function DraftOrderList({ teams, activeTurnTeamId, session }: { t
   )
 }
 
-function TeamDraftCard({ team, isActive, activeSerial, isDraftActive }: { team: any, isActive: boolean, activeSerial: number | null, isDraftActive: boolean }) {
+function TeamDraftCard({ team, isActive, activeSerial, isDraftActive }: { team: ApiTeam; isActive: boolean; activeSerial: number | null; isDraftActive: boolean }) {
   const [tab, setTab] = useState<"Local" | "Oversea">("Local");
 
-  const localPlayers = team.players?.filter((p: any) => p.category === "Local") || [];
-  const overseaPlayers = team.players?.filter((p: any) => p.category === "Oversea") || [];
+  const localPlayers = team.players?.filter((p) => p.category === "Local") || [];
+  const overseaPlayers = team.players?.filter((p) => p.category === "Oversea") || [];
 
-  const spentBDT = localPlayers.reduce((acc: number, p: any) => acc + (p.priceBDT || 0), 0);
-  const spentUSD = overseaPlayers.reduce((acc: number, p: any) => acc + (p.priceUSD || 0), 0);
+  const spentBDT = localPlayers.reduce((acc, p) => acc + Number(p.priceBDT || 0), 0);
+  const spentUSD = overseaPlayers.reduce((acc, p) => acc + Number(p.priceUSD || 0), 0);
   
-  const localPicks = team.picks?.filter((pick: any) => pick.player?.category === "Local") || [];
-  const lastLocalTarget = localPicks.length > 0 ? localPicks[localPicks.length - 1].player : null;
+  const localPicks = team.picks?.filter((pick) => pick.player?.category === "Local") || [];
+  const lastLocalTarget = localPicks.length > 0 ? (localPicks[localPicks.length - 1] as ApiPick).player as ApiPlayer | undefined : undefined;
 
-  const overseaPicks = team.picks?.filter((pick: any) => pick.player?.category === "Oversea") || [];
-  const lastOverseaTarget = overseaPicks.length > 0 ? overseaPicks[overseaPicks.length - 1].player : null;
+  const overseaPicks = team.picks?.filter((pick) => pick.player?.category === "Oversea") || [];
+  const lastOverseaTarget = overseaPicks.length > 0 ? (overseaPicks[overseaPicks.length - 1] as ApiPick).player as ApiPlayer | undefined : undefined;
 
   return (
     <div className={`bg-white rounded-xl shadow-sm border-2 transition-all ${isActive ? 'border-blue-500 ring-4 ring-blue-100 scale-[1.02] z-10' : 'border-gray-100'} overflow-hidden flex flex-col`}>
       <div className={`p-3 ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-900'} border-b flex justify-between items-center`}>
         <div className="flex items-center gap-2">
           <div className={`w-8 h-8 rounded border overflow-hidden flex-shrink-0 flex items-center justify-center ${isActive ? 'bg-white/20 border-white/30' : 'bg-white border-gray-200 shadow-sm'}`}>
-             {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-contain" /> : <span className={`text-[8px] font-bold ${isActive ? 'text-white/60' : 'text-gray-400'}`}>LOGO</span>}
+             {team.logoUrl ? (
+               <Image src={team.logoUrl} alt={`${team.name} logo`} width={32} height={32} className="w-full h-full object-contain" />
+             ) : (
+               <span className={`text-[8px] font-bold ${isActive ? 'text-white/60' : 'text-gray-400'}`}>LOGO</span>
+             )}
           </div>
           <div>
             <div className={`text-[10px] uppercase tracking-wider opacity-80 font-bold ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>Pick #{team.serialNumber}</div>
@@ -86,7 +98,7 @@ function TeamDraftCard({ team, isActive, activeSerial, isDraftActive }: { team: 
              </div>
              <div className="flex justify-between text-[10px]">
                <span className="text-gray-500 font-semibold">Avail:</span>
-               <span className="font-mono text-green-600 font-bold">৳{Number(team.budgetBDT).toLocaleString()}</span>
+               <span className="font-mono text-green-600 font-bold">৳{Number(team.budgetBDT || 0).toLocaleString()}</span>
              </div>
              <div className="bg-gray-50 p-1.5 rounded border mt-2">
                <div className="text-[8px] uppercase text-gray-400 font-bold">Last Pick</div>
@@ -103,7 +115,7 @@ function TeamDraftCard({ team, isActive, activeSerial, isDraftActive }: { team: 
              </div>
              <div className="flex justify-between text-[10px]">
                <span className="text-gray-500 font-semibold">Avail:</span>
-               <span className="font-mono text-green-600 font-bold">${Number(team.budgetUSD).toLocaleString()}</span>
+               <span className="font-mono text-green-600 font-bold">${Number(team.budgetUSD || 0).toLocaleString()}</span>
              </div>
               <div className="bg-gray-50 p-1.5 rounded border mt-2">
                <div className="text-[8px] uppercase text-gray-400 font-bold">Last Pick</div>

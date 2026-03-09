@@ -1,17 +1,28 @@
 import { useState } from "react";
+import Image from "next/image";
+import type { ApiPlayer, ApiTeam } from "@/types/domain";
 
-export function TeamProfile({ team }: { team: any }) {
+const toBigInt = (value: string | null | undefined): bigint => {
+  if (!value) {
+    return BigInt(0);
+  }
+  return BigInt(value);
+};
+
+export function TeamProfile({ team }: { team: ApiTeam }) {
   const [tab, setTab] = useState<"Local" | "Oversea">("Local");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
 
-  const localPlayers = team.players?.filter((p: any) => p.category === "Local") || [];
-  const overseaPlayers = team.players?.filter((p: any) => p.category === "Oversea") || [];
+  const localPlayers = team.players?.filter((p) => p.category === "Local") || [];
+  const overseaPlayers = team.players?.filter((p) => p.category === "Oversea") || [];
 
-  const spentBDT: bigint = localPlayers.filter((p: any) => !p.isPreBought)
-    .reduce((acc: bigint, p: any) => acc + (BigInt(p.priceBDT) || BigInt(0)), BigInt(0));
-  const spentUSD: bigint = overseaPlayers.filter((p: any) => !p.isPreBought)
-    .reduce((acc: bigint, p: any) => acc + (BigInt(p.priceUSD) || BigInt(0)), BigInt(0));
+  const spentBDT: bigint = localPlayers
+    .filter((p) => !p.isPreBought)
+    .reduce((acc, p) => acc + toBigInt(p.priceBDT), BigInt(0));
+  const spentUSD: bigint = overseaPlayers
+    .filter((p) => !p.isPreBought)
+    .reduce((acc, p) => acc + toBigInt(p.priceUSD), BigInt(0));
 
   const displayPlayers = tab === "Local" ? localPlayers : overseaPlayers;
   const totalPages = Math.ceil(displayPlayers.length / itemsPerPage);
@@ -28,7 +39,13 @@ export function TeamProfile({ team }: { team: any }) {
       {/* Team Header with Banner and Logo */}
       <div className="relative mb-6 rounded-xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-900 shadow-lg border border-white/20 h-32 flex-shrink-0">
         {team.bannerUrl ? (
-          <img src={team.bannerUrl} className="w-full h-full object-cover opacity-90" alt="" />
+          <Image
+            src={team.bannerUrl}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 100vw, 28rem"
+            className="object-cover opacity-90"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="text-white/10 font-black text-4xl italic tracking-tighter uppercase select-none">FRANCHISE</span>
@@ -40,7 +57,15 @@ export function TeamProfile({ team }: { team: any }) {
         <div className="absolute bottom-4 left-4 flex items-center gap-3">
           <div className="w-14 h-14 rounded-xl bg-white p-1.5 shadow-2xl flex-shrink-0 border-2 border-white/50">
             {team.logoUrl ? (
-              <img src={team.logoUrl} className="w-full h-full object-contain" alt={team.name} />
+              <div className="relative w-full h-full">
+                <Image
+                  src={team.logoUrl}
+                  alt={`${team.name} logo`}
+                  fill
+                  sizes="56px"
+                  className="object-contain"
+                />
+              </div>
             ) : (
               <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-lg">{team.name.charAt(0)}</div>
             )}
@@ -58,14 +83,14 @@ export function TeamProfile({ team }: { team: any }) {
           <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">BDT Status</div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-red-500">Spent: ৳{spentBDT.toLocaleString()}</span>
-            <span className="text-sm font-black text-emerald-600 mt-0.5">Avail: ৳{BigInt(team.budgetBDT).toLocaleString()}</span>
+            <span className="text-sm font-black text-emerald-600 mt-0.5">Avail: ৳{toBigInt(team.budgetBDT).toLocaleString()}</span>
           </div>
         </div>
         <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
           <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">USD Status</div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-red-500">Spent: ${spentUSD.toLocaleString()}</span>
-            <span className="text-sm font-black text-blue-600 mt-0.5">Avail: ${BigInt(team.budgetUSD).toLocaleString()}</span>
+            <span className="text-sm font-black text-blue-600 mt-0.5">Avail: ${toBigInt(team.budgetUSD).toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -87,7 +112,7 @@ export function TeamProfile({ team }: { team: any }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {currentPlayers.map((p: any) => (
+              {currentPlayers.map((p: ApiPlayer) => (
                 <tr key={p.id} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-3 py-2.5">
                     <div className="font-bold text-gray-900">{p.name}</div>
@@ -145,7 +170,7 @@ export function TeamProfile({ team }: { team: any }) {
   )
 }
 
-export default function TeamDetailsPanel({ teams, currentTeamId }: { teams: any[], currentTeamId: string }) {
+export default function TeamDetailsPanel({ teams, currentTeamId }: { teams: ApiTeam[]; currentTeamId: string }) {
   const [activeTab, setActiveTab] = useState<"Team" | "Others">("Team");
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
 

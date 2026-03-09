@@ -4,6 +4,10 @@ import { useState } from "react";
 import Papa from "papaparse";
 import { getSocket } from "@/lib/socketClient";
 
+type CsvRow = Record<string, string>;
+type MappingKey = "name" | "category" | "subCategory" | "position" | "priceBDT" | "priceUSD" | "country" | "availability" | "imageUrl";
+type MappingState = Record<MappingKey, string>;
+
 function getProperAvailability(value: string): string {
   const valueLower = value.toLowerCase();
   if (valueLower.includes("full") && valueLower.includes("time")) {
@@ -16,7 +20,7 @@ function getProperAvailability(value: string): string {
 }
 
 export default function CSVBulkUploader({ onImportComplete }: { onImportComplete: () => void }) {
-  const [csvData, setCsvData] = useState<any[]>([]);
+  const [csvData, setCsvData] = useState<CsvRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +30,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Mapping state: key is DB field, value is CSV header name
-  const [mapping, setMapping] = useState<{ [key: string]: string }>({
+  const [mapping, setMapping] = useState<MappingState>({
     name: "",
     category: "",
     subCategory: "",
@@ -40,6 +44,14 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
 
   const socket = getSocket();
 
+  const normalizeRow = (row: Record<string, unknown>): CsvRow => {
+    const normalized: CsvRow = {};
+    Object.entries(row).forEach(([key, value]) => {
+      normalized[key] = value == null ? "" : String(value);
+    });
+    return normalized;
+  };
+
   const processFile = (file: File) => {
     Papa.parse(file, {
       header: hasHeaders,
@@ -51,19 +63,19 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
         }
 
         let parsedHeaders: string[] = [];
-        let parsedData: any[] = [];
+        let parsedData: CsvRow[] = [];
 
         if (hasHeaders) {
           parsedHeaders = results.meta.fields || [];
-          parsedData = results.data;
+          parsedData = (results.data as Record<string, unknown>[]).map(normalizeRow);
         } else {
-          const rawData = results.data as any[][];
+          const rawData = results.data as unknown[][];
           if (rawData.length > 0) {
             parsedHeaders = rawData[0].map((val, i) => `Col ${i + 1} (${val})`);
-            parsedData = rawData.map(row => {
-              const obj: any = {};
+            parsedData = rawData.map((row) => {
+              const obj: CsvRow = {};
               row.forEach((cell, i) => {
-                obj[parsedHeaders[i]] = cell;
+                obj[parsedHeaders[i]] = cell == null ? "" : String(cell);
               });
               return obj;
             });
@@ -78,7 +90,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
         const newMapping = { ...mapping };
         const lowerHeaders = parsedHeaders.map(h => h.toLowerCase());
 
-        Object.keys(newMapping).forEach(dbField => {
+        (Object.keys(newMapping) as MappingKey[]).forEach((dbField) => {
           const matchIndex = lowerHeaders.findIndex(h => h === dbField.toLowerCase() || h.includes(dbField.toLowerCase()));
           if (matchIndex !== -1) {
             newMapping[dbField] = parsedHeaders[matchIndex];
@@ -131,7 +143,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
     setError(null);
 
     // Transform CSV data to DB shape using the mapping
-    const payload = csvData.map(row => {
+    const payload = csvData.map((row) => {
       const rowCategory = (mapping.category && row[mapping.category]) ? row[mapping.category] : globalCategory;
       return {
         name: row[mapping.name],
@@ -141,7 +153,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
         priceBDT: mapping.priceBDT ? row[mapping.priceBDT] : null,
         priceUSD: mapping.priceUSD ? row[mapping.priceUSD] : null,
         country: mapping.country ? row[mapping.country] : null,
-        availability: mapping.availability ? getProperAvailability(row[mapping.availability]) : null,
+        availability: mapping.availability ? getProperAvailability(row[mapping.availability] || "") : null,
         imageUrl: mapping.imageUrl ? row[mapping.imageUrl] : null,
       };
     });
@@ -161,8 +173,8 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
       setCsvData([]); // Reset
       setHeaders([]);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setUploading(false);
     }
@@ -208,18 +220,18 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
                           return;
                         }
                         let parsedHeaders: string[] = [];
-                        let parsedData: any[] = [];
+                        let parsedData: CsvRow[] = [];
                         if (val) {
                           parsedHeaders = results.meta.fields || [];
-                          parsedData = results.data;
+                          parsedData = (results.data as Record<string, unknown>[]).map(normalizeRow);
                         } else {
-                          const rawData = results.data as any[][];
+                          const rawData = results.data as unknown[][];
                           if (rawData.length > 0) {
                             parsedHeaders = rawData[0].map((val, i) => `Col ${i + 1} (${val})`);
-                            parsedData = rawData.map(row => {
-                              const obj: any = {};
+                            parsedData = rawData.map((row) => {
+                              const obj: CsvRow = {};
                               row.forEach((cell, i) => {
-                                obj[parsedHeaders[i]] = cell;
+                                obj[parsedHeaders[i]] = cell == null ? "" : String(cell);
                               });
                               return obj;
                             });
@@ -245,7 +257,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
     );
   }
 
-  const dbFields = [
+  const dbFields: Array<{ key: MappingKey; label: string; req: boolean }> = [
     { key: "name", label: "Player Name", req: true },
     { key: "category", label: "Category (Oversea/Local)", req: !globalCategory },
     { key: "subCategory", label: "Sub-Category (A-Z)", req: true },

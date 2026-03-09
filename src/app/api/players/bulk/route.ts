@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { bulkPlayersSchema, categoryQuerySchema, getErrorMessage, toNullableBigInt } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json(); // Expected to be an array of player objects
-    
-    if (!Array.isArray(data) || data.length === 0) {
-      return NextResponse.json({ error: "No players provided for import" }, { status: 400 });
+    const body = await request.json();
+    const parsed = bulkPlayersSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
 
+    const data = parsed.data;
+
     const result = await prisma.$transaction(
-      data.map((player: any) => {
+      data.map((player) => {
         return prisma.player.create({
           data: {
             name: player.name,
             category: player.category, // "Oversea" | "Local"
             subCategory: player.subCategory,
             position: player.position,
-            priceBDT: player.priceBDT ? BigInt(player.priceBDT) : null,
-            priceUSD: player.priceUSD ? BigInt(player.priceUSD) : null,
+            priceBDT: toNullableBigInt(player.priceBDT) ?? null,
+            priceUSD: toNullableBigInt(player.priceUSD) ?? null,
             country: player.country || null,
             availability: player.availability || null,
             imageUrl: player.imageUrl || null,
@@ -30,26 +36,30 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json({ success: true, count: result.length });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category");
-
-    if (!category) {
-      return NextResponse.json({ error: "Category is required for bulk deletion" }, { status: 400 });
+    const parsed = categoryQuerySchema.safeParse({ category: searchParams.get("category") });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Category is required for bulk deletion", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
+
+    const { category } = parsed.data;
 
     // Capture players to delete picks
     const playersToDelete = await prisma.player.findMany({
       where: { category },
       select: { id: true }
     });
-    const playerIds = playersToDelete.map((p: any) => p.id);
+    const playerIds = playersToDelete.map((p) => p.id);
 
     await prisma.$transaction([
       prisma.pick.deleteMany({ where: { playerId: { in: playerIds } } }),
@@ -57,7 +67,7 @@ export async function DELETE(request: Request) {
     ]);
 
     return NextResponse.json({ success: true, deletedCount: playerIds.length });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

@@ -2,41 +2,49 @@
 
 import { useState, useEffect } from "react";
 import { getSocket } from "@/lib/socketClient";
+import { useDraftStore } from "@/lib/draftStore";
+
+type SessionUpdatePayload = Partial<{
+  isActive: boolean;
+  draftStatus: "idle" | "active" | "paused" | "ended";
+  allowedCategories: "Both" | "Oversea" | "Local";
+  activeCategory: "Oversea" | "Local";
+  currentTurnTeamId: string | null;
+  draftOrder: string;
+  draftRound: number;
+  draftStartedAt: string | null;
+}>;
 
 export default function SessionControls() {
-  const [session, setSession] = useState<any>(null);
-  const [teams, setTeams] = useState<any[]>([]);
+  const session = useDraftStore((state) => state.session);
+  const teams = useDraftStore((state) => state.teams);
+  const loading = useDraftStore((state) => state.loading);
+  const fetchAll = useDraftStore((state) => state.fetchAll);
   const [showEndWarning, setShowEndWarning] = useState(false);
   const socket = getSocket();
 
-  const fetchData = async () => {
-    const [sRes, tRes] = await Promise.all([fetch("/api/session"), fetch("/api/teams")]);
-    setSession(await sRes.json());
-    setTeams(await tRes.json());
-  };
-
   useEffect(() => {
-    fetchData();
-    socket.on("state_changed", fetchData);
-    return () => { socket.off("state_changed", fetchData); };
-  }, []);
+    if (!session) {
+      void fetchAll();
+    }
+  }, [fetchAll, session]);
 
-  const updateSession = async (updates: any) => {
+  const updateSession = async (updates: SessionUpdatePayload) => {
     await fetch("/api/session", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
+    await fetchAll({ silent: true, force: true });
     socket.emit("state_changed");
-    fetchData();
   };
 
   const handleStartNewDraft = async () => {
     // Sort teams by serial and persist draft order
     const sortedTeams = [...teams].sort((a, b) => a.serialNumber - b.serialNumber);
     if (sortedTeams.length === 0) return alert("Add teams first before starting a draft.");
-    const draftOrderIds = sortedTeams.map(t => t.id);
-    const nextRound = (session.draftRound || 0) + 1;
+    const draftOrderIds = sortedTeams.map((t) => t.id);
+    const nextRound = (session?.draftRound || 0) + 1;
     await updateSession({
       isActive: true,
       draftStatus: "active",
@@ -56,8 +64,15 @@ export default function SessionControls() {
   };
 
   const handleEndDraft = async (force = false) => {
-    const teamsWithNoPicks = teams.filter(t => (t.picks?.length || 0) == 0
-      || t.picks.every((p: any) => p.createdAt < session.draftStartedAt));
+    const teamsWithNoPicks = teams.filter((t) =>
+      (t.picks?.length || 0) === 0 ||
+      t.picks.every((p) => {
+        if (!session?.draftStartedAt) {
+          return false;
+        }
+        return p.createdAt < session.draftStartedAt;
+      }),
+    );
     if (!force && teamsWithNoPicks.length > 0) {
       setShowEndWarning(true);
       return;
@@ -66,11 +81,23 @@ export default function SessionControls() {
     await updateSession({ isActive: false, draftStatus: "ended", currentTurnTeamId: null });
   };
 
-  if (!session) return <div className="animate-pulse h-20 bg-gray-200 rounded-xl" />;
+  if (!session) {
+    if (loading) {
+      return <div className="animate-pulse h-20 bg-gray-200 rounded-xl" />;
+    }
+    return <div className="h-20 bg-gray-50 rounded-xl border border-gray-100" />;
+  }
 
   const status = session.draftStatus || "idle";
-  const teamsWithNoPicks = teams.filter(t => (t.picks?.length || 0) == 0
-    || t.picks.every((p: any) => p.createdAt < session.draftStartedAt));
+  const teamsWithNoPicks = teams.filter((t) =>
+    (t.picks?.length || 0) === 0 ||
+    t.picks.every((p) => {
+      if (!session?.draftStartedAt) {
+        return false;
+      }
+      return p.createdAt < session.draftStartedAt;
+    }),
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 flex flex-col gap-6">
@@ -141,9 +168,9 @@ export default function SessionControls() {
       {/* End Warning Modal */}
       {showEndWarning && (
         <div className="bg-amber-50 border border-amber-300 rounded-xl p-4">
-          <p className="font-bold text-amber-800 mb-1">⚠ Warning: Teams Haven't Drafted</p>
+          <p className="font-bold text-amber-800 mb-1">⚠ Warning: Teams Haven&apos;t Drafted</p>
           <p className="text-sm text-amber-700 mb-3">
-            {teamsWithNoPicks.length} team(s) haven't made any picks yet: <strong>{teamsWithNoPicks.map(t => t.name).join(", ")}</strong>.
+            {teamsWithNoPicks.length} team(s) haven&apos;t made any picks yet: <strong>{teamsWithNoPicks.map((t) => t.name).join(", ")}</strong>.
             Are you sure you want to force-end the draft?
           </p>
           <div className="flex gap-3">
@@ -161,7 +188,7 @@ export default function SessionControls() {
             value={session.allowedCategories}
             onChange={(e) => {
               const newVal = e.target.value;
-              const updates: any = { allowedCategories: newVal };
+              const updates: SessionUpdatePayload = { allowedCategories: newVal as SessionUpdatePayload["allowedCategories"] };
 
               // Automatically switch active category if only one is allowed
               if (newVal === "Local") updates.activeCategory = "Local";
@@ -182,7 +209,7 @@ export default function SessionControls() {
           <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Active Category</h3>
           <select
             value={session.activeCategory}
-            onChange={(e) => updateSession({ activeCategory: e.target.value })}
+            onChange={(e) => updateSession({ activeCategory: e.target.value as "Oversea" | "Local" })}
             disabled={session.allowedCategories !== "Both"}
             className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 disabled:opacity-50"
           >
