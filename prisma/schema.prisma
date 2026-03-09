@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model DraftSession {
+  id                String    @id @default(uuid())
+  isActive          Boolean   @default(false)
+  draftStatus       String    @default("idle") // "idle" | "active" | "paused" | "ended"
+  allowedCategories String    @default("Both") // "Both" | "Oversea" | "Local"
+  activeCategory    String    @default("Oversea") // "Oversea" | "Local"
+  currentTurnTeamId String?   // Whose turn it is right now
+  draftOrder        String?   // JSON array of team IDs in draft order (stored for restore)
+  draftRound        Int       @default(0) // Current round number
+  draftStartedAt    DateTime? // Timestamp when the current draft session started
+}
+
+model Team {
+  id           String @id @default(uuid())
+  name         String
+  serialNumber Int    // Used to determine draft order
+  budgetBDT    BigInt @default(0) // Can be manually adjusted by Admin
+  budgetUSD    BigInt @default(0) // Can be manually adjusted by Admin
+  password     String // Simple auth for the `/team` route
+  logoUrl      String?
+  bannerUrl    String?
+  picks        Pick[]
+  players      Player[] // Opposite relation field for Player.team
+}
+
+model Player {
+  id            String  @id @default(uuid())
+  name          String
+  category      String  // "Oversea" | "Local"
+  subCategory   String  // "A", "B", "C", etc.
+  position      String
+  
+  // Local Specific
+  priceBDT      BigInt?
+  
+  // Oversea Specific
+  priceUSD      BigInt?
+  country       String?
+  availability  String? // "Custom", "Partial", "Full-Time"
+  
+  imageUrl      String?
+  isPreBought   Boolean @default(false)
+
+  // Draft relation
+  teamId        String? // If set, player is drafted
+  team          Team?   @relation(fields: [teamId], references: [id])
+  pick          Pick?
+}
+
+model Pick {
+  id        String   @id @default(uuid())
+  teamId    String
+  playerId  String   @unique
+  team      Team     @relation(fields: [teamId], references: [id])
+  player    Player   @relation(fields: [playerId], references: [id])
+  createdAt DateTime @default(now())
+}

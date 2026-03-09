@@ -1,0 +1,314 @@
+"use client";
+
+import { useState } from "react";
+import Papa from "papaparse";
+import { getSocket } from "@/lib/socketClient";
+
+function getProperAvailability(value: string): string {
+  const valueLower = value.toLowerCase();
+  if (valueLower.includes("full") && valueLower.includes("time")) {
+    return "Full-Time";
+  }
+  if (valueLower.includes("partial")) {
+    return "Partial";
+  }
+  return "Custom";
+}
+
+export default function CSVBulkUploader({ onImportComplete }: { onImportComplete: () => void }) {
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [globalCategory, setGlobalCategory] = useState<string>("");
+  const [hasHeaders, setHasHeaders] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Mapping state: key is DB field, value is CSV header name
+  const [mapping, setMapping] = useState<{ [key: string]: string }>({
+    name: "",
+    category: "",
+    subCategory: "",
+    position: "",
+    priceBDT: "",
+    priceUSD: "",
+    country: "",
+    availability: "",
+    imageUrl: ""
+  });
+
+  const socket = getSocket();
+
+  const processFile = (file: File) => {
+    Papa.parse(file, {
+      header: hasHeaders,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          setError("Error parsing CSV: " + results.errors[0].message);
+          return;
+        }
+
+        let parsedHeaders: string[] = [];
+        let parsedData: any[] = [];
+
+        if (hasHeaders) {
+          parsedHeaders = results.meta.fields || [];
+          parsedData = results.data;
+        } else {
+          const rawData = results.data as any[][];
+          if (rawData.length > 0) {
+            parsedHeaders = rawData[0].map((val, i) => `Col ${i + 1} (${val})`);
+            parsedData = rawData.map(row => {
+              const obj: any = {};
+              row.forEach((cell, i) => {
+                obj[parsedHeaders[i]] = cell;
+              });
+              return obj;
+            });
+          }
+        }
+
+        setHeaders(parsedHeaders);
+        setCsvData(parsedData);
+        setError(null);
+
+        // Auto-map if headers match exactly (case insensitive)
+        const newMapping = { ...mapping };
+        const lowerHeaders = parsedHeaders.map(h => h.toLowerCase());
+
+        Object.keys(newMapping).forEach(dbField => {
+          const matchIndex = lowerHeaders.findIndex(h => h === dbField.toLowerCase() || h.includes(dbField.toLowerCase()));
+          if (matchIndex !== -1) {
+            newMapping[dbField] = parsedHeaders[matchIndex];
+          }
+        });
+        setMapping(newMapping);
+      }
+    });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      processFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+        setSelectedFile(file);
+        processFile(file);
+      } else {
+        setError("Please upload a valid CSV file.");
+      }
+    }
+  };
+
+  const handleImport = async () => {
+    if (!mapping.name || (!mapping.category && !globalCategory) || !mapping.subCategory || !mapping.position) {
+      setError("Name, SubCategory, Position, and either a mapped Category or Global Category are required.");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    // Transform CSV data to DB shape using the mapping
+    const payload = csvData.map(row => {
+      const rowCategory = (mapping.category && row[mapping.category]) ? row[mapping.category] : globalCategory;
+      return {
+        name: row[mapping.name],
+        category: rowCategory,
+        subCategory: row[mapping.subCategory],
+        position: row[mapping.position],
+        priceBDT: mapping.priceBDT ? row[mapping.priceBDT] : null,
+        priceUSD: mapping.priceUSD ? row[mapping.priceUSD] : null,
+        country: mapping.country ? row[mapping.country] : null,
+        availability: mapping.availability ? getProperAvailability(row[mapping.availability]) : null,
+        imageUrl: mapping.imageUrl ? row[mapping.imageUrl] : null,
+      };
+    });
+
+    try {
+      const res = await fetch("/api/players/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      socket.emit("state_changed"); // Notify connected clients
+      onImportComplete(); // Close modal/refresh parent
+      setCsvData([]); // Reset
+      setHeaders([]);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (csvData.length === 0) {
+    return (
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition ${isDragging ? "border-indigo-500 bg-indigo-50 shadow-inner" : "border-gray-300 hover:bg-gray-50"
+          }`}
+      >
+        <label className="cursor-pointer block">
+          <svg className={`mx-auto h-12 w-12 transition ${isDragging ? "text-indigo-500 scale-110" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span className={`mt-2 block text-sm font-semibold transition ${isDragging ? "text-indigo-700" : "text-gray-900"}`}>
+            {isDragging ? "Drop your CSV here" : "Upload CSV File"}
+          </span>
+          <span className="mt-1 block text-xs text-gray-300">Drag & Drop or Click.</span>
+          <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+        </label>
+
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={hasHeaders}
+                onChange={(e) => {
+                  const val = e.target.checked;
+                  setHasHeaders(val);
+                  if (selectedFile) {
+                    // Re-parse with the new setting
+                    Papa.parse(selectedFile, {
+                      header: val,
+                      skipEmptyLines: true,
+                      complete: (results) => {
+                        if (results.errors.length > 0) {
+                          setError("Error parsing CSV: " + results.errors[0].message);
+                          return;
+                        }
+                        let parsedHeaders: string[] = [];
+                        let parsedData: any[] = [];
+                        if (val) {
+                          parsedHeaders = results.meta.fields || [];
+                          parsedData = results.data;
+                        } else {
+                          const rawData = results.data as any[][];
+                          if (rawData.length > 0) {
+                            parsedHeaders = rawData[0].map((val, i) => `Col ${i + 1} (${val})`);
+                            parsedData = rawData.map(row => {
+                              const obj: any = {};
+                              row.forEach((cell, i) => {
+                                obj[parsedHeaders[i]] = cell;
+                              });
+                              return obj;
+                            });
+                          }
+                        }
+                        setHeaders(parsedHeaders);
+                        setCsvData(parsedData);
+                      }
+                    });
+                  }
+                }}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+            </div>
+            <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+              CSV contains headers?
+            </span>
+          </label>
+        </div>
+
+        {error && <div className="mt-4 text-xs font-bold text-red-500">{error}</div>}
+      </div>
+    );
+  }
+
+  const dbFields = [
+    { key: "name", label: "Player Name", req: true },
+    { key: "category", label: "Category (Oversea/Local)", req: !globalCategory },
+    { key: "subCategory", label: "Sub-Category (A-Z)", req: true },
+    { key: "position", label: "Position", req: true },
+    { key: "priceBDT", label: "Price (BDT)", req: false },
+    { key: "priceUSD", label: "Price (USD)", req: false },
+    { key: "country", label: "Country", req: false },
+    { key: "availability", label: "Availability", req: false },
+    { key: "imageUrl", label: "Image URL", req: false },
+  ];
+
+  return (
+    <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-indigo-50 px-4 py-3 border-b flex justify-between items-center">
+        <div>
+          <h3 className="font-bold text-indigo-900">Map CSV Columns</h3>
+          <p className="text-xs text-indigo-700">Found {csvData.length} rows. Match your CSV headers to the Database fields.</p>
+        </div>
+        <button onClick={() => setCsvData([])} className="text-sm font-medium text-gray-500 hover:text-gray-700">Cancel</button>
+      </div>
+
+      {error && <div className="bg-red-50 text-red-600 p-3 text-sm font-medium border-b border-red-100">{error}</div>}
+
+      <div className="px-4 py-3 bg-white border-b flex items-center gap-4">
+        <label className="text-sm font-bold text-gray-700">Global Category (if not in CSV):</label>
+        <select
+          value={globalCategory}
+          onChange={(e) => setGlobalCategory(e.target.value)}
+          className="border-gray-300 rounded text-sm focus:ring-indigo-500 text-gray-900 bg-white shadow-sm font-medium"
+        >
+          <option value="">-- None (Must map from CSV) --</option>
+          <option value="Oversea">Oversea</option>
+          <option value="Local">Local</option>
+        </select>
+      </div>
+
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto bg-gray-50">
+        {dbFields.map(field => (
+          <div key={field.key} className="flex flex-col bg-white p-3 rounded-lg border shadow-sm">
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex justify-between">
+              {field.label} {field.req && <span className="text-red-500">*</span>}
+            </label>
+            <select
+              value={mapping[field.key]}
+              onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+              className="w-full border-gray-300 rounded text-sm focus:ring-indigo-500 text-gray-900 bg-white shadow-sm font-medium"
+            >
+              <option value="" className="text-gray-500">-- Ignore --</option>
+              {headers.map(h => <option key={h} value={h} className="text-gray-900">{h}</option>)}
+            </select>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-gray-50 px-4 py-3 border-t flex justify-end">
+        <button
+          onClick={handleImport}
+          disabled={uploading}
+          className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 disabled:opacity-50 transition"
+        >
+          {uploading ? "Importing..." : `Import ${csvData.length} Players`}
+        </button>
+      </div>
+    </div>
+  );
+}

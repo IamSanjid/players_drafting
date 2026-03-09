@@ -1,0 +1,304 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { getSocket } from "@/lib/socketClient";
+
+export default function PlayerSelectionGrid({ 
+  players, 
+  session, 
+  currentTeamId,
+  teams,
+  readOnly = false,
+  showAllCategories = false,
+}: { 
+  players: any[], 
+  session: any, 
+  currentTeamId?: string | null,
+  teams: any[],
+  readOnly?: boolean,
+  showAllCategories?: boolean,
+}) {
+  const socket = getSocket();
+  const [activeTabCategory, setActiveTabCategory] = useState<"Oversea" | "Local">("Oversea");
+  const [activeSubCategory, setActiveSubCategory] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+  const [draftingPlayerId, setDraftingPlayerId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const isMyTurn = session?.currentTurnTeamId === currentTeamId && session?.isActive;
+  
+  // If showAllCategories is true (public view), never lock tabs regardless of admin session settings
+  const isTabsLocked = !showAllCategories && session?.allowedCategories !== "Both";
+  const lockedCategory = isTabsLocked ? (session?.allowedCategories === "Local" ? "Local" : session?.allowedCategories === "Oversea" ? "Oversea" : null) : null;
+  const currentCategory = lockedCategory || activeTabCategory;
+
+  const filteredPlayers = useMemo(() => {
+    setCurrentPage(1); // Reset to first page on filter change
+    return players.filter(p => {
+      if (p.category !== currentCategory) return false;
+      if (activeSubCategory !== "All" && p.subCategory !== activeSubCategory) return false;
+      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [players, currentCategory, activeSubCategory, searchQuery]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage);
+  const paginatedPlayers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPlayers.slice(start, start + itemsPerPage);
+  }, [filteredPlayers, currentPage]);
+
+  const draftPlayer = async (playerId: string) => {
+    if (!isMyTurn) return;
+    setError(null);
+    setDraftingPlayerId(playerId);
+    
+    try {
+      const res = await fetch("/api/draft/pick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId: currentTeamId, playerId })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      // Success, notify real-time server
+      socket.emit("pick_made", data); // Custom animated event for Public UI
+      socket.emit("state_changed");   // Generic refresh state
+      
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDraftingPlayerId(null);
+    }
+  };
+
+  const getSubcategories = () => {
+    const cats = new Set(players.filter(p => p.category === currentCategory).map(p => p.subCategory));
+    return Array.from(cats).sort();
+  };
+
+  const subCategories = getSubcategories();
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden h-full">
+      <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+          {/* Category Tabs */}
+          <div className="flex space-x-1 p-1 bg-gray-200 rounded-lg">
+            <button 
+              disabled={lockedCategory === "Local"}
+              onClick={() => setActiveTabCategory("Oversea")}
+              className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                currentCategory === "Oversea" ? "bg-white shadow text-blue-700" : "text-gray-500 hover:text-gray-700"
+              } ${lockedCategory === "Local" ? "opacity-30 cursor-not-allowed hidden" : ""}`}
+            >
+              Oversea Players
+            </button>
+            <button 
+              disabled={lockedCategory === "Oversea"}
+              onClick={() => setActiveTabCategory("Local")}
+              className={`px-6 py-2 rounded-md font-semibold transition-all ${
+                currentCategory === "Local" ? "bg-white shadow text-blue-700" : "text-gray-500 hover:text-gray-700"
+              } ${lockedCategory === "Oversea" ? "opacity-30 cursor-not-allowed hidden" : ""}`}
+            >
+              Local Players
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full md:w-80">
+            <input 
+              type="text" 
+              placeholder={`Search in ${currentCategory}...`} 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+            />
+            <svg className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+        </div>
+
+        {/* Sub Category A-Z Tabs */}
+        <div className="flex overflow-x-auto pb-1 gap-2 custom-scrollbar">
+          <button 
+            onClick={() => setActiveSubCategory("All")}
+            className={`px-5 py-1.5 rounded-full border text-sm font-bold transition-all whitespace-nowrap ${
+              activeSubCategory === "All" ? "bg-blue-600 border-blue-600 text-white shadow-md transform scale-105" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+             All Category
+          </button>
+          
+          {subCategories.map(cat => (
+            <button 
+              key={cat}
+              onClick={() => setActiveSubCategory(cat)}
+              className={`px-5 py-1.5 rounded-full border text-sm font-bold transition-all whitespace-nowrap ${
+                activeSubCategory === cat ? "bg-indigo-600 border-indigo-600 text-white shadow-md transform scale-105" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+               Category {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4 animate-bounce">
+          <p className="text-sm font-medium text-red-800">{error}</p>
+        </div>
+      )}
+
+      {/* Table View */}
+      <div className="flex-1 overflow-hidden flex flex-col bg-slate-50">
+        <div className="overflow-x-auto h-full pr-2 custom-scrollbar">
+          <table className="w-full text-left border-separate border-spacing-y-2 px-4">
+            <thead className="sticky top-0 bg-slate-50 z-10">
+              <tr className="text-gray-500 text-xs uppercase tracking-widest font-black">
+                <th className="px-4 py-3">Player</th>
+                <th className="px-4 py-3">Details</th>
+                <th className="px-4 py-3">Price</th>
+                <th className="px-4 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPlayers.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-20 text-center text-gray-500 font-medium bg-white rounded-xl border border-dashed border-gray-300">
+                    No players found in this category.
+                  </td>
+                </tr>
+              ) : (
+                paginatedPlayers.map((p) => {
+                  const isDrafted = p.teamId !== null;
+                  const myPlayer = p.teamId === currentTeamId;
+                  const price = p.category === "Local" ? p.priceBDT : p.priceUSD;
+                  const currency = p.category === "Local" ? "BDT" : "USD";
+                  
+                  const draftingTeam = p.teamId ? teams.find(t => t.id === p.teamId) : null;
+                  
+                  let rowStyle = "bg-white border-gray-200 hover:shadow-md hover:border-blue-200";
+                  let bgInlineStyle = {};
+                  
+                  if (isDrafted) {
+                    rowStyle = myPlayer ? "bg-emerald-50/80 border-emerald-200" : "bg-gray-100/50 opacity-60";
+                    if (draftingTeam?.bannerUrl) {
+                      bgInlineStyle = {
+                        backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.95), rgba(255,255,255,0.7)), url(${draftingTeam.bannerUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      };
+                    }
+                  }
+
+                  return (
+                    <tr key={p.id} style={bgInlineStyle} className={`transition-all group border rounded-xl shadow-sm ${rowStyle}`}>
+                      <td className="px-4 py-3 rounded-l-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center font-bold text-gray-400">
+                            {p.imageUrl ? <img src={p.imageUrl} className="object-cover w-full h-full" alt="" /> : p.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                           <div className={`font-bold truncate ${isDrafted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{p.name}</div>
+                            {activeSubCategory === "All" && (
+                              <div className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">Category {p.subCategory}</div>
+                            )}
+                            {p.category === "Oversea" && (
+                              <span className="text-[10px] font-black uppercase text-gray-400 border border-gray-200 px-1 rounded inline-block mt-0.5">
+                                {p.availability}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-medium text-gray-700">{p.position}</div>
+                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">{p.country}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                         <div className="font-mono text-sm font-black text-indigo-600">
+                            {Number(price).toLocaleString()} <span className="text-[10px]">{currency}</span>
+                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-right rounded-r-xl">
+                        {isDrafted ? (
+                          <span className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest ${myPlayer ? "bg-emerald-600 text-white" : "bg-gray-200 text-gray-500"}`}>
+                            {myPlayer ? "YOURS" : "DRAFTED"}
+                          </span>
+                        ) : readOnly ? (
+                          <span className="text-[10px] font-black text-gray-300 uppercase italic tracking-widest">Available</span>
+                        ) : (
+                          <button 
+                            onClick={() => draftPlayer(p.id)}
+                            disabled={!isMyTurn || draftingPlayerId === p.id}
+                            className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-black shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95 uppercase tracking-widest"
+                          >
+                            {draftingPlayerId === p.id ? "..." : "Draft"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-gray-100 bg-white flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Page {currentPage} of {totalPages} ({filteredPlayers.length} Total)
+            </div>
+            <div className="flex gap-1">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                className="w-10 h-10 rounded border flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              
+              <div className="flex gap-1">
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1;
+                  // Show current page, first, last, and pages around current
+                  if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                    return (
+                      <button 
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded text-sm font-bold border transition ${
+                          currentPage === page ? "bg-blue-600 border-blue-600 text-white shadow-md ring-2 ring-blue-200" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  } else if (page === 2 || page === totalPages - 1) {
+                    return <span key={page} className="px-2 self-center text-gray-400">...</span>
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button 
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="w-10 h-10 rounded border flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
