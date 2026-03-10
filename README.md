@@ -18,8 +18,9 @@ copy .env.example .env
 - `AUTH_SECRET`: long random string used to sign auth cookies.
 - `ADMIN_PASSWORD`: admin login password for `/admin`.
 - `ADMIN_PASSWORD_HASH`: optional bcrypt hash; if set, it takes precedence over `ADMIN_PASSWORD`.
-- `NEXT_PUBLIC_TITLE`: optional site title.
-- `NEXT_PUBLIC_DESCRIPTION`: optional site description.
+- `DATABASE_URL`: SQLite connection string (default `file:./prisma/dev.db`).
+- `NEXT_PUBLIC_TITLE`: optional title.
+- `NEXT_PUBLIC_DESCRIPTION`: optional description.
 
 You can generate an admin hash with Node:
 ```bash
@@ -29,7 +30,14 @@ node -e "const b=require('bcryptjs'); b.hash(process.argv[1],10).then(h=>console
 ## Run
 
 ```bash
+npx prisma generate
 npm run dev
+```
+
+After schema changes, regenerate Prisma Client explicitly:
+
+```bash
+npx prisma generate
 ```
 
 Open `http://localhost:3000`.
@@ -98,3 +106,16 @@ npx tsx scripts/hash-team-passwords.ts
 npm run lint
 npx tsc --noEmit
 ```
+
+## Audit Monitoring
+
+Known `npm audit` findings are currently transitive to Prisma tooling dependencies. See `docs/security/audit-exceptions.md` for accepted scope, rationale, and closure criteria.
+
+Run audit checks with reproducible scripts:
+
+```bash
+npm run audit:full
+npm run audit:prod
+```
+
+When Prisma dependencies change (`prisma`, `@prisma/client`, or transitive toolchain updates), rerun both commands and re-evaluate the exception document.

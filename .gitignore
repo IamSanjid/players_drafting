@@ -44,3 +44,10 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-shm
 prisma/*.db-wal
+
+# exclude generated .ts files
+src/generated/
+
+# exclude uploaded files
+public/uploads/*
+!public/uploads/.gitkeep

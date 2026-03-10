@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { draftPickSchema, getErrorMessage } from "@/lib/validation";
 import { requireTeamAccess } from "@/lib/auth/authorize";
