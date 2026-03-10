@@ -106,19 +106,35 @@ export default function SessionControls() {
     ? sortedTeams.find((team) => team.id === draftSession.currentTurnTeamId) ?? null
     : null;
   const activeSerial = currentTurnTeam?.serialNumber ?? null;
-  const canSkipCurrentTurn = status === "active" && sortedTeams.length > 1 && currentTurnTeam !== null;
+  const canSkipCurrentTurn = isDraftRunning && sortedTeams.length > 1 && currentTurnTeam !== null;
+  const currentTurnIndex = currentTurnTeam
+    ? sortedTeams.findIndex((team) => team.id === currentTurnTeam.id)
+    : -1;
+  const canGoToPreviousTurn = isDraftRunning && sortedTeams.length > 1 && currentTurnIndex > 0;
+
+  const handleGoToPreviousTurn = async () => {
+    if (!canGoToPreviousTurn || currentTurnIndex <= 0) {
+      return;
+    }
+
+    const previousTeam = sortedTeams[currentTurnIndex - 1];
+    if (!previousTeam) {
+      return;
+    }
+
+    await updateSession({ currentTurnTeamId: previousTeam.id });
+  };
 
   const handleSkipCurrentTurn = async () => {
     if (!canSkipCurrentTurn || activeSerial === null) {
       return;
     }
 
-    const currentIndex = sortedTeams.findIndex((team) => team.id === currentTurnTeam?.id);
-    if (currentIndex < 0) {
+    if (currentTurnIndex < 0) {
       return;
     }
 
-    if (currentIndex === sortedTeams.length - 1) {
+    if (currentTurnIndex === sortedTeams.length - 1) {
       const shouldForceEnd = confirm(
         "This is the last team's turn. Press OK to force-end the session, or Cancel to start over from the first team.",
       );
@@ -135,7 +151,7 @@ export default function SessionControls() {
       return;
     }
 
-    const nextIndex = (currentIndex + 1) % sortedTeams.length;
+    const nextIndex = (currentTurnIndex + 1) % sortedTeams.length;
     const nextTeam = sortedTeams[nextIndex];
     await updateSession({ currentTurnTeamId: nextTeam.id });
   };
@@ -192,6 +208,18 @@ export default function SessionControls() {
             className="px-5 py-2.5 rounded-lg text-white font-bold bg-yellow-500 hover:bg-yellow-600 shadow-md shadow-yellow-200 transition-all"
           >
             ⏸ Pause Draft
+          </button>
+        )}
+
+        {/* Skip Current Team Turn (when active and valid) */}
+        {isDraftRunning && (
+          <button
+            onClick={handleGoToPreviousTurn}
+            disabled={!canGoToPreviousTurn}
+            title={!canGoToPreviousTurn ? "Previous turn is unavailable when current turn is the first team." : undefined}
+            className="px-5 py-2.5 rounded-lg text-white font-bold bg-violet-600 hover:bg-violet-700 shadow-md shadow-violet-200 transition-all disabled:bg-gray-300 disabled:text-gray-600 disabled:shadow-none disabled:cursor-not-allowed"
+          >
+            ⏮ Previous Turn
           </button>
         )}
 
