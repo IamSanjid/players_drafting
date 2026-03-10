@@ -10,6 +10,9 @@ import { getSocket } from "@/lib/socketClient";
 import { useDraftStore } from "@/lib/draftStore";
 import type { ApiTeam } from "@/types/domain";
 
+const dashboardTitle = process.env.NEXT_PUBLIC_TITLE ?? "BPL Female Players' Draft 2026";
+const dashboardDescription = process.env.NEXT_PUBLIC_DESCRIPTION ?? "Live Draft Status";
+
 export default function PublicDashboard() {
   const teams = useDraftStore((state) => state.teams);
   const players = useDraftStore((state) => state.players);
@@ -63,8 +66,8 @@ export default function PublicDashboard() {
               <Image src="/bpl_logo.png" alt="BPL Logo" width={56} height={56} className="w-full h-full object-contain p-1" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-none">BPL Female Players&apos; Draft 2026</h1>
-              <p className="text-sm text-gray-500 mt-1 uppercase tracking-widest font-bold">Live Draft Status</p>
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-none">{dashboardTitle}</h1>
+              <p className="text-sm text-gray-500 mt-1 uppercase tracking-widest font-bold">{dashboardDescription}</p>
             </div>
           </div>
 

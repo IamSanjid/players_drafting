@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BPL Female Players' Draft 2026",
-  description: "BPL Female Players' Draft 2026",
+  title: process.env.NEXT_PUBLIC_TITLE ?? "BPL Female Players' Draft 2026",
+  description: process.env.NEXT_PUBLIC_DESCRIPTION ?? "Live Draft Status",
 };
 
 export default function RootLayout({

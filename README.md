@@ -18,6 +18,8 @@ copy .env.example .env
 - `AUTH_SECRET`: long random string used to sign auth cookies.
 - `ADMIN_PASSWORD`: admin login password for `/admin`.
 - `ADMIN_PASSWORD_HASH`: optional bcrypt hash; if set, it takes precedence over `ADMIN_PASSWORD`.
+- `NEXT_PUBLIC_TITLE`: optional site title.
+- `NEXT_PUBLIC_DESCRIPTION`: optional site description.
 
 You can generate an admin hash with Node:
 ```bash
