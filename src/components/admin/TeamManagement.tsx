@@ -88,10 +88,6 @@ export default function TeamManagement() {
         body: formData,
       });
       return res.json();
-      // if (data.url) {
-      //   if (type === "logo") setNewTeamLogo(data.url);
-      //   else setNewTeamBanner(data.url);
-      // }
     } catch (err: unknown) {
       console.error("Upload failed", err);
     } finally {
@@ -113,34 +109,6 @@ export default function TeamManagement() {
     if (data && data.url) {
       await updateTeam(teamId, { [type === "logo" ? "logoUrl" : "bannerUrl"]: data.url });
     }
-    // const file = e.target.files?.[0];
-    // if (!file) return;
-
-    // const formData = new FormData();
-    // formData.append("file", file);
-    // formData.set("type", type);
-
-    // try {
-    //   const res = await fetch("/api/upload", {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-    //   const data = await res.json();
-    //   if (data.url) {
-    //     await updateTeam(teamId, { [type === "logo" ? "logoUrl" : "bannerUrl"]: data.url });
-    //   }
-    // } catch (err) {
-    //   console.error("Row upload failed", err);
-    // }
-  };
-
-  const handleTeamSerialSwap = async (teamId: string, newSerialNumber: number) => {
-    if (draftSession?.draftStatus === "active") {
-      alert("Draft is active. You cannot change team serials.");
-      return;
-    }
-    await updateTeam(teamId, { serialNumber: newSerialNumber });
-    await fetchAll({ silent: true, force: true });
   };
 
   const updateTeam = async (id: string, updates: TeamUpdatePayload) => {
@@ -294,42 +262,15 @@ export default function TeamManagement() {
                 </tr>
               </thead>
               <tbody>
-                {teams.map((team) => (
+                {[...teams].sort((a, b) => a.serialNumber - b.serialNumber).map((team) => (
                   <tr
                     key={team.id}
                     className="border-b hover:bg-gray-100 transition duration-150 group"
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", team.id);
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = "move";
-                    }}
-                    onDrop={async (e) => {
-                      e.preventDefault();
-                      const draggedId = e.dataTransfer.getData("text/plain");
-                      if (draggedId && draggedId !== team.id) {
-                        // Swap serials!
-                        await handleTeamSerialSwap(draggedId, team.serialNumber);
-                      }
-                    }}
                   >
-                    <td className="px-4 py-4 font-medium text-gray-900 cursor-move flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>
-                      <select
-                        value={team.serialNumber}
-                        onChange={async (e) => {
-                          // Swap serials!
-                          await handleTeamSerialSwap(team.id, Number(e.target.value));
-                        }}
-                        className="font-black text-indigo-700 bg-indigo-50 px-2 py-1 rounded shadow-sm border border-indigo-100 focus:ring-1 focus:ring-indigo-500 outline-none cursor-pointer text-center min-w-[50px]"
-                      >
-                        {Array.from({ length: teams.length }, (_, i) => i + 1).map(num => (
-                          <option key={num} value={num}>{num}</option>
-                        ))}
-                      </select>
+                    <td className="px-4 py-4 font-medium text-gray-900">
+                      <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-50 text-indigo-700 font-black min-w-[50px] justify-center">
+                        {team.serialNumber}
+                      </span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">

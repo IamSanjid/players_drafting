@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { getSocket } from "@/lib/socketClient";
 import { useDraftStore } from "@/lib/draftStore";
 
@@ -34,6 +35,16 @@ export default function SessionControls() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
+    });
+    await fetchAll({ silent: true, force: true });
+    socket.emit("state_changed");
+  };
+
+  const updateTeamSerial = async (teamId: string, newSerialNumber: number) => {
+    await fetch(`/api/teams/${teamId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ serialNumber: newSerialNumber }),
     });
     await fetchAll({ silent: true, force: true });
     socket.emit("state_changed");
@@ -89,6 +100,46 @@ export default function SessionControls() {
   }
 
   const status = draftSession.draftStatus || "idle";
+  const isDraftRunning = status === "active" || status === "paused";
+  const sortedTeams = [...teams].sort((a, b) => a.serialNumber - b.serialNumber);
+  const currentTurnTeam = draftSession.currentTurnTeamId
+    ? sortedTeams.find((team) => team.id === draftSession.currentTurnTeamId) ?? null
+    : null;
+  const activeSerial = currentTurnTeam?.serialNumber ?? null;
+  const canSkipCurrentTurn = status === "active" && sortedTeams.length > 1 && currentTurnTeam !== null;
+
+  const handleSkipCurrentTurn = async () => {
+    if (!canSkipCurrentTurn || activeSerial === null) {
+      return;
+    }
+
+    const currentIndex = sortedTeams.findIndex((team) => team.id === currentTurnTeam?.id);
+    if (currentIndex < 0) {
+      return;
+    }
+
+    if (currentIndex === sortedTeams.length - 1) {
+      const shouldForceEnd = confirm(
+        "This is the last team's turn. Press OK to force-end the session, or Cancel to start over from the first team.",
+      );
+
+      if (shouldForceEnd) {
+        await handleEndDraft(true);
+        return;
+      }
+
+      await updateSession({
+        currentTurnTeamId: sortedTeams[0].id,
+        draftRound: (draftSession.draftRound || 1) + 1,
+      });
+      return;
+    }
+
+    const nextIndex = (currentIndex + 1) % sortedTeams.length;
+    const nextTeam = sortedTeams[nextIndex];
+    await updateSession({ currentTurnTeamId: nextTeam.id });
+  };
+
   const teamsWithNoPicks = teams.filter((t) =>
     (t.picks?.length || 0) === 0 ||
     t.picks.every((p) => {
@@ -141,6 +192,18 @@ export default function SessionControls() {
             className="px-5 py-2.5 rounded-lg text-white font-bold bg-yellow-500 hover:bg-yellow-600 shadow-md shadow-yellow-200 transition-all"
           >
             ⏸ Pause Draft
+          </button>
+        )}
+
+        {/* Skip Current Team Turn (when active and valid) */}
+        {isDraftRunning && (
+          <button
+            onClick={handleSkipCurrentTurn}
+            disabled={!canSkipCurrentTurn}
+            title={!canSkipCurrentTurn ? "Skip is available only when draft is active with a valid current team and at least 2 teams." : undefined}
+            className="px-5 py-2.5 rounded-lg text-white font-bold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all disabled:bg-gray-300 disabled:text-gray-600 disabled:shadow-none disabled:cursor-not-allowed"
+          >
+            ⏭ Skip Current Turn
           </button>
         )}
 
@@ -217,6 +280,99 @@ export default function SessionControls() {
             <option value="Oversea">Oversea Players</option>
           </select>
           <p className="text-xs text-gray-500 mt-2">Forces teams to draft from this category right now.</p>
+        </div>
+      </div>
+
+      {/* Team Draft Order (always visible) */}
+      <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Team Draft Order</h3>
+          {currentTurnTeam && (
+            <p className="text-xs text-gray-500">
+              Current: <span className="font-bold text-blue-700">#{currentTurnTeam.serialNumber} {currentTurnTeam.name}</span>
+            </p>
+          )}
+        </div>
+
+        <div className="overflow-x-auto pb-2">
+          <div className="flex gap-3 min-w-max">
+            {sortedTeams.map((team) => {
+              let statusText = "Pending";
+              let badgeColor = "bg-gray-100 text-gray-600 border-gray-200";
+
+              if (draftSession.currentTurnTeamId === team.id) {
+                statusText = "Drafting";
+                badgeColor = "bg-blue-100 text-blue-700 border-blue-200";
+              } else if (activeSerial !== null && team.serialNumber < activeSerial) {
+                statusText = "Already Drafted";
+                badgeColor = "bg-emerald-100 text-emerald-700 border-emerald-200";
+              }
+
+              return (
+                <div
+                  key={team.id}
+                  className="w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow transition"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/plain", team.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    const draggedTeamId = e.dataTransfer.getData("text/plain");
+                    if (!draggedTeamId || draggedTeamId === team.id) {
+                      return;
+                    }
+                    await updateTeamSerial(draggedTeamId, team.serialNumber);
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16" />
+                      </svg>
+                      <select
+                        value={team.serialNumber}
+                        onChange={async (e) => {
+                          await updateTeamSerial(team.id, Number(e.target.value));
+                        }}
+                        className="font-black text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 focus:ring-1 focus:ring-indigo-500 outline-none min-w-[56px]"
+                      >
+                        {Array.from({ length: sortedTeams.length }, (_, index) => index + 1).map((num) => (
+                          <option key={num} value={num}>{num}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {isDraftRunning && (
+                      <span className={`inline-block px-2 py-1 rounded border text-[10px] uppercase tracking-wider font-black ${badgeColor}`}>
+                        {statusText}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-gray-100 border flex items-center justify-center overflow-hidden">
+                      {team.logoUrl ? (
+                        <Image src={team.logoUrl} alt={`${team.name} logo`} width={40} height={40} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[9px] font-bold text-gray-400">LOGO</span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-gray-900 truncate">{team.name}</p>
+                  </div>
+                </div>
+              );
+            })}
+            {sortedTeams.length === 0 && (
+              <div className="w-full min-h-24 flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl bg-white/50">
+                No teams added yet.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
