@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { requireTeam } from "@/lib/auth/authorize";
+import { NextResponse } from 'next/server';
+import { requireTeam } from '@/lib/auth/authorize';
 
 export async function GET() {
   const auth = await requireTeam();
@@ -7,5 +7,8 @@ export async function GET() {
     return auth.response;
   }
 
-  return NextResponse.json({ role: auth.session.role, teamId: auth.session.teamId });
+  return NextResponse.json({
+    role: auth.session.role,
+    teamId: auth.session.teamId,
+  });
 }

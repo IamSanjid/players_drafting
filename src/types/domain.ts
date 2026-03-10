@@ -1,6 +1,6 @@
-export type PlayerCategory = "Oversea" | "Local";
-export type AllowedCategories = "Both" | PlayerCategory;
-export type DraftStatus = "idle" | "active" | "paused" | "ended";
+export type PlayerCategory = 'Oversea' | 'Local';
+export type AllowedCategories = 'Both' | PlayerCategory;
+export type DraftStatus = 'idle' | 'active' | 'paused' | 'ended';
 
 export interface BigIntJsonReplacer {
   (this: unknown, key: string, value: unknown): unknown;

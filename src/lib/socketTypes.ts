@@ -1,4 +1,4 @@
-import type { PickMadePayload } from "@/types/domain";
+import type { PickMadePayload } from '@/types/domain';
 
 export interface ClientToServerEvents {
   state_changed: () => void;

@@ -1,7 +1,10 @@
-"use client";
+'use client';
 
-import { io, Socket } from "socket.io-client";
-import type { ClientToServerEvents, ServerToClientEvents } from "@/lib/socketTypes";
+import { io, Socket } from 'socket.io-client';
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from '@/lib/socketTypes';
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
@@ -16,8 +19,11 @@ const ssrSocketStub = {
   connected: false,
 } as unknown as Socket<ServerToClientEvents, ClientToServerEvents>;
 
-export const getSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> => {
-  if (typeof window === "undefined") {
+export const getSocket = (): Socket<
+  ServerToClientEvents,
+  ClientToServerEvents
+> => {
+  if (typeof window === 'undefined') {
     return ssrSocketStub;
   }
 
@@ -31,12 +37,12 @@ export const getSocket = (): Socket<ServerToClientEvents, ClientToServerEvents> 
       timeout: 5000,
     });
 
-    socket.on("connect_error", (error) => {
-      console.error("Socket connect_error:", error.message);
+    socket.on('connect_error', (error) => {
+      console.error('Socket connect_error:', error.message);
     });
   }
 
-  if (typeof window !== "undefined" && !socket.active) {
+  if (typeof window !== 'undefined' && !socket.active) {
     socket.connect();
   }
 

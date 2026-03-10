@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/authorize";
+import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/authorize';
 
 export async function GET() {
   const auth = await requireAdmin();

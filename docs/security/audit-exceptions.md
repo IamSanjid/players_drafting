@@ -13,6 +13,7 @@ Target closure: Remove when upstream dependency chain is patched and audits pass
 Current findings are transitive to Prisma tooling dependencies and are not directly declared by this project.
 
 Affected chain:
+
 - `prisma@7.4.2`
 - `@prisma/dev@0.20.0` (transitive)
 - `hono@4.11.4` (transitive)
@@ -26,6 +27,7 @@ Affected chain:
 `npm audit fix --force` currently proposes a Prisma downgrade to `6.19.2`, which conflicts with the current Prisma 7 migration and introduces avoidable regression risk.
 
 Chosen strategy:
+
 - Keep Prisma on `7.4.2`.
 - Do not use `--force` downgrade.
 - Do not apply transitive overrides at this time.
@@ -49,6 +51,7 @@ npm run audit:prod
 ### Exit Criteria
 
 Close this exception only when all conditions are true:
+
 - Prisma publishes an update that removes vulnerable transitive packages, or a vetted non-breaking path exists.
 - `npm run audit:full` no longer reports this Prisma transitive chain.
 - `npm run audit:prod` no longer reports this Prisma transitive chain.

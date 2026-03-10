@@ -1,45 +1,58 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Papa from "papaparse";
-import { getSocket } from "@/lib/socketClient";
+import { useState } from 'react';
+import Papa from 'papaparse';
+import { getSocket } from '@/lib/socketClient';
 
 type CsvRow = Record<string, string>;
-type MappingKey = "name" | "category" | "subCategory" | "position" | "priceBDT" | "priceUSD" | "country" | "availability" | "imageUrl";
+type MappingKey =
+  | 'name'
+  | 'category'
+  | 'subCategory'
+  | 'position'
+  | 'priceBDT'
+  | 'priceUSD'
+  | 'country'
+  | 'availability'
+  | 'imageUrl';
 type MappingState = Record<MappingKey, string>;
 
 function getProperAvailability(value: string): string {
   const valueLower = value.toLowerCase();
-  if (valueLower.includes("full") && valueLower.includes("time")) {
-    return "Full-Time";
+  if (valueLower.includes('full') && valueLower.includes('time')) {
+    return 'Full-Time';
   }
-  if (valueLower.includes("partial")) {
-    return "Partial";
+  if (valueLower.includes('partial')) {
+    return 'Partial';
   }
-  return "Custom";
+  return 'Custom';
 }
 
-export default function CSVBulkUploader({ onImportComplete }: { onImportComplete: () => void }) {
+export default function CSVBulkUploader({
+  onImportComplete,
+}: {
+  onImportComplete: () => void;
+}) {
   const [csvData, setCsvData] = useState<CsvRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [globalCategory, setGlobalCategory] = useState<string>("");
+  const [globalCategory, setGlobalCategory] = useState<string>('');
   const [hasHeaders, setHasHeaders] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Mapping state: key is DB field, value is CSV header name
   const [mapping, setMapping] = useState<MappingState>({
-    name: "",
-    category: "",
-    subCategory: "",
-    position: "",
-    priceBDT: "",
-    priceUSD: "",
-    country: "",
-    availability: "",
-    imageUrl: ""
+    name: '',
+    category: '',
+    subCategory: '',
+    position: '',
+    priceBDT: '',
+    priceUSD: '',
+    country: '',
+    availability: '',
+    imageUrl: '',
   });
 
   const socket = getSocket();
@@ -47,7 +60,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
   const normalizeRow = (row: Record<string, unknown>): CsvRow => {
     const normalized: CsvRow = {};
     Object.entries(row).forEach(([key, value]) => {
-      normalized[key] = value == null ? "" : String(value);
+      normalized[key] = value == null ? '' : String(value);
     });
     return normalized;
   };
@@ -58,7 +71,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
       skipEmptyLines: true,
       complete: (results) => {
         if (results.errors.length > 0) {
-          setError("Error parsing CSV: " + results.errors[0].message);
+          setError('Error parsing CSV: ' + results.errors[0].message);
           return;
         }
 
@@ -67,7 +80,9 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
 
         if (hasHeaders) {
           parsedHeaders = results.meta.fields || [];
-          parsedData = (results.data as Record<string, unknown>[]).map(normalizeRow);
+          parsedData = (results.data as Record<string, unknown>[]).map(
+            normalizeRow
+          );
         } else {
           const rawData = results.data as unknown[][];
           if (rawData.length > 0) {
@@ -75,7 +90,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
             parsedData = rawData.map((row) => {
               const obj: CsvRow = {};
               row.forEach((cell, i) => {
-                obj[parsedHeaders[i]] = cell == null ? "" : String(cell);
+                obj[parsedHeaders[i]] = cell == null ? '' : String(cell);
               });
               return obj;
             });
@@ -88,16 +103,19 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
 
         // Auto-map if headers match exactly (case insensitive)
         const newMapping = { ...mapping };
-        const lowerHeaders = parsedHeaders.map(h => h.toLowerCase());
+        const lowerHeaders = parsedHeaders.map((h) => h.toLowerCase());
 
         (Object.keys(newMapping) as MappingKey[]).forEach((dbField) => {
-          const matchIndex = lowerHeaders.findIndex(h => h === dbField.toLowerCase() || h.includes(dbField.toLowerCase()));
+          const matchIndex = lowerHeaders.findIndex(
+            (h) =>
+              h === dbField.toLowerCase() || h.includes(dbField.toLowerCase())
+          );
           if (matchIndex !== -1) {
             newMapping[dbField] = parsedHeaders[matchIndex];
           }
         });
         setMapping(newMapping);
-      }
+      },
     });
   };
 
@@ -124,18 +142,25 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
         setSelectedFile(file);
         processFile(file);
       } else {
-        setError("Please upload a valid CSV file.");
+        setError('Please upload a valid CSV file.');
       }
     }
   };
 
   const handleImport = async () => {
-    if (!mapping.name || (!mapping.category && !globalCategory) || !mapping.subCategory || !mapping.position) {
-      setError("Name, SubCategory, Position, and either a mapped Category or Global Category are required.");
+    if (
+      !mapping.name ||
+      (!mapping.category && !globalCategory) ||
+      !mapping.subCategory ||
+      !mapping.position
+    ) {
+      setError(
+        'Name, SubCategory, Position, and either a mapped Category or Global Category are required.'
+      );
       return;
     }
 
@@ -144,7 +169,10 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
 
     // Transform CSV data to DB shape using the mapping
     const payload = csvData.map((row) => {
-      const rowCategory = (mapping.category && row[mapping.category]) ? row[mapping.category] : globalCategory;
+      const rowCategory =
+        mapping.category && row[mapping.category]
+          ? row[mapping.category]
+          : globalCategory;
       return {
         name: row[mapping.name],
         category: rowCategory,
@@ -153,28 +181,29 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
         priceBDT: mapping.priceBDT ? row[mapping.priceBDT] : null,
         priceUSD: mapping.priceUSD ? row[mapping.priceUSD] : null,
         country: mapping.country ? row[mapping.country] : null,
-        availability: mapping.availability ? getProperAvailability(row[mapping.availability] || "") : null,
+        availability: mapping.availability
+          ? getProperAvailability(row[mapping.availability] || '')
+          : null,
         imageUrl: mapping.imageUrl ? row[mapping.imageUrl] : null,
       };
     });
 
     try {
-      const res = await fetch("/api/players/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      const res = await fetch('/api/players/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      socket.emit("state_changed"); // Notify connected clients
+      socket.emit('state_changed'); // Notify connected clients
       onImportComplete(); // Close modal/refresh parent
       setCsvData([]); // Reset
       setHeaders([]);
-
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Import failed");
+      setError(err instanceof Error ? err.message : 'Import failed');
     } finally {
       setUploading(false);
     }
@@ -186,18 +215,40 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition ${isDragging ? "border-indigo-500 bg-indigo-50 shadow-inner" : "border-gray-300 hover:bg-gray-50"
-          }`}
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition ${
+          isDragging
+            ? 'border-indigo-500 bg-indigo-50 shadow-inner'
+            : 'border-gray-300 hover:bg-gray-50'
+        }`}
       >
         <label className="cursor-pointer block">
-          <svg className={`mx-auto h-12 w-12 transition ${isDragging ? "text-indigo-500 scale-110" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <svg
+            className={`mx-auto h-12 w-12 transition ${isDragging ? 'text-indigo-500 scale-110' : 'text-gray-400'}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
           </svg>
-          <span className={`mt-2 block text-sm font-semibold transition ${isDragging ? "text-indigo-700" : "text-gray-900"}`}>
-            {isDragging ? "Drop your CSV here" : "Upload CSV File"}
+          <span
+            className={`mt-2 block text-sm font-semibold transition ${isDragging ? 'text-indigo-700' : 'text-gray-900'}`}
+          >
+            {isDragging ? 'Drop your CSV here' : 'Upload CSV File'}
           </span>
-          <span className="mt-1 block text-xs text-gray-300">Drag & Drop or Click.</span>
-          <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+          <span className="mt-1 block text-xs text-gray-300">
+            Drag & Drop or Click.
+          </span>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
         </label>
 
         <div className="mt-6 flex items-center justify-center gap-3">
@@ -216,22 +267,29 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
                       skipEmptyLines: true,
                       complete: (results) => {
                         if (results.errors.length > 0) {
-                          setError("Error parsing CSV: " + results.errors[0].message);
+                          setError(
+                            'Error parsing CSV: ' + results.errors[0].message
+                          );
                           return;
                         }
                         let parsedHeaders: string[] = [];
                         let parsedData: CsvRow[] = [];
                         if (val) {
                           parsedHeaders = results.meta.fields || [];
-                          parsedData = (results.data as Record<string, unknown>[]).map(normalizeRow);
+                          parsedData = (
+                            results.data as Record<string, unknown>[]
+                          ).map(normalizeRow);
                         } else {
                           const rawData = results.data as unknown[][];
                           if (rawData.length > 0) {
-                            parsedHeaders = rawData[0].map((val, i) => `Col ${i + 1} (${val})`);
+                            parsedHeaders = rawData[0].map(
+                              (val, i) => `Col ${i + 1} (${val})`
+                            );
                             parsedData = rawData.map((row) => {
                               const obj: CsvRow = {};
                               row.forEach((cell, i) => {
-                                obj[parsedHeaders[i]] = cell == null ? "" : String(cell);
+                                obj[parsedHeaders[i]] =
+                                  cell == null ? '' : String(cell);
                               });
                               return obj;
                             });
@@ -239,7 +297,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
                         }
                         setHeaders(parsedHeaders);
                         setCsvData(parsedData);
-                      }
+                      },
                     });
                   }
                 }}
@@ -252,21 +310,27 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
           </label>
         </div>
 
-        {error && <div className="mt-4 text-xs font-bold text-red-500">{error}</div>}
+        {error && (
+          <div className="mt-4 text-xs font-bold text-red-500">{error}</div>
+        )}
       </div>
     );
   }
 
   const dbFields: Array<{ key: MappingKey; label: string; req: boolean }> = [
-    { key: "name", label: "Player Name", req: true },
-    { key: "category", label: "Category (Oversea/Local)", req: !globalCategory },
-    { key: "subCategory", label: "Sub-Category (A-Z)", req: true },
-    { key: "position", label: "Position", req: true },
-    { key: "priceBDT", label: "Price (BDT)", req: false },
-    { key: "priceUSD", label: "Price (USD)", req: false },
-    { key: "country", label: "Country", req: false },
-    { key: "availability", label: "Availability", req: false },
-    { key: "imageUrl", label: "Image URL", req: false },
+    { key: 'name', label: 'Player Name', req: true },
+    {
+      key: 'category',
+      label: 'Category (Oversea/Local)',
+      req: !globalCategory,
+    },
+    { key: 'subCategory', label: 'Sub-Category (A-Z)', req: true },
+    { key: 'position', label: 'Position', req: true },
+    { key: 'priceBDT', label: 'Price (BDT)', req: false },
+    { key: 'priceUSD', label: 'Price (USD)', req: false },
+    { key: 'country', label: 'Country', req: false },
+    { key: 'availability', label: 'Availability', req: false },
+    { key: 'imageUrl', label: 'Image URL', req: false },
   ];
 
   return (
@@ -274,15 +338,29 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
       <div className="bg-indigo-50 px-4 py-3 border-b flex justify-between items-center">
         <div>
           <h3 className="font-bold text-indigo-900">Map CSV Columns</h3>
-          <p className="text-xs text-indigo-700">Found {csvData.length} rows. Match your CSV headers to the Database fields.</p>
+          <p className="text-xs text-indigo-700">
+            Found {csvData.length} rows. Match your CSV headers to the Database
+            fields.
+          </p>
         </div>
-        <button onClick={() => setCsvData([])} className="text-sm font-medium text-gray-500 hover:text-gray-700">Cancel</button>
+        <button
+          onClick={() => setCsvData([])}
+          className="text-sm font-medium text-gray-500 hover:text-gray-700"
+        >
+          Cancel
+        </button>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 p-3 text-sm font-medium border-b border-red-100">{error}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 text-sm font-medium border-b border-red-100">
+          {error}
+        </div>
+      )}
 
       <div className="px-4 py-3 bg-white border-b flex items-center gap-4">
-        <label className="text-sm font-bold text-gray-700">Global Category (if not in CSV):</label>
+        <label className="text-sm font-bold text-gray-700">
+          Global Category (if not in CSV):
+        </label>
         <select
           value={globalCategory}
           onChange={(e) => setGlobalCategory(e.target.value)}
@@ -295,18 +373,30 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
       </div>
 
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto bg-gray-50">
-        {dbFields.map(field => (
-          <div key={field.key} className="flex flex-col bg-white p-3 rounded-lg border shadow-sm">
+        {dbFields.map((field) => (
+          <div
+            key={field.key}
+            className="flex flex-col bg-white p-3 rounded-lg border shadow-sm"
+          >
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex justify-between">
-              {field.label} {field.req && <span className="text-red-500">*</span>}
+              {field.label}{' '}
+              {field.req && <span className="text-red-500">*</span>}
             </label>
             <select
               value={mapping[field.key]}
-              onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+              onChange={(e) =>
+                setMapping({ ...mapping, [field.key]: e.target.value })
+              }
               className="w-full border-gray-300 rounded text-sm focus:ring-indigo-500 text-gray-900 bg-white shadow-sm font-medium"
             >
-              <option value="" className="text-gray-500">-- Ignore --</option>
-              {headers.map(h => <option key={h} value={h} className="text-gray-900">{h}</option>)}
+              <option value="" className="text-gray-500">
+                -- Ignore --
+              </option>
+              {headers.map((h) => (
+                <option key={h} value={h} className="text-gray-900">
+                  {h}
+                </option>
+              ))}
             </select>
           </div>
         ))}
@@ -318,7 +408,7 @@ export default function CSVBulkUploader({ onImportComplete }: { onImportComplete
           disabled={uploading}
           className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 disabled:opacity-50 transition"
         >
-          {uploading ? "Importing..." : `Import ${csvData.length} Players`}
+          {uploading ? 'Importing...' : `Import ${csvData.length} Players`}
         </button>
       </div>
     </div>

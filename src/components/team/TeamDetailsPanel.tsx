@@ -1,6 +1,6 @@
-import { useState } from "react";
-import Image from "next/image";
-import type { ApiPlayer, ApiTeam } from "@/types/domain";
+import { useState } from 'react';
+import Image from 'next/image';
+import type { ApiPlayer, ApiTeam } from '@/types/domain';
 
 const toBigInt = (value: string | null | undefined): bigint => {
   if (!value) {
@@ -10,12 +10,14 @@ const toBigInt = (value: string | null | undefined): bigint => {
 };
 
 export function TeamProfile({ team }: { team: ApiTeam }) {
-  const [tab, setTab] = useState<"Local" | "Oversea">("Local");
+  const [tab, setTab] = useState<'Local' | 'Oversea'>('Local');
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
 
-  const localPlayers = team.players?.filter((p) => p.category === "Local") || [];
-  const overseaPlayers = team.players?.filter((p) => p.category === "Oversea") || [];
+  const localPlayers =
+    team.players?.filter((p) => p.category === 'Local') || [];
+  const overseaPlayers =
+    team.players?.filter((p) => p.category === 'Oversea') || [];
 
   const spentBDT: bigint = localPlayers
     .filter((p) => !p.isPreBought)
@@ -24,12 +26,15 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
     .filter((p) => !p.isPreBought)
     .reduce((acc, p) => acc + toBigInt(p.priceUSD), BigInt(0));
 
-  const displayPlayers = tab === "Local" ? localPlayers : overseaPlayers;
+  const displayPlayers = tab === 'Local' ? localPlayers : overseaPlayers;
   const totalPages = Math.ceil(displayPlayers.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
-  const currentPlayers = displayPlayers.slice(startIndex, startIndex + itemsPerPage);
+  const currentPlayers = displayPlayers.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
-  const handleTabChange = (newTab: "Local" | "Oversea") => {
+  const handleTabChange = (newTab: 'Local' | 'Oversea') => {
     setTab(newTab);
     setPage(1);
   };
@@ -48,7 +53,9 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-white/10 font-black text-4xl italic tracking-tighter uppercase select-none">FRANCHISE</span>
+            <span className="text-white/10 font-black text-4xl italic tracking-tighter uppercase select-none">
+              FRANCHISE
+            </span>
           </div>
         )}
 
@@ -67,12 +74,18 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                 />
               </div>
             ) : (
-              <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-lg">{team.name.charAt(0)}</div>
+              <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-lg">
+                {team.name.charAt(0)}
+              </div>
             )}
           </div>
           <div>
-            <h3 className="text-xl font-black text-white leading-none drop-shadow-md">{team.name}</h3>
-            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">Serial #{team.serialNumber}</p>
+            <h3 className="text-xl font-black text-white leading-none drop-shadow-md">
+              {team.name}
+            </h3>
+            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">
+              Serial #{team.serialNumber}
+            </p>
           </div>
         </div>
       </div>
@@ -80,24 +93,46 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
       {/* Financials Summary */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">BDT Status</div>
+          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">
+            BDT Status
+          </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-red-500">Spent: ৳{spentBDT.toLocaleString()}</span>
-            <span className="text-sm font-black text-emerald-600 mt-0.5">Avail: ৳{toBigInt(team.budgetBDT).toLocaleString()}</span>
+            <span className="text-xs font-bold text-red-500">
+              Spent: ৳{spentBDT.toLocaleString()}
+            </span>
+            <span className="text-sm font-black text-emerald-600 mt-0.5">
+              Avail: ৳{toBigInt(team.budgetBDT).toLocaleString()}
+            </span>
           </div>
         </div>
         <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">USD Status</div>
+          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">
+            USD Status
+          </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-red-500">Spent: ${spentUSD.toLocaleString()}</span>
-            <span className="text-sm font-black text-blue-600 mt-0.5">Avail: ${toBigInt(team.budgetUSD).toLocaleString()}</span>
+            <span className="text-xs font-bold text-red-500">
+              Spent: ${spentUSD.toLocaleString()}
+            </span>
+            <span className="text-sm font-black text-blue-600 mt-0.5">
+              Avail: ${toBigInt(team.budgetUSD).toLocaleString()}
+            </span>
           </div>
         </div>
       </div>
 
       <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
-        <button onClick={() => handleTabChange("Local")} className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${tab === "Local" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>Local List ({localPlayers.length})</button>
-        <button onClick={() => handleTabChange("Oversea")} className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${tab === "Oversea" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>Oversea List ({overseaPlayers.length})</button>
+        <button
+          onClick={() => handleTabChange('Local')}
+          className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${tab === 'Local' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Local List ({localPlayers.length})
+        </button>
+        <button
+          onClick={() => handleTabChange('Oversea')}
+          className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${tab === 'Oversea' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Oversea List ({overseaPlayers.length})
+        </button>
       </div>
 
       {/* Players Table */}
@@ -113,32 +148,48 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {currentPlayers.map((p: ApiPlayer) => (
-                <tr key={p.id} className="hover:bg-blue-50/30 transition-colors">
+                <tr
+                  key={p.id}
+                  className="hover:bg-blue-50/30 transition-colors"
+                >
                   <td className="px-3 py-2.5">
                     <div className="font-bold text-gray-900">{p.name}</div>
-                    <div className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">{p.subCategory}-Category</div>
-                    {p.category === "Oversea" && p.country !== null && (
+                    <div className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">
+                      {p.subCategory}-Category
+                    </div>
+                    {p.category === 'Oversea' && p.country !== null && (
                       <span className="text-[10px] text-gray-400 font-bold uppercase">
                         {p.country}
                       </span>
                     )}
-                    {p.category === "Oversea" && p.availability !== null && (
+                    {p.category === 'Oversea' && p.availability !== null && (
                       <span className="text-[10px] font-black uppercase text-gray-400 border border-gray-200 px-1 rounded">
                         {p.availability}
                       </span>
                     )}
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="text-gray-600 font-medium">{p.position}</span>
+                    <span className="text-gray-600 font-medium">
+                      {p.position}
+                    </span>
                   </td>
                   <td className="px-3 py-2.5 text-right font-mono font-bold text-indigo-600 italic">
-                    {p.isPreBought ? "Pre-Bought" : (tab === "Local" ? `৳${Number(p.priceBDT).toLocaleString()}` : `$${Number(p.priceUSD).toLocaleString()}`)}
+                    {p.isPreBought
+                      ? 'Pre-Bought'
+                      : tab === 'Local'
+                        ? `৳${Number(p.priceBDT).toLocaleString()}`
+                        : `$${Number(p.priceUSD).toLocaleString()}`}
                   </td>
                 </tr>
               ))}
               {displayPlayers.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-3 py-8 text-center text-gray-400 italic">No players drafted yet.</td>
+                  <td
+                    colSpan={3}
+                    className="px-3 py-8 text-center text-gray-400 italic"
+                  >
+                    No players drafted yet.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -155,7 +206,9 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
             >
               Prev
             </button>
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Page {page} of {totalPages}</span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+              Page {page} of {totalPages}
+            </span>
             <button
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
@@ -167,38 +220,73 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default function TeamDetailsPanel({ teams, currentTeamId }: { teams: ApiTeam[]; currentTeamId: string }) {
-  const [activeTab, setActiveTab] = useState<"Team" | "Others">("Team");
+export default function TeamDetailsPanel({
+  teams,
+  currentTeamId,
+}: {
+  teams: ApiTeam[];
+  currentTeamId: string;
+}) {
+  const [activeTab, setActiveTab] = useState<'Team' | 'Others'>('Team');
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
 
-  const currentTeam = teams.find(t => t.id === currentTeamId);
-  const otherTeams = teams.filter(t => t.id !== currentTeamId);
+  const currentTeam = teams.find((t) => t.id === currentTeamId);
+  const otherTeams = teams.filter((t) => t.id !== currentTeamId);
 
   return (
     <div className="h-full flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex border-b border-gray-100 font-bold flex-shrink-0">
-        <button onClick={() => setActiveTab("Team")} className={`flex-1 py-3 text-sm transition-colors ${activeTab === "Team" ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50" : "text-gray-500 hover:bg-gray-50"}`}>My Team Info</button>
-        <button onClick={() => setActiveTab("Others")} className={`flex-1 py-3 text-sm transition-colors ${activeTab === "Others" ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50" : "text-gray-500 hover:bg-gray-50"}`}>Other Teams</button>
+        <button
+          onClick={() => setActiveTab('Team')}
+          className={`flex-1 py-3 text-sm transition-colors ${activeTab === 'Team' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          My Team Info
+        </button>
+        <button
+          onClick={() => setActiveTab('Others')}
+          className={`flex-1 py-3 text-sm transition-colors ${activeTab === 'Others' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          Other Teams
+        </button>
       </div>
 
       <div className="flex-1 overflow-hidden p-4 flex flex-col min-h-0">
-        {activeTab === "Team" && currentTeam && (
+        {activeTab === 'Team' && currentTeam && (
           <TeamProfile team={currentTeam} />
         )}
 
-        {activeTab === "Others" && (
+        {activeTab === 'Others' && (
           <div className="overflow-y-auto pr-2 custom-scrollbar space-y-3 h-full pb-4">
-            {otherTeams.map(team => (
-              <div key={team.id} className="border rounded-xl overflow-hidden shadow-sm flex flex-col">
+            {otherTeams.map((team) => (
+              <div
+                key={team.id}
+                className="border rounded-xl overflow-hidden shadow-sm flex flex-col"
+              >
                 <button
-                  onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
+                  onClick={() =>
+                    setExpandedTeamId(
+                      expandedTeamId === team.id ? null : team.id
+                    )
+                  }
                   className="w-full bg-gray-50 hover:bg-gray-100 p-3 flex justify-between items-center font-bold text-gray-800 transition"
                 >
                   <span>{team.name}</span>
-                  <svg className={`w-4 h-4 transition-transform ${expandedTeamId === team.id ? "rotate-180 text-blue-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${expandedTeamId === team.id ? 'rotate-180 text-blue-600' : 'text-gray-400'}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
                 </button>
                 {expandedTeamId === team.id && (
                   <div className="p-4 bg-gray-50 border-t min-h-[450px]">
@@ -211,5 +299,5 @@ export default function TeamDetailsPanel({ teams, currentTeamId }: { teams: ApiT
         )}
       </div>
     </div>
-  )
+  );
 }

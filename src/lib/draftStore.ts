@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
+import { create } from 'zustand';
 
-import type { ApiDraftSession, ApiPlayer, ApiTeam } from "@/types/domain";
+import type { ApiDraftSession, ApiPlayer, ApiTeam } from '@/types/domain';
 
 type FetchAllOptions = {
   silent?: boolean;
@@ -35,7 +35,11 @@ export const useDraftStore = create<DraftStoreState>((set) => ({
       return inFlightFetch;
     }
 
-    if (!force && silent && Date.now() - lastSuccessfulFetchAt < SILENT_REFRESH_MIN_INTERVAL_MS) {
+    if (
+      !force &&
+      silent &&
+      Date.now() - lastSuccessfulFetchAt < SILENT_REFRESH_MIN_INTERVAL_MS
+    ) {
       return;
     }
 
@@ -46,13 +50,13 @@ export const useDraftStore = create<DraftStoreState>((set) => ({
     const fetchPromise = (async () => {
       try {
         const [teamsRes, playersRes, sessionRes] = await Promise.all([
-          fetch("/api/teams"),
-          fetch("/api/players"),
-          fetch("/api/draft/session"),
+          fetch('/api/teams'),
+          fetch('/api/players'),
+          fetch('/api/draft/session'),
         ]);
 
         if (!teamsRes.ok || !playersRes.ok || !sessionRes.ok) {
-          throw new Error("Failed to fetch draft state");
+          throw new Error('Failed to fetch draft state');
         }
 
         const [teams, players, session] = await Promise.all([
@@ -72,7 +76,7 @@ export const useDraftStore = create<DraftStoreState>((set) => ({
       } catch (error) {
         set((state) => ({
           loading: silent ? state.loading : false,
-          error: error instanceof Error ? error.message : "Failed to load data",
+          error: error instanceof Error ? error.message : 'Failed to load data',
         }));
       } finally {
         inFlightFetch = null;

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { getSocket } from "@/lib/socketClient";
-import { motion, AnimatePresence } from "framer-motion";
-import type { PickMadePayload } from "@/types/domain";
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { getSocket } from '@/lib/socketClient';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { PickMadePayload } from '@/types/domain';
 
 export default function AnimatedLatestPick() {
   const [pick, setPick] = useState<PickMadePayload | null>(null);
@@ -37,9 +37,9 @@ export default function AnimatedLatestPick() {
       }, 12000);
     };
 
-    socket.on("pick_made", handlePickMade);
+    socket.on('pick_made', handlePickMade);
     return () => {
-      socket.off("pick_made", handlePickMade);
+      socket.off('pick_made', handlePickMade);
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
@@ -63,7 +63,7 @@ export default function AnimatedLatestPick() {
             initial={{ scale: 0.8, y: 100, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.8, y: -100, opacity: 0 }}
-            transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}
+            transition={{ type: 'spring', bounce: 0.4, duration: 0.8 }}
             onClick={(e) => e.stopPropagation()} // Prevent click inside from closing
             className="bg-indigo-950 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(30,58,138,0.5)] max-w-7xl w-full border-4 border-white/10 flex flex-col md:flex-row relative cursor-default"
           >
@@ -72,9 +72,7 @@ export default function AnimatedLatestPick() {
 
             {/* 2. Team Banner (Primary Background) */}
             {pick.team.bannerUrl && (
-              <div
-                className="absolute inset-0 z-10 overflow-hidden"
-              >
+              <div className="absolute inset-0 z-10 overflow-hidden">
                 <div
                   className="absolute inset-0 opacity-50"
                   style={{
@@ -97,7 +95,7 @@ export default function AnimatedLatestPick() {
                 <motion.img
                   initial={{ scale: 1.2 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 10, ease: "linear" }}
+                  transition={{ duration: 10, ease: 'linear' }}
                   src={pick.player.imageUrl}
                   className="absolute inset-0 w-full h-full object-cover opacity-90"
                   alt="Player"
@@ -132,7 +130,11 @@ export default function AnimatedLatestPick() {
 
             {/* Info Side */}
             <div className="w-full md:w-7/12 p-8 md:p-16 relative flex flex-col justify-center z-30">
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
                 <div className="flex items-center gap-6 mb-4">
                   {pick.team.logoUrl && (
                     <Image
@@ -144,7 +146,9 @@ export default function AnimatedLatestPick() {
                     />
                   )}
                   <div>
-                    <p className="text-cyan-400 uppercase tracking-[0.3em] font-black text-xs mb-1">Franchise Secured</p>
+                    <p className="text-cyan-400 uppercase tracking-[0.3em] font-black text-xs mb-1">
+                      Franchise Secured
+                    </p>
                     <h2 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl leading-tight uppercase">
                       {pick.team.name}
                     </h2>
@@ -155,32 +159,44 @@ export default function AnimatedLatestPick() {
               <motion.div
                 initial={{ x: 50, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.8, type: "spring" }}
+                transition={{ delay: 0.8, type: 'spring' }}
                 className="mt-8"
               >
                 <div className="bg-gradient-to-r from-blue-600/20 to-transparent border-l-8 border-cyan-400 rounded-2xl p-8 md:p-10 backdrop-blur-md -ml-8 md:-ml-24 relative z-10 shadow-2xl overflow-visible">
-                  <p className="text-cyan-200 text-sm font-black uppercase tracking-[0.4em] mb-4 opacity-70">Official Selection</p>
+                  <p className="text-cyan-200 text-sm font-black uppercase tracking-[0.4em] mb-4 opacity-70">
+                    Official Selection
+                  </p>
                   <h3 className="text-5xl md:text-7xl font-black text-white break-words leading-none tracking-tight">
                     {pick.player.name}
                   </h3>
 
                   <div className="flex flex-wrap gap-4 mt-8">
                     <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-                      <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">Position</p>
-                      <p className="text-white font-black text-lg">{pick.player.position}</p>
+                      <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">
+                        Position
+                      </p>
+                      <p className="text-white font-black text-lg">
+                        {pick.player.position}
+                      </p>
                     </div>
                     {pick.player.country && (
                       <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-                        <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">Nationality</p>
-                        <p className="text-white font-black text-lg">{pick.player.country}</p>
+                        <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">
+                          Nationality
+                        </p>
+                        <p className="text-white font-black text-lg">
+                          {pick.player.country}
+                        </p>
                       </div>
                     )}
                     <div className="bg-emerald-500/10 border border-emerald-500/30 px-6 py-3 rounded-2xl backdrop-blur-md">
-                      <p className="text-[10px] uppercase font-bold text-emerald-400/60 mb-1 tracking-widest">Draft Value</p>
+                      <p className="text-[10px] uppercase font-bold text-emerald-400/60 mb-1 tracking-widest">
+                        Draft Value
+                      </p>
                       <p className="text-emerald-400 font-black text-xl font-mono">
-                        {pick.player.category === "Local" ?
-                          `৳${Number(pick.player.priceBDT || 0).toLocaleString()}` :
-                          `$${Number(pick.player.priceUSD || 0).toLocaleString()}`}
+                        {pick.player.category === 'Local'
+                          ? `৳${Number(pick.player.priceBDT || 0).toLocaleString()}`
+                          : `$${Number(pick.player.priceUSD || 0).toLocaleString()}`}
                       </p>
                     </div>
                   </div>
@@ -194,11 +210,12 @@ export default function AnimatedLatestPick() {
                   className="absolute bottom-6 right-8 text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] flex items-center gap-2"
                 >
                   Click anywhere to dismiss
-                  <div className="w-4 h-4 rounded-full border border-white/20 flex items-center justify-center text-[8px]">×</div>
+                  <div className="w-4 h-4 rounded-full border border-white/20 flex items-center justify-center text-[8px]">
+                    ×
+                  </div>
                 </motion.div>
               )}
             </div>
-
           </motion.div>
         </motion.div>
       )}

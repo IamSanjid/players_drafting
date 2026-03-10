@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
-import { jsonWithBigInt } from "@/lib/serialization";
-import { getErrorMessage, playerCreateSchema, toNullableBigInt } from "@/lib/validation";
-import { requireAdmin } from "@/lib/auth/authorize";
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { Prisma } from '@/generated/prisma/client';
+import { jsonWithBigInt } from '@/lib/serialization';
+import {
+  getErrorMessage,
+  playerCreateSchema,
+  toNullableBigInt,
+} from '@/lib/validation';
+import { requireAdmin } from '@/lib/auth/authorize';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const category = searchParams.get("category");
-  const search = searchParams.get("search");
+  const category = searchParams.get('category');
+  const search = searchParams.get('search');
 
   const whereClause: Prisma.PlayerWhereInput = {};
   if (category) {
@@ -45,7 +49,7 @@ export async function GET(request: Request) {
         },
       },
     },
-    orderBy: [{ subCategory: "asc" }, { name: "asc" }]
+    orderBy: [{ subCategory: 'asc' }, { name: 'asc' }],
   });
 
   return jsonWithBigInt(players);
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
     const parsed = playerCreateSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request body", details: parsed.error.flatten() },
+        { error: 'Invalid request body', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -81,21 +85,24 @@ export async function POST(request: Request) {
         imageUrl: data.imageUrl ?? null,
         isPreBought: data.isPreBought || false,
         teamId: data.teamId || null,
-      }
+      },
     });
 
     if (data.isPreBought && data.teamId) {
-       // Create a pick record for tracking, but DO NOT substract from budget
-       await prisma.pick.create({
-         data: {
-           teamId: data.teamId,
-           playerId: newPlayer.id,
-         }
-       })
+      // Create a pick record for tracking, but DO NOT substract from budget
+      await prisma.pick.create({
+        data: {
+          teamId: data.teamId,
+          playerId: newPlayer.id,
+        },
+      });
     }
 
     return jsonWithBigInt(newPlayer);
   } catch (error: unknown) {
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 400 }
+    );
   }
 }

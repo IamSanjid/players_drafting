@@ -1,6 +1,6 @@
-import { compare, hash } from "bcryptjs";
+import { compare, hash } from 'bcryptjs';
 
-const BCRYPT_PREFIX = "$2";
+const BCRYPT_PREFIX = '$2';
 const SALT_ROUNDS = 10;
 
 export function looksHashedPassword(value: string): boolean {
@@ -13,7 +13,7 @@ export async function hashPassword(plainTextPassword: string): Promise<string> {
 
 export async function verifyPassword(
   candidatePassword: string,
-  storedPassword: string,
+  storedPassword: string
 ): Promise<boolean> {
   if (looksHashedPassword(storedPassword)) {
     return compare(candidatePassword, storedPassword);
@@ -23,12 +23,14 @@ export async function verifyPassword(
   return candidatePassword === storedPassword;
 }
 
-export async function verifyAdminPassword(candidatePassword: string): Promise<boolean> {
+export async function verifyAdminPassword(
+  candidatePassword: string
+): Promise<boolean> {
   const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
   if (adminPasswordHash) {
     return compare(candidatePassword, adminPasswordHash);
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin123";
+  const adminPassword = process.env.ADMIN_PASSWORD ?? 'admin123';
   return candidatePassword === adminPassword;
 }

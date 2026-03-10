@@ -1,6 +1,11 @@
-import { cookies } from "next/headers";
-import { AUTH_COOKIE_NAME, AuthSession, decodeAuthToken, encodeAuthToken } from "@/lib/auth/token";
-export type { AuthRole, AuthSession } from "@/lib/auth/token";
+import { cookies } from 'next/headers';
+import {
+  AUTH_COOKIE_NAME,
+  AuthSession,
+  decodeAuthToken,
+  encodeAuthToken,
+} from '@/lib/auth/token';
+export type { AuthRole, AuthSession } from '@/lib/auth/token';
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
 export async function createAuthSession(session: AuthSession): Promise<void> {
@@ -10,10 +15,10 @@ export async function createAuthSession(session: AuthSession): Promise<void> {
 
   cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: SESSION_TTL_SECONDS,
-    path: "/",
+    path: '/',
   });
 }
 

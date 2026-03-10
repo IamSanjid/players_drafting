@@ -1,10 +1,26 @@
-import { z } from "zod";
-import type { AllowedCategories, DraftStatus, PlayerCategory } from "@/types/domain";
+import { z } from 'zod';
+import type {
+  AllowedCategories,
+  DraftStatus,
+  PlayerCategory,
+} from '@/types/domain';
 
 const idSchema = z.string().min(1);
-const categorySchema = z.enum(["Oversea", "Local"] satisfies [PlayerCategory, PlayerCategory]);
-const allowedCategoriesSchema = z.enum(["Both", "Oversea", "Local"] satisfies [AllowedCategories, AllowedCategories, AllowedCategories]);
-const draftStatusSchema = z.enum(["idle", "active", "paused", "ended"] satisfies [DraftStatus, DraftStatus, DraftStatus, DraftStatus]);
+const categorySchema = z.enum(['Oversea', 'Local'] satisfies [
+  PlayerCategory,
+  PlayerCategory,
+]);
+const allowedCategoriesSchema = z.enum(['Both', 'Oversea', 'Local'] satisfies [
+  AllowedCategories,
+  AllowedCategories,
+  AllowedCategories,
+]);
+const draftStatusSchema = z.enum([
+  'idle',
+  'active',
+  'paused',
+  'ended',
+] satisfies [DraftStatus, DraftStatus, DraftStatus, DraftStatus]);
 
 const bigintInputSchema = z.union([z.string(), z.number(), z.bigint()]);
 const nullableTextSchema = z.union([z.string(), z.null()]);
@@ -87,17 +103,17 @@ export const categoryQuerySchema = z.object({
 
 export function toNullableBigInt(value: unknown): bigint | null | undefined {
   if (value === undefined) return undefined;
-  if (value === null || value === "") return null;
+  if (value === null || value === '') return null;
   return BigInt(value as string | number | bigint);
 }
 
 export function parseInteger(value: string | number): number {
-  return typeof value === "number" ? value : Number.parseInt(value, 10);
+  return typeof value === 'number' ? value : Number.parseInt(value, 10);
 }
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  return "Unknown error";
+  return 'Unknown error';
 }

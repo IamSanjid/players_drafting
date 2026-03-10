@@ -1,15 +1,17 @@
-import { hash } from "bcryptjs";
-import prisma from "../src/lib/prisma";
+import { hash } from 'bcryptjs';
+import prisma from '../src/lib/prisma';
 
 async function main() {
   const teams = await prisma.team.findMany({
     select: { id: true, name: true, password: true },
   });
 
-  const plainTextTeams = teams.filter((team) => !team.password.startsWith("$2"));
+  const plainTextTeams = teams.filter(
+    (team) => !team.password.startsWith('$2')
+  );
 
   if (plainTextTeams.length === 0) {
-    console.log("No plaintext team passwords found.");
+    console.log('No plaintext team passwords found.');
     return;
   }
 

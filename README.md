@@ -5,16 +5,19 @@ Draft management app built with Next.js App Router + Prisma.
 ## Setup
 
 1. Install dependencies.
+
 ```bash
 npm install
 ```
 
 2. Create env file from template.
+
 ```bash
 copy .env.example .env
 ```
 
 3. Update secrets in `.env`:
+
 - `AUTH_SECRET`: long random string used to sign auth cookies.
 - `ADMIN_PASSWORD`: admin login password for `/admin`.
 - `ADMIN_PASSWORD_HASH`: optional bcrypt hash; if set, it takes precedence over `ADMIN_PASSWORD`.
@@ -23,6 +26,7 @@ copy .env.example .env
 - `NEXT_PUBLIC_DESCRIPTION`: optional description.
 
 You can generate an admin hash with Node:
+
 ```bash
 node -e "const b=require('bcryptjs'); b.hash(process.argv[1],10).then(h=>console.log(h))" "your-admin-password"
 ```
@@ -56,10 +60,12 @@ Write policy is centralized in `src/lib/auth/policy.ts` to make future team-writ
 Token signing/verification is centralized in `src/lib/auth/token.ts` and reused by both route handlers and `proxy.ts`.
 
 Team passwords:
+
 - New/updated team passwords are stored as bcrypt hashes.
 - Existing plaintext team rows still authenticate for backward compatibility until you rotate/update them.
 
 To hash all existing plaintext team passwords once:
+
 ```bash
 npx tsx scripts/hash-team-passwords.ts
 ```
@@ -92,13 +98,13 @@ npx tsx scripts/hash-team-passwords.ts
 ## Auth Endpoints
 
 - Admin:
-	- `POST /api/auth/admin/login`
-	- `POST /api/auth/admin/logout`
-	- `GET /api/auth/admin/me`
+  - `POST /api/auth/admin/login`
+  - `POST /api/auth/admin/logout`
+  - `GET /api/auth/admin/me`
 - Team:
-	- `POST /api/auth/team/login`
-	- `POST /api/auth/team/logout`
-	- `GET /api/auth/team/me`
+  - `POST /api/auth/team/login`
+  - `POST /api/auth/team/logout`
+  - `GET /api/auth/team/me`
 
 ## Validation
 

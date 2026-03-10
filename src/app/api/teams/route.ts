@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { jsonWithBigInt } from "@/lib/serialization";
-import { getErrorMessage, parseInteger, teamCreateSchema, toNullableBigInt } from "@/lib/validation";
-import { requireAdmin } from "@/lib/auth/authorize";
-import { hashPassword } from "@/lib/auth/password";
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { jsonWithBigInt } from '@/lib/serialization';
+import {
+  getErrorMessage,
+  parseInteger,
+  teamCreateSchema,
+  toNullableBigInt,
+} from '@/lib/validation';
+import { requireAdmin } from '@/lib/auth/authorize';
+import { hashPassword } from '@/lib/auth/password';
 
 export async function GET() {
   const teams = await prisma.team.findMany({
@@ -17,10 +22,10 @@ export async function GET() {
       bannerUrl: true,
       players: true,
       picks: {
-        include: { player: true }
-      }
+        include: { player: true },
+      },
     },
-    orderBy: { serialNumber: "asc" }
+    orderBy: { serialNumber: 'asc' },
   });
   return jsonWithBigInt(teams);
 }
@@ -36,7 +41,7 @@ export async function POST(request: Request) {
     const parsed = teamCreateSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request body", details: parsed.error.flatten() },
+        { error: 'Invalid request body', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -44,7 +49,10 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const serialNumber = parseInteger(data.serialNumber);
     if (!Number.isInteger(serialNumber)) {
-      return NextResponse.json({ error: "serialNumber must be an integer" }, { status: 400 });
+      return NextResponse.json(
+        { error: 'serialNumber must be an integer' },
+        { status: 400 }
+      );
     }
 
     const hashedPassword = await hashPassword(data.password);
@@ -58,10 +66,13 @@ export async function POST(request: Request) {
         password: hashedPassword,
         logoUrl: data.logoUrl || null,
         bannerUrl: data.bannerUrl || null,
-      }
+      },
     });
     return jsonWithBigInt(newTeam);
   } catch (error: unknown) {
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 400 }
+    );
   }
 }
