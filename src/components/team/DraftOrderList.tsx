@@ -1,5 +1,16 @@
 import { useState } from 'react';
 import Image from 'next/image';
+
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Tabs } from '@/components/ui/Tabs';
+import {
+  calculateCategorySpent,
+  getCurrentTurnTeam,
+  getSortedTeams,
+  getTeamDraftStatus,
+  isDraftRunningStatus,
+} from '@/lib/draft';
+import { formatMoney } from '@/lib/ui';
 import type {
   ApiDraftSession,
   ApiPick,
@@ -18,50 +29,48 @@ export default function DraftOrderList({
   activeTurnTeamId,
   session,
 }: DraftOrderListProps) {
-  // Sort teams by serial
-  const sortedTeams = [...teams].sort(
-    (a, b) => a.serialNumber - b.serialNumber
-  );
+  const sortedTeams = getSortedTeams(teams);
 
-  const isDraftActive = session?.isActive === true;
-  const activeTeam = teams.find((t) => t.id === activeTurnTeamId);
+  const activeTeam = getCurrentTurnTeam(teams, activeTurnTeamId);
   const activeSerial = activeTeam ? activeTeam.serialNumber : null;
 
   const draftStatus = session?.draftStatus || 'idle';
-  const isDraftRunning = draftStatus === 'active' || draftStatus === 'paused';
+  const isDraftRunning = isDraftRunningStatus(draftStatus);
 
   return (
-    <div className="h-full flex flex-col bg-gray-100 overflow-hidden">
-      <div className="flex items-center justify-between mb-2 mt-1 px-1 flex-shrink-0">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500">
+    <div className="flex h-full flex-col overflow-hidden bg-slate-50">
+      <div className="mb-2 mt-1 flex items-center justify-between px-1">
+        <h2 className="text-sm font-black uppercase tracking-wider text-slate-600">
           Draft Order
         </h2>
       </div>
+
       {!isDraftRunning ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 gap-3">
-          <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-2xl">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-2xl">
             ⏳
           </div>
-          <p className="text-sm font-bold text-gray-500">
+          <p className="text-sm font-bold text-slate-600">
             {draftStatus === 'ended'
               ? 'Draft has ended.'
               : 'Waiting for the draft session to start...'}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-500">
             {draftStatus === 'ended'
-              ? 'The Admin may start a new draft.'
-              : 'The Admin will start the session shortly.'}
+              ? 'The admin may start a new draft.'
+              : 'The admin will start the session shortly.'}
           </p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-2 custom-scrollbar space-y-4 pb-4">
+        <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto px-2 pb-4">
           {sortedTeams.map((team) => (
             <TeamDraftCard
               key={team.id}
               team={team}
               isActive={activeTurnTeamId === team.id}
               activeSerial={activeSerial}
-              isDraftActive={isDraftActive}
+              isDraftRunning={isDraftRunning}
+              activeTurnTeamId={activeTurnTeamId ?? null}
             />
           ))}
         </div>
@@ -74,31 +83,24 @@ function TeamDraftCard({
   team,
   isActive,
   activeSerial,
-  isDraftActive,
+  isDraftRunning,
+  activeTurnTeamId,
 }: {
   team: ApiTeam;
   isActive: boolean;
   activeSerial: number | null;
-  isDraftActive: boolean;
+  isDraftRunning: boolean;
+  activeTurnTeamId: string | null;
 }) {
   const [tab, setTab] = useState<'Local' | 'Oversea'>('Local');
 
-  const localPlayers =
-    team.players?.filter((p) => p.category === 'Local') || [];
-  const overseaPlayers =
-    team.players?.filter((p) => p.category === 'Oversea') || [];
-
-  const spentBDT = localPlayers.reduce(
-    (acc, p) => acc + Number(p.priceBDT || 0),
-    0
-  );
-  const spentUSD = overseaPlayers.reduce(
-    (acc, p) => acc + Number(p.priceUSD || 0),
-    0
-  );
+  const spentBDT = calculateCategorySpent(team, 'Local');
+  const spentUSD = calculateCategorySpent(team, 'Oversea');
 
   const localPicks =
-    team.picks?.filter((pick) => pick.player?.category === 'Local') || [];
+    team.picks?.filter(
+      (pick) => !pick.player?.isPreBought && pick.player?.category === 'Local'
+    ) || [];
   const lastLocalTarget =
     localPicks.length > 0
       ? ((localPicks[localPicks.length - 1] as ApiPick).player as
@@ -107,7 +109,9 @@ function TeamDraftCard({
       : undefined;
 
   const overseaPicks =
-    team.picks?.filter((pick) => pick.player?.category === 'Oversea') || [];
+    team.picks?.filter(
+      (pick) => !pick.player?.isPreBought && pick.player?.category === 'Oversea'
+    ) || [];
   const lastOverseaTarget =
     overseaPicks.length > 0
       ? ((overseaPicks[overseaPicks.length - 1] as ApiPick).player as
@@ -115,16 +119,33 @@ function TeamDraftCard({
           | undefined)
       : undefined;
 
+  const { label: statusLabel, tone: statusTone } = getTeamDraftStatus({
+    team,
+    currentTurnTeamId: activeTurnTeamId,
+    isDraftRunning,
+    activeSerial,
+  });
+
   return (
-    <div
-      className={`bg-white rounded-xl shadow-sm border-2 transition-all ${isActive ? 'border-blue-500 ring-4 ring-blue-100 scale-[1.02] z-10' : 'border-gray-100'} overflow-hidden flex flex-col`}
+    <article
+      className={`overflow-hidden rounded-xl border bg-white shadow-sm transition-all ${
+        isActive ? 'border-sky-400 ring-2 ring-sky-200' : 'border-slate-200'
+      }`}
     >
-      <div
-        className={`p-3 ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-900'} border-b flex justify-between items-center`}
+      <header
+        className={`flex items-center justify-between border-b px-3 py-2 ${
+          isActive
+            ? 'border-sky-500/30 bg-sky-600 text-white'
+            : 'border-slate-200 bg-slate-100'
+        }`}
       >
         <div className="flex items-center gap-2">
           <div
-            className={`w-8 h-8 rounded border overflow-hidden flex-shrink-0 flex items-center justify-center ${isActive ? 'bg-white/20 border-white/30' : 'bg-white border-gray-200 shadow-sm'}`}
+            className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded border ${
+              isActive
+                ? 'border-white/30 bg-white/15'
+                : 'border-slate-200 bg-white'
+            }`}
           >
             {team.logoUrl ? (
               <Image
@@ -132,128 +153,86 @@ function TeamDraftCard({
                 alt={`${team.name} logo`}
                 width={32}
                 height={32}
-                className="w-full h-full object-contain"
+                className="h-full w-full object-contain"
               />
             ) : (
-              <span
-                className={`text-[8px] font-bold ${isActive ? 'text-white/60' : 'text-gray-400'}`}
-              >
-                LOGO
-              </span>
+              <span className="text-[9px] font-bold opacity-60">LOGO</span>
             )}
           </div>
           <div>
-            <div
-              className={`text-[10px] uppercase tracking-wider opacity-80 font-bold ${isActive ? 'text-blue-100' : 'text-gray-500'}`}
+            <p
+              className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? 'text-sky-100' : 'text-slate-500'}`}
             >
               Pick #{team.serialNumber}
-            </div>
-            <h3 className="text-sm font-black truncate leading-tight">
-              {team.name}
-            </h3>
+            </p>
+            <h3 className="truncate text-sm font-black">{team.name}</h3>
           </div>
         </div>
-        {isActive && (
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-          </span>
-        )}
-      </div>
+        <StatusBadge label={statusLabel} tone={statusTone} pulse={isActive} />
+      </header>
 
-      <div className="p-2">
-        <div className="flex bg-gray-100 rounded p-0.5 mb-2">
-          <button
-            onClick={() => setTab('Local')}
-            className={`flex-1 text-[10px] font-bold py-1 rounded-sm ${tab === 'Local' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
-          >
-            Local
-          </button>
-          <button
-            onClick={() => setTab('Oversea')}
-            className={`flex-1 text-[10px] font-bold py-1 rounded-sm ${tab === 'Oversea' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
-          >
-            Oversea
-          </button>
-        </div>
+      <div className="space-y-3 p-3">
+        <Tabs<'Local' | 'Oversea'>
+          value={tab}
+          onChange={setTab}
+          className="w-full"
+          options={[
+            { value: 'Local', label: 'Local' },
+            { value: 'Oversea', label: 'Oversea' },
+          ]}
+        />
 
-        {tab === 'Local' && (
-          <div className="space-y-1">
-            <div className="flex justify-between text-[10px]">
-              <span className="text-gray-500 font-semibold">Spent:</span>
-              <span className="font-mono text-red-600 font-bold">
-                ৳{Number(spentBDT).toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between text-[10px]">
-              <span className="text-gray-500 font-semibold">Avail:</span>
-              <span className="font-mono text-green-600 font-bold">
-                ৳{Number(team.budgetBDT || 0).toLocaleString()}
-              </span>
-            </div>
-            <div className="bg-gray-50 p-1.5 rounded border mt-2">
-              <div className="text-[8px] uppercase text-gray-400 font-bold">
-                Last Pick
-              </div>
-              <div className="text-xs font-bold text-gray-800 truncate">
-                {lastLocalTarget ? lastLocalTarget.name : 'None'}
-              </div>
-            </div>
+        {tab === 'Local' ? (
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+            <Row label="Spent" value={`৳${formatMoney(spentBDT)}`} danger />
+            <Row
+              label="Avail"
+              value={`৳${formatMoney(team.budgetBDT || 0)}`}
+              success
+            />
+            <Row label="Last Pick" value={lastLocalTarget?.name ?? 'None'} />
+          </div>
+        ) : (
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+            <Row label="Spent" value={`$${formatMoney(spentUSD)}`} danger />
+            <Row
+              label="Avail"
+              value={`$${formatMoney(team.budgetUSD || 0)}`}
+              success
+            />
+            <Row label="Last Pick" value={lastOverseaTarget?.name ?? 'None'} />
           </div>
         )}
-
-        {tab === 'Oversea' && (
-          <div className="space-y-1">
-            <div className="flex justify-between text-[10px]">
-              <span className="text-gray-500 font-semibold">Spent:</span>
-              <span className="font-mono text-red-600 font-bold">
-                ${Number(spentUSD).toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between text-[10px]">
-              <span className="text-gray-500 font-semibold">Avail:</span>
-              <span className="font-mono text-green-600 font-bold">
-                ${Number(team.budgetUSD || 0).toLocaleString()}
-              </span>
-            </div>
-            <div className="bg-gray-50 p-1.5 rounded border mt-2">
-              <div className="text-[8px] uppercase text-gray-400 font-bold">
-                Last Pick
-              </div>
-              <div className="text-xs font-bold text-gray-800 truncate">
-                {lastOverseaTarget ? lastOverseaTarget.name : 'None'}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Draft Status Indicator */}
-        {(() => {
-          let statusText = 'Pending';
-          let statusColor = 'bg-gray-100 text-gray-500 border-gray-200';
-
-          if (isActive) {
-            statusText = 'Drafting';
-            statusColor =
-              'bg-blue-100 text-blue-700 border-blue-200 animate-pulse';
-          } else if (
-            isDraftActive &&
-            activeSerial !== null &&
-            team.serialNumber < activeSerial
-          ) {
-            statusText = 'Already Drafted';
-            statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-          }
-
-          return (
-            <div
-              className={`mt-3 py-1.5 border rounded-md text-center text-[10px] font-black uppercase tracking-widest ${statusColor}`}
-            >
-              {statusText}
-            </div>
-          );
-        })()}
       </div>
+    </article>
+  );
+}
+
+function Row({
+  label,
+  value,
+  success,
+  danger,
+}: {
+  label: string;
+  value: string;
+  success?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="font-semibold text-slate-500">{label}</span>
+      <span
+        className={`font-mono font-bold ${
+          success
+            ? 'text-emerald-700'
+            : danger
+              ? 'text-rose-700'
+              : 'text-slate-800'
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }

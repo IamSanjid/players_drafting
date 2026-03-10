@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Papa from 'papaparse';
+import { playersApi } from '@/lib/api';
 import { getSocket } from '@/lib/socketClient';
 
 type CsvRow = Record<string, string>;
@@ -65,9 +66,9 @@ export default function CSVBulkUploader({
     return normalized;
   };
 
-  const processFile = (file: File) => {
+  const processFile = (file: File, withHeaders = hasHeaders) => {
     Papa.parse(file, {
-      header: hasHeaders,
+      header: withHeaders,
       skipEmptyLines: true,
       complete: (results) => {
         if (results.errors.length > 0) {
@@ -78,7 +79,7 @@ export default function CSVBulkUploader({
         let parsedHeaders: string[] = [];
         let parsedData: CsvRow[] = [];
 
-        if (hasHeaders) {
+        if (withHeaders) {
           parsedHeaders = results.meta.fields || [];
           parsedData = (results.data as Record<string, unknown>[]).map(
             normalizeRow
@@ -189,14 +190,8 @@ export default function CSVBulkUploader({
     });
 
     try {
-      const res = await fetch('/api/players/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const res = await playersApi.bulkImport(payload);
+      if (!res.ok) throw new Error(res.error);
 
       socket.emit('state_changed'); // Notify connected clients
       onImportComplete(); // Close modal/refresh parent
@@ -215,7 +210,7 @@ export default function CSVBulkUploader({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition ${
+        className={`rounded-xl border-2 border-dashed p-8 text-center transition ${
           isDragging
             ? 'border-indigo-500 bg-indigo-50 shadow-inner'
             : 'border-gray-300 hover:bg-gray-50'
@@ -240,8 +235,8 @@ export default function CSVBulkUploader({
           >
             {isDragging ? 'Drop your CSV here' : 'Upload CSV File'}
           </span>
-          <span className="mt-1 block text-xs text-gray-300">
-            Drag & Drop or Click.
+          <span className="mt-1 block text-xs text-slate-400">
+            Drag and drop or click to browse.
           </span>
           <input
             type="file"
@@ -261,44 +256,7 @@ export default function CSVBulkUploader({
                   const val = e.target.checked;
                   setHasHeaders(val);
                   if (selectedFile) {
-                    // Re-parse with the new setting
-                    Papa.parse(selectedFile, {
-                      header: val,
-                      skipEmptyLines: true,
-                      complete: (results) => {
-                        if (results.errors.length > 0) {
-                          setError(
-                            'Error parsing CSV: ' + results.errors[0].message
-                          );
-                          return;
-                        }
-                        let parsedHeaders: string[] = [];
-                        let parsedData: CsvRow[] = [];
-                        if (val) {
-                          parsedHeaders = results.meta.fields || [];
-                          parsedData = (
-                            results.data as Record<string, unknown>[]
-                          ).map(normalizeRow);
-                        } else {
-                          const rawData = results.data as unknown[][];
-                          if (rawData.length > 0) {
-                            parsedHeaders = rawData[0].map(
-                              (val, i) => `Col ${i + 1} (${val})`
-                            );
-                            parsedData = rawData.map((row) => {
-                              const obj: CsvRow = {};
-                              row.forEach((cell, i) => {
-                                obj[parsedHeaders[i]] =
-                                  cell == null ? '' : String(cell);
-                              });
-                              return obj;
-                            });
-                          }
-                        }
-                        setHeaders(parsedHeaders);
-                        setCsvData(parsedData);
-                      },
-                    });
+                    processFile(selectedFile, val);
                   }
                 }}
                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
@@ -310,9 +268,9 @@ export default function CSVBulkUploader({
           </label>
         </div>
 
-        {error && (
+        {error ? (
           <div className="mt-4 text-xs font-bold text-red-500">{error}</div>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -334,30 +292,29 @@ export default function CSVBulkUploader({
   ];
 
   return (
-    <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-      <div className="bg-indigo-50 px-4 py-3 border-b flex justify-between items-center">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-indigo-100 bg-indigo-50 px-4 py-3">
         <div>
           <h3 className="font-bold text-indigo-900">Map CSV Columns</h3>
           <p className="text-xs text-indigo-700">
-            Found {csvData.length} rows. Match your CSV headers to the Database
-            fields.
+            Step 2 of 2: match your CSV fields. Parsed rows: {csvData.length}
           </p>
         </div>
         <button
           onClick={() => setCsvData([])}
-          className="text-sm font-medium text-gray-500 hover:text-gray-700"
+          className="text-sm font-medium text-slate-600 hover:text-slate-800"
         >
-          Cancel
+          Reset File
         </button>
       </div>
 
-      {error && (
+      {error ? (
         <div className="bg-red-50 text-red-600 p-3 text-sm font-medium border-b border-red-100">
           {error}
         </div>
-      )}
+      ) : null}
 
-      <div className="px-4 py-3 bg-white border-b flex items-center gap-4">
+      <div className="flex items-center gap-4 border-b border-slate-200 bg-white px-4 py-3">
         <label className="text-sm font-bold text-gray-700">
           Global Category (if not in CSV):
         </label>
@@ -372,11 +329,11 @@ export default function CSVBulkUploader({
         </select>
       </div>
 
-      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto bg-gray-50">
+      <div className="grid max-h-96 grid-cols-1 gap-4 overflow-y-auto bg-slate-50 p-4 md:grid-cols-2">
         {dbFields.map((field) => (
           <div
             key={field.key}
-            className="flex flex-col bg-white p-3 rounded-lg border shadow-sm"
+            className="flex flex-col rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
           >
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex justify-between">
               {field.label}{' '}
@@ -402,7 +359,7 @@ export default function CSVBulkUploader({
         ))}
       </div>
 
-      <div className="bg-gray-50 px-4 py-3 border-t flex justify-end">
+      <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-4 py-3">
         <button
           onClick={handleImport}
           disabled={uploading}

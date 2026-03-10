@@ -1,108 +1,253 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+import AdminAuthWrapper from '@/components/admin/AdminAuthWrapper';
+import {
+  AdminToastProvider,
+  useAdminToast,
+} from '@/components/admin/AdminToastProvider';
+import PlayerManagement from '@/components/admin/PlayerManagement';
 import SessionControls from '@/components/admin/SessionControls';
 import TeamManagement from '@/components/admin/TeamManagement';
-import PlayerManagement from '@/components/admin/PlayerManagement';
-import AdminAuthWrapper from '@/components/admin/AdminAuthWrapper';
-import { getSocket } from '@/lib/socketClient';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Tabs } from '@/components/ui/Tabs';
+import { authApi } from '@/lib/api';
+import { isEditingElement } from '@/lib/dom';
+import { getSessionStatusTone } from '@/lib/draft';
 import { useDraftStore } from '@/lib/draftStore';
+import { useSessionDerivedState } from '@/lib/hooks/useSessionDerivedState';
+import { useSessionActions } from '@/lib/hooks/useSessionActions';
+import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
+import { resetAppSetting } from '@/lib/settings';
+
+type AdminTab = 'session' | 'teams' | 'players';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'session' | 'teams' | 'players'>(
-    'session'
+  return (
+    <AdminAuthWrapper>
+      <AdminToastProvider>
+        <AdminDashboardContent />
+      </AdminToastProvider>
+    </AdminAuthWrapper>
   );
+}
+
+function AdminDashboardContent() {
+  const [activeTab, setActiveTab] = useState<AdminTab>('session');
   const teams = useDraftStore((state) => state.teams);
+  const session = useDraftStore((state) => state.session);
+  const players = useDraftStore((state) => state.players);
+  const { pushSuccess } = useAdminToast();
+  const {
+    status,
+    isDraftRunning,
+    sortedTeams,
+    currentTurnTeam,
+    currentTurnIndex,
+    canSkipCurrentTurn,
+    canGoToPreviousTurn,
+  } = useSessionDerivedState();
   const fetchAll = useDraftStore((state) => state.fetchAll);
-  const socket = getSocket();
 
-  useEffect(() => {
-    const refresh = () => {
-      void fetchAll({ silent: true });
-    };
-
-    void fetchAll();
-    socket.on('state_changed', refresh);
-
-    return () => {
-      socket.off('state_changed', refresh);
-    };
-  }, [fetchAll, socket]);
+  useDraftStateSync({ fetchAll });
 
   useEffect(() => {
     void fetchAll({ silent: true });
   }, [activeTab, fetchAll]);
 
+  const {
+    handleStartNewDraft,
+    handlePause,
+    handleResume,
+    handleEndDraft,
+    handleGoToPreviousTurn,
+    handleSkipCurrentTurn,
+  } = useSessionActions({
+    teams,
+    session,
+    sortedTeams,
+    currentTurnIndex,
+    canSkipCurrentTurn,
+    canGoToPreviousTurn,
+    fetchAll,
+    onBeforeStartOrResume: () => {
+      resetAppSetting('allowReorderDuringLiveDraft');
+    },
+  });
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
+
+      if (isEditingElement(event.target)) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+
+      if ((status === 'idle' || status === 'ended') && key === 's') {
+        event.preventDefault();
+        void handleStartNewDraft();
+        pushSuccess('Start new draft triggered via keyboard shortcut.');
+        return;
+      }
+
+      if (status === 'active' && key === 'p') {
+        event.preventDefault();
+        void handlePause();
+        pushSuccess('Draft paused via keyboard shortcut.');
+        return;
+      }
+
+      if (status === 'paused' && key === 'r') {
+        event.preventDefault();
+        void handleResume();
+        pushSuccess('Draft resumed via keyboard shortcut.');
+        return;
+      }
+
+      if (isDraftRunning && key === '[' && canGoToPreviousTurn) {
+        event.preventDefault();
+        void handleGoToPreviousTurn();
+        pushSuccess('Previous turn triggered via keyboard shortcut.');
+        return;
+      }
+
+      if (isDraftRunning && key === ']' && canSkipCurrentTurn) {
+        event.preventDefault();
+        void handleSkipCurrentTurn();
+        pushSuccess('Skip turn triggered via keyboard shortcut.');
+        return;
+      }
+
+      if ((status === 'active' || status === 'paused') && key === 'e') {
+        event.preventDefault();
+        void handleEndDraft(false);
+        pushSuccess('End draft triggered via keyboard shortcut.');
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [
+    status,
+    isDraftRunning,
+    canGoToPreviousTurn,
+    canSkipCurrentTurn,
+    handleStartNewDraft,
+    handlePause,
+    handleResume,
+    handleGoToPreviousTurn,
+    handleSkipCurrentTurn,
+    handleEndDraft,
+    pushSuccess,
+  ]);
+
   return (
-    <AdminAuthWrapper>
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-              Admin Control Center
-            </h1>
-            <div className="flex items-center gap-4">
+    <div className="h-dvh overflow-y-auto p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
+        <PageHeader
+          title="Admin Control Center"
+          subtitle="Operate the draft in real time and manage teams, players, and session rules."
+          actions={
+            <>
               <a
                 href="/team"
                 target="_blank"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="rounded-lg border border-sky-200 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-50"
               >
-                Open Team View ↗
+                Open Team View
               </a>
               <button
                 onClick={async () => {
-                  await fetch('/api/auth/admin/logout', { method: 'POST' });
+                  await authApi.admin.logout();
                   window.location.reload();
                 }}
-                className="text-red-500 hover:text-red-700 font-medium text-sm ml-4"
+                className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"
               >
                 Logout
               </button>
+            </>
+          }
+        />
+
+        <div className="grid gap-4 xl:grid-cols-12">
+          <aside className="xl:col-span-3">
+            <Card className="h-full">
+              <CardHeader>
+                <h2 className="text-sm font-black uppercase tracking-wider text-slate-800">
+                  Live Snapshot
+                </h2>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <div className="space-y-1">
+                  <p className="stat-label">Draft status</p>
+                  <StatusBadge
+                    label={session?.draftStatus ?? 'idle'}
+                    tone={getSessionStatusTone(session?.draftStatus)}
+                  />
+                </div>
+
+                <div>
+                  <p className="stat-label">Current turn</p>
+                  <p className="stat-value">{currentTurnTeam?.name ?? 'N/A'}</p>
+                  <p className="text-xs text-slate-500">
+                    {currentTurnTeam
+                      ? `Serial #${currentTurnTeam.serialNumber}`
+                      : 'No active turn'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <StatCard label="Teams" value={teams.length.toString()} />
+                  <StatCard label="Players" value={players.length.toString()} />
+                </div>
+
+                <div>
+                  <p className="stat-label">Round</p>
+                  <p className="stat-value">{session?.draftRound ?? 0}</p>
+                </div>
+              </CardBody>
+            </Card>
+          </aside>
+
+          <section className="xl:col-span-9">
+            <div className="mb-4">
+              <Tabs<AdminTab>
+                value={activeTab}
+                onChange={setActiveTab}
+                options={[
+                  { value: 'session', label: 'Session Controls' },
+                  { value: 'teams', label: 'Teams' },
+                  { value: 'players', label: 'Players' },
+                ]}
+              />
             </div>
-          </div>
 
-          {/* Custom Tabs */}
-          <div className="flex space-x-2 bg-white p-2 rounded-xl shadow-sm border border-gray-100 w-fit">
-            <button
-              onClick={() => setActiveTab('session')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'session'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              Session Config
-            </button>
-            <button
-              onClick={() => setActiveTab('teams')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'teams'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              Manage Teams
-            </button>
-            <button
-              onClick={() => setActiveTab('players')}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'players'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              Manage Players
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          <div className="mt-8">
-            {activeTab === 'session' && <SessionControls />}
-            {activeTab === 'teams' && <TeamManagement />}
-            {activeTab === 'players' && <PlayerManagement teams={teams} />}
-          </div>
+            {activeTab === 'session' ? <SessionControls /> : null}
+            {activeTab === 'teams' ? <TeamManagement /> : null}
+            {activeTab === 'players' ? (
+              <PlayerManagement teams={teams} />
+            ) : null}
+          </section>
         </div>
       </div>
-    </AdminAuthWrapper>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="stat-label">{label}</p>
+      <p className="text-xl font-black text-slate-900">{value}</p>
+    </div>
   );
 }

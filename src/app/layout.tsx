@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_TITLE ?? "BPL Female Players' Draft 2026",
-  description: process.env.NEXT_PUBLIC_DESCRIPTION ?? 'Live Draft Status',
+  description:
+    process.env.NEXT_PUBLIC_DESCRIPTION ?? "Players' Drafting Application",
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} app-shell antialiased`}
       >
         {children}
       </body>

@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+import { Card, CardBody } from '@/components/ui/Card';
+import { authApi } from '@/lib/api';
 
 export default function AdminAuthWrapper({
   children,
@@ -15,8 +18,8 @@ export default function AdminAuthWrapper({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/admin/me', { method: 'GET' });
-        setIsAuthenticated(res.ok);
+        const result = await authApi.admin.me();
+        setIsAuthenticated(result.ok);
       } finally {
         setCheckingAuth(false);
       }
@@ -25,31 +28,30 @@ export default function AdminAuthWrapper({
     void checkAuth();
   }, []);
 
-  const handleLogin = async (e: React.SubmitEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch('/api/auth/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    });
+    const res = await authApi.admin.login(password);
 
     if (res.ok) {
       setIsAuthenticated(true);
       setError('');
-    } else {
-      setError('Incorrect Admin Password.');
+      return;
     }
+
+    setError('Incorrect Admin Password.');
   };
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-100 text-center">
-          <p className="text-sm font-semibold text-gray-600">
-            Checking admin session...
-          </p>
-        </div>
+      <div className="flex min-h-dvh items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardBody className="p-8 text-center">
+            <p className="text-sm font-semibold text-slate-600">
+              Checking admin session...
+            </p>
+          </CardBody>
+        </Card>
       </div>
     );
   }
@@ -59,61 +61,68 @@ export default function AdminAuthWrapper({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-100"
-      >
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-red-200">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardBody className="p-8">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 to-rose-800 text-white shadow-lg shadow-rose-300/50">
+              <svg
+                className="h-8 w-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <h2 className="mb-1 text-center text-2xl font-black text-slate-900">
+            Admin Portal
+          </h2>
+          <p className="mb-6 text-center text-sm font-medium text-slate-500">
+            Restricted Access
+          </p>
+
+          {error ? (
+            <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-center text-sm font-medium text-rose-700">
+              {error}
+            </div>
+          ) : null}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label
+                htmlFor="adminPassword"
+                className="mb-1 block text-sm font-semibold text-slate-700"
+              >
+                Admin Password
+              </label>
+              <input
+                id="adminPassword"
+                required
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-center font-mono tracking-widest"
+                placeholder="••••••••"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-rose-700 p-3 font-bold text-white transition hover:bg-rose-800 active:scale-[0.99]"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              ></path>
-            </svg>
-          </div>
-        </div>
-
-        <h2 className="text-2xl font-black text-center text-gray-900 mb-2">
-          Admin Portal
-        </h2>
-        <p className="text-sm text-center text-gray-500 mb-6 font-medium">
-          Restricted Access
-        </p>
-
-        {error && (
-          <div className="mb-4 bg-red-50 text-red-600 font-medium text-sm p-3 rounded-lg border border-red-100 text-center">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-center tracking-widest focus:ring-red-500 font-mono shadow-inner"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold p-3 rounded-lg shadow-md transition transform active:scale-95"
-          >
-            Authenticate
-          </button>
-        </div>
-      </form>
+              Authenticate
+            </button>
+          </form>
+        </CardBody>
+      </Card>
     </div>
   );
 }

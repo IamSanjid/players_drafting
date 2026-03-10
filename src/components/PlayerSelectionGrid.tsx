@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+
+import { draftApi } from '@/lib/api';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { formatMoney } from '@/lib/ui';
 import { getSocket } from '@/lib/socketClient';
 import type { ApiDraftSession, ApiPlayer, ApiTeam } from '@/types/domain';
 
@@ -79,17 +83,13 @@ export default function PlayerSelectionGrid({
     setDraftingPlayerId(playerId);
 
     try {
-      const res = await fetch('/api/draft/pick', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId: currentTeamId, playerId }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const res = await draftApi.pick(currentTeamId, playerId);
+      if (!res.ok) {
+        throw new Error(res.error);
+      }
 
       // Success, notify real-time server
-      socket.emit('pick_made', data); // Custom animated event for Public UI
+      socket.emit('pick_made', res.data); // Custom animated event for Public UI
       socket.emit('state_changed'); // Generic refresh state
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Draft failed');
@@ -111,13 +111,14 @@ export default function PlayerSelectionGrid({
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden h-full">
-      <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 border-b border-gray-100 bg-gray-50 p-4">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           {/* Category Tabs */}
           <div className="flex space-x-1 p-1 bg-gray-200 rounded-lg">
             <button
               disabled={lockedCategory === 'Local'}
               onClick={() => setActiveTabCategory('Oversea')}
+              aria-pressed={currentCategory === 'Oversea'}
               className={`px-6 py-2 rounded-md font-semibold transition-all ${
                 currentCategory === 'Oversea'
                   ? 'bg-white shadow text-blue-700'
@@ -129,6 +130,7 @@ export default function PlayerSelectionGrid({
             <button
               disabled={lockedCategory === 'Oversea'}
               onClick={() => setActiveTabCategory('Local')}
+              aria-pressed={currentCategory === 'Local'}
               className={`px-6 py-2 rounded-md font-semibold transition-all ${
                 currentCategory === 'Local'
                   ? 'bg-white shadow text-blue-700'
@@ -141,7 +143,11 @@ export default function PlayerSelectionGrid({
 
           {/* Search */}
           <div className="relative w-full md:w-80">
+            <label htmlFor="player-search" className="sr-only">
+              Search players
+            </label>
             <input
+              id="player-search"
               type="text"
               placeholder={`Search in ${currentCategory}...`}
               value={searchQuery}
@@ -194,7 +200,11 @@ export default function PlayerSelectionGrid({
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4 animate-bounce">
+        <div
+          role="status"
+          aria-live="polite"
+          className="m-4 border-l-4 border-red-500 bg-red-50 p-4"
+        >
           <p className="text-sm font-medium text-red-800">{error}</p>
         </div>
       )}
@@ -300,21 +310,18 @@ export default function PlayerSelectionGrid({
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-mono text-sm font-black text-indigo-600">
-                          {Number(price).toLocaleString()}{' '}
+                          {formatMoney(price)}{' '}
                           <span className="text-[10px]">{currency}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right rounded-r-xl">
                         {isDrafted ? (
-                          <span
-                            className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest ${myPlayer ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}
-                          >
-                            {myPlayer ? 'YOURS' : 'DRAFTED'}
-                          </span>
+                          <StatusBadge
+                            label={myPlayer ? 'Yours' : 'Drafted'}
+                            tone={myPlayer ? 'success' : 'neutral'}
+                          />
                         ) : readOnly ? (
-                          <span className="text-[10px] font-black text-gray-300 uppercase italic tracking-widest">
-                            Available
-                          </span>
+                          <StatusBadge label="Available" tone="active" />
                         ) : (
                           <button
                             onClick={() => draftPlayer(p.id)}

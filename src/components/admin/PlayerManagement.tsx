@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { getSocket } from '@/lib/socketClient';
+
 import CSVBulkUploader from '@/components/admin/CSVBulkUploader';
+import { useAdminToast } from '@/components/admin/AdminToastProvider';
+import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Tabs } from '@/components/ui/Tabs';
+import { playersApi, uploadApi } from '@/lib/api';
+import type { PlayerUpsertPayload } from '@/lib/api';
+import { formatMoney } from '@/lib/ui';
+import { getSocket } from '@/lib/socketClient';
 import { useDraftStore } from '@/lib/draftStore';
-import type { ApiPlayer, ApiTeam } from '@/types/domain';
+import type { ApiPlayer, ApiTeam, PlayerCategory } from '@/types/domain';
 
 export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const players = useDraftStore((state) => state.players);
@@ -13,7 +21,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const fetchAll = useDraftStore((state) => state.fetchAll);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('Oversea');
+  const [category, setCategory] = useState<PlayerCategory>('Oversea');
   const [subCategory, setSubCategory] = useState('A');
   const [position, setPosition] = useState('');
   const [priceBDT, setPriceBDT] = useState('');
@@ -24,6 +32,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const [isPreBought, setIsPreBought] = useState(false);
   const [preBoughtTeamId, setPreBoughtTeamId] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -36,6 +45,29 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const [listSearch, setListSearch] = useState('');
 
   const [showCsvUploader, setShowCsvUploader] = useState(false);
+  const [isPlayerFormExpanded, setIsPlayerFormExpanded] = useState(false);
+  const playerManagementRootRef = useRef<HTMLDivElement>(null);
+  const playerNameInputRef = useRef<HTMLInputElement>(null);
+  const { pushSuccess, pushError } = useAdminToast();
+
+  const findScrollableAncestor = (node: HTMLElement | null) => {
+    let current: HTMLElement | null = node?.parentElement ?? null;
+
+    while (current) {
+      const style = window.getComputedStyle(current);
+      const isScrollable =
+        (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+        current.scrollHeight > current.clientHeight;
+
+      if (isScrollable) {
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    return null;
+  };
 
   const socket = getSocket();
 
@@ -50,6 +82,31 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     setCurrentPage(1);
   }, [listCategory, listSubCategory, listSearch]);
 
+  useEffect(() => {
+    if (!editingPlayerId || !isPlayerFormExpanded) {
+      return;
+    }
+
+    const scrollTarget = findScrollableAncestor(
+      playerManagementRootRef.current
+    );
+
+    if (scrollTarget) {
+      scrollTarget.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const focusDelayId = window.setTimeout(() => {
+      playerNameInputRef.current?.focus({ preventScroll: true });
+      playerNameInputRef.current?.select();
+    }, 220);
+
+    return () => {
+      window.clearTimeout(focusDelayId);
+    };
+  }, [editingPlayerId, isPlayerFormExpanded]);
+
   const resetForm = () => {
     setEditingPlayerId(null);
     setName('');
@@ -62,45 +119,63 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     setCountry('');
   };
 
-  const handleAddOrUpdatePlayer = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-    const url = editingPlayerId
-      ? `/api/players/${editingPlayerId}`
-      : '/api/players';
-    const method = editingPlayerId ? 'PATCH' : 'POST';
+  const handleCancelEdit = () => {
+    resetForm();
+    setIsPlayerFormExpanded(false);
+  };
 
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        category,
-        subCategory,
-        position,
-        priceBDT,
-        priceUSD,
-        country,
-        availability,
-        imageUrl,
-        isPreBought,
-        teamId: preBoughtTeamId
-          ? preBoughtTeamId.length === 0
-            ? null
-            : preBoughtTeamId
-          : null,
-      }),
-    });
+  const handleAddOrUpdatePlayer = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    const payload: PlayerUpsertPayload = {
+      name,
+      category,
+      subCategory,
+      position,
+      priceBDT,
+      priceUSD,
+      country,
+      availability,
+      imageUrl,
+      isPreBought,
+      teamId: preBoughtTeamId
+        ? preBoughtTeamId.length === 0
+          ? null
+          : preBoughtTeamId
+        : null,
+    };
+
+    const res = editingPlayerId
+      ? await playersApi.update(editingPlayerId, payload)
+      : await playersApi.create(payload);
+
+    if (!res.ok) {
+      pushError(res.error || 'Failed to save player.');
+      return;
+    }
 
     socket.emit('state_changed');
     await fetchAll({ silent: true, force: true });
+    pushSuccess(
+      editingPlayerId
+        ? 'Player updated successfully.'
+        : 'Player added successfully.'
+    );
     resetForm();
+    setIsPlayerFormExpanded(false);
   };
 
   const deletePlayer = async (id: string) => {
     if (!confirm('Delete player?')) return;
-    await fetch(`/api/players/${id}`, { method: 'DELETE' });
+    const res = await playersApi.remove(id);
+    if (!res.ok) {
+      pushError('Failed to delete player.');
+      return;
+    }
     socket.emit('state_changed');
     await fetchAll({ silent: true, force: true });
+    pushSuccess('Player deleted.');
   };
 
   const handleDeleteAllByCategory = async (cat: string) => {
@@ -110,13 +185,19 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
       )
     )
       return;
-    await fetch(`/api/players/bulk?category=${cat}`, { method: 'DELETE' });
+    const res = await playersApi.removeByCategory(cat);
+    if (!res.ok) {
+      pushError(`Failed to delete ${cat} players.`);
+      return;
+    }
     socket.emit('state_changed');
     await fetchAll({ silent: true, force: true });
+    pushSuccess(`Deleted all ${cat} players.`);
   };
 
   const startEdit = (player: ApiPlayer) => {
     setEditingPlayerId(player.id);
+    setIsPlayerFormExpanded(true);
     setName(player.name);
     setCategory(player.category);
     setSubCategory(player.subCategory);
@@ -128,9 +209,6 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     setImageUrl(player.imageUrl || '');
     setIsPreBought(player.isPreBought);
     setPreBoughtTeamId(player.teamId || '');
-
-    // Scroll to top to see form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,20 +216,18 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     if (!file) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        setImageUrl(data.url);
+      const res = await uploadApi.uploadFile(file);
+      if (res.ok && res.data.url) {
+        setImageUrl(res.data.url);
+        pushSuccess('Player image uploaded.');
+      } else {
+        pushError(res.ok ? 'Image upload failed.' : res.error);
       }
     } catch (err: unknown) {
       console.error('Upload failed', err);
+      pushError('Image upload failed.');
     } finally {
       setUploading(false);
     }
@@ -164,26 +240,25 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        await fetch(`/api/players/${playerId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: data.url }),
+      const uploadRes = await uploadApi.uploadFile(file);
+      if (uploadRes.ok && uploadRes.data.url) {
+        const patchRes = await playersApi.update(playerId, {
+          imageUrl: uploadRes.data.url,
         });
+        if (!patchRes.ok) {
+          pushError('Failed to save uploaded image.');
+          return;
+        }
         socket.emit('state_changed');
         await fetchAll({ silent: true, force: true });
+        pushSuccess('Player image updated.');
+      } else {
+        pushError(uploadRes.ok ? 'Image upload failed.' : uploadRes.error);
       }
     } catch (err: unknown) {
       console.error('Direct upload failed', err);
+      pushError('Image upload failed.');
     }
   };
 
@@ -203,7 +278,11 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     startIndex + itemsPerPage
   );
 
-  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const draftedPlayersCount = players.filter((player) =>
+    Boolean(player.team)
+  ).length;
+  const availablePlayersCount = players.length - draftedPlayersCount;
+  const preBoughtCount = players.filter((player) => player.isPreBought).length;
 
   const handleManualAssign = async (playerId: string, teamId: string) => {
     if (!teamId) return;
@@ -219,27 +298,23 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
     setAssigningId(playerId);
     try {
-      const res = await fetch(`/api/players/${playerId}/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId }),
-      });
-      const data = await res.json();
+      const res = await playersApi.assign(playerId, teamId);
 
       if (res.ok) {
         // Trigger latest pick animation
         socket.emit('pick_made', {
-          player: data.player,
-          team: data.team,
+          player: res.data.player,
+          team: res.data.team,
         });
 
         socket.emit('state_changed');
         await fetchAll({ silent: true, force: true });
+        pushSuccess('Player assigned successfully.');
       } else {
-        alert(data.error || 'Assignment failed');
+        pushError(res.error || 'Assignment failed.');
       }
     } catch {
-      alert('Error assigning player');
+      pushError('Error assigning player.');
     } finally {
       setAssigningId(null);
     }
@@ -247,36 +322,66 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
   const triggerAnimation = (player: ApiPlayer) => {
     if (!player.team) {
-      alert('Cannot trigger animation for a player without a team!');
+      pushError('Cannot broadcast: player has no assigned team.');
       return;
     }
     socket.emit('pick_made', { player, team: player.team });
+    pushSuccess(`Broadcast sent for ${player.name}.`);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden">
-      <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+    <Card className="overflow-hidden">
+      <div ref={playerManagementRootRef} />
+      <CardHeader className="flex items-center justify-between gap-4 bg-slate-50">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Player Management</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-xl font-black text-slate-900">
+            Player Management
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
             Add players to the draft pool or register pre-bought contracts
           </p>
         </div>
-        <button
-          onClick={() => setShowCsvUploader(!showCsvUploader)}
-          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all shadow-sm ${
-            showCsvUploader
-              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
-          }`}
-        >
-          {showCsvUploader ? 'Close CSV Tool' : 'Bulk Upload CSV'}
-        </button>
-      </div>
+        <div className="flex items-center gap-2">
+          <StatusBadge label={`${players.length} total`} tone="active" />
+          <button
+            onClick={() => setShowCsvUploader(!showCsvUploader)}
+            className={`rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+              showCsvUploader
+                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                : 'border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+            }`}
+          >
+            {showCsvUploader ? 'Close CSV Tool' : 'Bulk Upload CSV'}
+          </button>
+        </div>
+      </CardHeader>
 
-      <div className="p-6">
+      <CardBody>
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatPill
+            label="Total"
+            value={players.length.toString()}
+            tone="active"
+          />
+          <StatPill
+            label="Available"
+            value={availablePlayersCount.toString()}
+            tone="success"
+          />
+          <StatPill
+            label="Drafted"
+            value={draftedPlayersCount.toString()}
+            tone="warning"
+          />
+          <StatPill
+            label="Pre-Bought"
+            value={preBoughtCount.toString()}
+            tone="neutral"
+          />
+        </div>
+
         {showCsvUploader && (
-          <div className="mb-8 p-1 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl">
+          <div className="mb-8 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 p-1">
             <CSVBulkUploader
               onImportComplete={() => {
                 void fetchAll({ silent: true, force: true });
@@ -286,263 +391,286 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
           </div>
         )}
 
-        <form
-          onSubmit={handleAddOrUpdatePlayer}
-          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-inner"
-        >
-          <div className="md:col-span-4 flex justify-between items-center mb-2">
-            <h3 className="text-sm font-black text-gray-700 uppercase tracking-tighter">
-              {editingPlayerId ? 'Edit Player' : 'Add New Player'}
-            </h3>
-            {editingPlayerId && (
-              <button
-                onClick={resetForm}
-                type="button"
-                className="text-xs font-bold text-red-500 hover:underline"
-              >
-                Cancel Edit
-              </button>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Name
-            </label>
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              type="text"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-              placeholder="Player Name"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Category
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-            >
-              <option value="Oversea">Oversea</option>
-              <option value="Local">Local</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Sub-Category
-            </label>
-            <select
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-            >
-              {['A', 'B', 'C', 'D', 'E', 'F'].map((c) => (
-                <option key={c} value={c}>
-                  Category {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-              Position
-            </label>
-            <input
-              required
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              type="text"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-              placeholder="e.g. Batsman"
-            />
-          </div>
-
-          <div className="flex flex-col gap-4 md:col-span-2">
-            <div className="grid grid-cols-2 gap-4">
-              {category === 'Local' ? (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    Price (BDT)
-                  </label>
-                  <input
-                    required
-                    value={priceBDT}
-                    onChange={(e) => setPriceBDT(e.target.value)}
-                    type="number"
-                    className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-                    placeholder="0"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    Price (USD)
-                  </label>
-                  <input
-                    required
-                    value={priceUSD}
-                    onChange={(e) => setPriceUSD(e.target.value)}
-                    type="number"
-                    className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-                    placeholder="0"
-                  />
-                </div>
-              )}
-              {category === 'Oversea' && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    Country
-                  </label>
-                  <input
-                    required
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    type="text"
-                    className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-                    placeholder="Country"
-                  />
-                </div>
-              )}
+        <section className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-700">
+                {editingPlayerId ? 'Edit Player' : 'Add New Player'}
+              </h3>
+              <p className="text-xs font-semibold text-slate-500">
+                {editingPlayerId
+                  ? 'Editing selected player details'
+                  : 'Create a new player entry'}
+              </p>
             </div>
-            {category === 'Oversea' && (
+
+            <div className="flex items-center gap-2">
+              {editingPlayerId ? (
+                <button
+                  onClick={handleCancelEdit}
+                  type="button"
+                  className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100"
+                >
+                  Cancel Edit
+                </button>
+              ) : null}
+              <button
+                type="button"
+                aria-expanded={isPlayerFormExpanded}
+                aria-controls="player-form-panel"
+                onClick={() => setIsPlayerFormExpanded((current) => !current)}
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
+              >
+                {isPlayerFormExpanded ? 'Collapse' : 'Expand'}
+                <span className="text-sm leading-none" aria-hidden="true">
+                  {isPlayerFormExpanded ? '▴' : '▾'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {isPlayerFormExpanded ? (
+            <form
+              id="player-form-panel"
+              onSubmit={handleAddOrUpdatePlayer}
+              className="grid grid-cols-1 gap-4 p-5 md:grid-cols-4"
+            >
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  Availability
+                  Name
+                </label>
+                <input
+                  ref={playerNameInputRef}
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  type="text"
+                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  placeholder="Player Name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                  Category
                 </label>
                 <select
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
+                  value={category}
+                  onChange={(e) =>
+                    setCategory(e.target.value as PlayerCategory)
+                  }
                   className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
                 >
-                  <option value="Full-Time">Full-Time</option>
-                  <option value="Partial">Partial</option>
-                  <option value="Custom">Custom</option>
+                  <option value="Oversea">Oversea</option>
+                  <option value="Local">Local</option>
                 </select>
               </div>
-            )}
-          </div>
-
-          <div className="md:col-span-2 space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                Player Image
-              </label>
-              <div className="flex gap-2">
-                <input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  type="text"
-                  className="flex-1 bg-white border border-gray-300 text-sm rounded-lg p-2.5"
-                  placeholder="Paste URL or upload..."
-                />
-                <label className="cursor-pointer bg-white border border-gray-300 p-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm flex items-center justify-center min-w-[100px]">
-                  <span className="text-xs font-bold text-gray-600 truncate max-w-[80px]">
-                    {uploading ? '...' : 'Upload'}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
-                </label>
-              </div>
-              {imageUrl && (
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded border overflow-hidden">
-                    <Image
-                      src={imageUrl}
-                      alt="Player preview"
-                      width={32}
-                      height={32}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="text-[10px] text-gray-400 truncate max-w-[200px]">
-                    {imageUrl}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="preBought"
-                checked={isPreBought}
-                onChange={(e) => setIsPreBought(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <label
-                htmlFor="preBought"
-                className="text-sm font-black text-gray-700 uppercase tracking-tight"
-              >
-                Register as Pre-bought?
-              </label>
-            </div>
-
-            {(isPreBought || editingPlayerId) && (
-              <div className="flex-1">
+              <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  {isPreBought
-                    ? 'Assign To Team (Pre-bought)'
-                    : 'Manually Assign/Re-assign To Team'}
+                  Sub-Category
                 </label>
                 <select
-                  value={preBoughtTeamId}
-                  onChange={(e) => setPreBoughtTeamId(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 font-bold italic text-blue-800"
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
                 >
-                  <option value="">
-                    {editingPlayerId ? 'Unassign' : 'Select a team...'}
-                  </option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
+                  {['A', 'B', 'C', 'D', 'E', 'F'].map((c) => (
+                    <option key={c} value={c}>
+                      Category {c}
                     </option>
                   ))}
                 </select>
-                <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tight">
-                  * Changing this for a drafted player will auto-swap budgets
-                  and counts.
-                </p>
               </div>
-            )}
-          </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                  Position
+                </label>
+                <input
+                  required
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  type="text"
+                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  placeholder="e.g. Batsman"
+                />
+              </div>
 
-          <div className="md:col-span-4 flex justify-end">
-            <button
-              type="submit"
-              className="px-10 py-3 bg-blue-600 text-white rounded-xl font-black uppercase text-sm tracking-widest hover:bg-blue-700 transition shadow-lg shadow-blue-200 transform active:scale-95"
-            >
-              {editingPlayerId ? 'Update Player' : 'Add to Pool'}
-            </button>
-          </div>
-        </form>
+              <div className="flex flex-col gap-4 md:col-span-2">
+                <div className="grid grid-cols-2 gap-4">
+                  {category === 'Local' ? (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Price (BDT)
+                      </label>
+                      <input
+                        required
+                        value={priceBDT}
+                        onChange={(e) => setPriceBDT(e.target.value)}
+                        type="number"
+                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        placeholder="0"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Price (USD)
+                      </label>
+                      <input
+                        required
+                        value={priceUSD}
+                        onChange={(e) => setPriceUSD(e.target.value)}
+                        type="number"
+                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        placeholder="0"
+                      />
+                    </div>
+                  )}
+                  {category === 'Oversea' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Country
+                      </label>
+                      <input
+                        required
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        type="text"
+                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        placeholder="Country"
+                      />
+                    </div>
+                  )}
+                </div>
+                {category === 'Oversea' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      Availability
+                    </label>
+                    <select
+                      value={availability}
+                      onChange={(e) => setAvailability(e.target.value)}
+                      className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                    >
+                      <option value="Full-Time">Full-Time</option>
+                      <option value="Partial">Partial</option>
+                      <option value="Custom">Custom</option>
+                    </select>
+                  </div>
+                )}
+              </div>
 
-        {/* List Header with Tabs and Filters */}
-        <div className="flex flex-col gap-6 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-            <div className="flex p-1 bg-gray-200 rounded-xl w-fit">
-              <button
-                onClick={() => setListCategory('Oversea')}
-                className={`px-6 py-2 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${listCategory === 'Oversea' ? 'bg-white shadow-md text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Oversea
-              </button>
-              <button
-                onClick={() => setListCategory('Local')}
-                className={`px-6 py-2 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${listCategory === 'Local' ? 'bg-white shadow-md text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Local
-              </button>
-            </div>
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Player Image
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      type="text"
+                      className="flex-1 bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                      placeholder="Paste URL or upload..."
+                    />
+                    <label className="cursor-pointer bg-white border border-gray-300 p-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm flex items-center justify-center min-w-[100px]">
+                      <span className="text-xs font-bold text-gray-600 truncate max-w-[80px]">
+                        {uploading ? '...' : 'Upload'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                  </div>
+                  {imageUrl && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border overflow-hidden">
+                        <Image
+                          src={imageUrl}
+                          alt="Player preview"
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="max-w-[220px] truncate text-[10px] text-gray-400">
+                        {imageUrl}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="preBought"
+                    checked={isPreBought}
+                    onChange={(e) => setIsPreBought(e.target.checked)}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label
+                    htmlFor="preBought"
+                    className="text-sm font-black text-gray-700 uppercase tracking-tight"
+                  >
+                    Register as Pre-bought?
+                  </label>
+                </div>
+
+                {(isPreBought || editingPlayerId) && (
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      {isPreBought
+                        ? 'Assign To Team (Pre-bought)'
+                        : 'Manually Assign/Re-assign To Team'}
+                    </label>
+                    <select
+                      value={preBoughtTeamId}
+                      onChange={(e) => setPreBoughtTeamId(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 font-bold italic text-blue-800"
+                    >
+                      <option value="">
+                        {editingPlayerId ? 'Unassign' : 'Select a team...'}
+                      </option>
+                      {teams.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tight">
+                      * Changing this for a drafted player will auto-swap
+                      budgets and counts.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="md:col-span-4 flex justify-end">
+                <button
+                  type="submit"
+                  className="rounded-xl bg-blue-700 px-8 py-3 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-blue-200 transition hover:bg-blue-800 active:scale-95"
+                >
+                  {editingPlayerId ? 'Update Player' : 'Add to Pool'}
+                </button>
+              </div>
+            </form>
+          ) : null}
+        </section>
+
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <Tabs<'Oversea' | 'Local'>
+              value={listCategory}
+              onChange={setListCategory}
+              options={[
+                { value: 'Oversea', label: 'Oversea' },
+                { value: 'Local', label: 'Local' },
+              ]}
+            />
 
             <button
               onClick={() => handleDeleteAllByCategory(listCategory)}
@@ -552,7 +680,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm items-end">
+          <div className="grid grid-cols-1 items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-3">
             <div className="flex-1">
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
                 Search Player
@@ -563,7 +691,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   onChange={(e) => setListSearch(e.target.value)}
                   type="text"
                   placeholder="Name..."
-                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg pl-9 pr-4 py-2"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm"
                 />
                 <svg
                   className="w-4 h-4 text-gray-400 absolute left-3 top-2.5"
@@ -611,15 +739,15 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className="h-10 bg-gray-100 rounded-lg w-full"></div>
-            <div className="h-10 bg-gray-100 rounded-lg w-full"></div>
-            <div className="h-10 bg-gray-100 rounded-lg w-full"></div>
+            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
+            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
+            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="overflow-x-auto border border-gray-100 rounded-2xl shadow-sm">
+            <div className="hidden overflow-x-auto rounded-2xl border border-slate-200 shadow-sm md:block">
               <table className="w-full text-sm text-left">
-                <thead className="text-[10px] font-black text-gray-400 uppercase bg-gray-50 border-b border-gray-100">
+                <thead className="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase text-slate-500">
                   <tr>
                     <th scope="col" className="px-6 py-4">
                       Player Details
@@ -639,7 +767,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   {paginatedPlayers.map((player) => (
                     <tr
                       key={player.id}
-                      className="bg-white hover:bg-blue-50/30 transition group"
+                      className="group bg-white transition hover:bg-blue-50/30"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
@@ -660,7 +788,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                             <div className="font-black text-gray-900 leading-tight">
                               {player.name}
                             </div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
+                            <div className="text-[10px] font-bold uppercase tracking-tight text-gray-400">
                               {player.position} • Category {player.subCategory}
                             </div>
                           </div>
@@ -669,8 +797,8 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                       <td className="px-6 py-4">
                         <div className="font-mono font-black text-indigo-600">
                           {player.category === 'Local'
-                            ? `${Number(player.priceBDT || 0).toLocaleString()} BDT`
-                            : `$${Number(player.priceUSD || 0).toLocaleString()}`}
+                            ? `${formatMoney(player.priceBDT || 0)} BDT`
+                            : `$${formatMoney(player.priceUSD || 0)}`}
                         </div>
                         {player.country && (
                           <div className="text-[10px] text-gray-400 font-bold uppercase">
@@ -680,17 +808,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                       </td>
                       <td className="px-6 py-4">
                         {player.team ? (
-                          <div className="flex flex-col gap-1">
-                            <span
-                              className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full w-fit ${player.isPreBought ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
-                            >
-                              {player.team.name}
-                            </span>
-                          </div>
+                          <StatusBadge
+                            label={player.team.name}
+                            tone={player.isPreBought ? 'warning' : 'active'}
+                          />
                         ) : (
-                          <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
-                            Available
-                          </span>
+                          <StatusBadge label="Available" tone="success" />
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -753,7 +876,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                                 onChange={(e) =>
                                   handleManualAssign(player.id, e.target.value)
                                 }
-                                className="text-[10px] font-bold bg-white border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none w-28 uppercase cursor-pointer hover:border-blue-300 transition"
+                                className="w-28 cursor-pointer rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-bold uppercase transition hover:border-blue-300"
                               >
                                 <option value="">Assign To...</option>
                                 {teams.map((t) => (
@@ -790,7 +913,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     <tr>
                       <td
                         colSpan={5}
-                        className="text-center py-20 bg-gray-50/50"
+                        className="bg-gray-50/50 py-20 text-center"
                       >
                         <div className="flex flex-col items-center">
                           <svg
@@ -806,7 +929,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                             ></path>
                           </svg>
-                          <span className="text-sm font-bold text-gray-400 italic">
+                          <span className="text-sm font-bold italic text-gray-400">
                             No players found match your current filters.
                           </span>
                         </div>
@@ -817,10 +940,111 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               </table>
             </div>
 
+            <div className="space-y-3 md:hidden">
+              {paginatedPlayers.map((player) => (
+                <article
+                  key={player.id}
+                  className="rounded-xl border border-slate-200 bg-white p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-9 w-9 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                        {player.imageUrl ? (
+                          <Image
+                            src={player.imageUrl}
+                            alt={`${player.name} photo`}
+                            width={36}
+                            height={36}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-500">
+                            {player.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900">
+                          {player.name}
+                        </p>
+                        <p className="text-[10px] font-bold uppercase text-slate-500">
+                          {player.position} • {player.subCategory}
+                        </p>
+                      </div>
+                    </div>
+                    {player.team ? (
+                      <StatusBadge
+                        label={player.team.name}
+                        tone={player.isPreBought ? 'warning' : 'active'}
+                      />
+                    ) : (
+                      <StatusBadge label="Available" tone="success" />
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-xs font-bold text-indigo-700">
+                    {player.category === 'Local'
+                      ? `${formatMoney(player.priceBDT || 0)} BDT`
+                      : `$${formatMoney(player.priceUSD || 0)}`}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => startEdit(player)}
+                      className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold uppercase text-slate-700"
+                    >
+                      Edit
+                    </button>
+                    <label className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">
+                      Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleRowFileUpload(e, player.id)}
+                      />
+                    </label>
+                    {player.team ? (
+                      <button
+                        onClick={() => triggerAnimation(player)}
+                        className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase text-indigo-700"
+                      >
+                        Broadcast
+                      </button>
+                    ) : (
+                      <select
+                        disabled={assigningId === player.id}
+                        value={''}
+                        onChange={(e) =>
+                          handleManualAssign(player.id, e.target.value)
+                        }
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold uppercase"
+                      >
+                        <option value="">Assign To...</option>
+                        {teams.map((team) => (
+                          <option key={team.id} value={team.id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {!player.team ? (
+                      <button
+                        onClick={() => deletePlayer(player.id)}
+                        className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold uppercase text-rose-700"
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <div className="text-xs font-black text-gray-400 uppercase tracking-widest">
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <div className="text-xs font-black uppercase tracking-widest text-gray-400">
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
@@ -845,6 +1069,30 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
             )}
           </div>
         )}
+      </CardBody>
+    </Card>
+  );
+}
+
+function StatPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: 'neutral' | 'active' | 'warning' | 'danger' | 'success';
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="stat-label">{label}</p>
+      <div className="mt-1 flex items-center justify-between">
+        <p className="text-xl font-black text-slate-900">{value}</p>
+        <StatusBadge
+          label={label}
+          tone={tone}
+          className="px-2 py-0.5 text-[9px]"
+        />
       </div>
     </div>
   );

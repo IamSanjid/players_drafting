@@ -51,3 +51,6 @@ src/generated/
 # exclude uploaded files
 public/uploads/*
 !public/uploads/.gitkeep
+
+# exclude skills folder for AI agents
+.skills/

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+
+import { toNullableBigIntInput } from '@/lib/numbers';
 import type {
   AllowedCategories,
   DraftStatus,
@@ -27,33 +29,115 @@ const nullableTextSchema = z.union([z.string(), z.null()]);
 
 export const idParamSchema = z.object({ id: idSchema });
 
-export const playerCreateSchema = z.object({
-  name: z.string().min(1),
-  category: categorySchema,
-  subCategory: z.string().min(1),
-  position: z.string().min(1),
-  priceBDT: z.union([bigintInputSchema, z.null()]).optional(),
-  priceUSD: z.union([bigintInputSchema, z.null()]).optional(),
-  country: nullableTextSchema.optional(),
-  availability: nullableTextSchema.optional(),
-  imageUrl: nullableTextSchema.optional(),
-  isPreBought: z.boolean().optional(),
-  teamId: z.union([idSchema, z.null()]).optional(),
-});
+export const playerCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    category: categorySchema,
+    subCategory: z.string().min(1),
+    position: z.string().min(1),
+    priceBDT: z.union([bigintInputSchema, z.null()]).optional(),
+    priceUSD: z.union([bigintInputSchema, z.null()]).optional(),
+    country: nullableTextSchema.optional(),
+    availability: nullableTextSchema.optional(),
+    imageUrl: nullableTextSchema.optional(),
+    isPreBought: z.boolean().optional(),
+    teamId: z.union([idSchema, z.null()]).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.category === 'Local') {
+      if (
+        value.priceBDT === undefined ||
+        value.priceBDT === null ||
+        value.priceBDT === ''
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['priceBDT'],
+          message: 'Local players require priceBDT.',
+        });
+      }
+    }
 
-export const playerPatchSchema = z.object({
-  name: z.string().min(1).optional(),
-  category: categorySchema.optional(),
-  subCategory: z.string().min(1).optional(),
-  position: z.string().min(1).optional(),
-  priceBDT: z.union([bigintInputSchema, z.null()]).optional(),
-  priceUSD: z.union([bigintInputSchema, z.null()]).optional(),
-  country: nullableTextSchema.optional(),
-  availability: nullableTextSchema.optional(),
-  imageUrl: nullableTextSchema.optional(),
-  isPreBought: z.boolean().optional(),
-  teamId: z.union([idSchema, z.null()]).optional(),
-});
+    if (value.category === 'Oversea') {
+      if (
+        value.priceUSD === undefined ||
+        value.priceUSD === null ||
+        value.priceUSD === ''
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['priceUSD'],
+          message: 'Oversea players require priceUSD.',
+        });
+      }
+
+      if (!value.country || !value.country.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['country'],
+          message: 'Oversea players require country.',
+        });
+      }
+
+      if (!value.availability || !value.availability.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availability'],
+          message: 'Oversea players require availability.',
+        });
+      }
+    }
+  });
+
+export const playerPatchSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    category: categorySchema.optional(),
+    subCategory: z.string().min(1).optional(),
+    position: z.string().min(1).optional(),
+    priceBDT: z.union([bigintInputSchema, z.null()]).optional(),
+    priceUSD: z.union([bigintInputSchema, z.null()]).optional(),
+    country: nullableTextSchema.optional(),
+    availability: nullableTextSchema.optional(),
+    imageUrl: nullableTextSchema.optional(),
+    isPreBought: z.boolean().optional(),
+    teamId: z.union([idSchema, z.null()]).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.category === 'Local' && value.priceBDT === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['priceBDT'],
+        message: 'Local players cannot clear priceBDT.',
+      });
+    }
+
+    if (value.category === 'Oversea') {
+      if (value.priceUSD === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['priceUSD'],
+          message: 'Oversea players cannot clear priceUSD.',
+        });
+      }
+
+      if (value.country === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['country'],
+          message: 'Oversea players cannot clear country.',
+        });
+      }
+
+      if (value.availability === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availability'],
+          message: 'Oversea players cannot clear availability.',
+        });
+      }
+    }
+  });
 
 export const bulkPlayersSchema = z.array(playerCreateSchema).min(1);
 
@@ -98,13 +182,11 @@ export const teamPatchSchema = z.object({
 });
 
 export const categoryQuerySchema = z.object({
-  category: z.string().min(1),
+  category: z.enum(['Oversea', 'Local']),
 });
 
 export function toNullableBigInt(value: unknown): bigint | null | undefined {
-  if (value === undefined) return undefined;
-  if (value === null || value === '') return null;
-  return BigInt(value as string | number | bigint);
+  return toNullableBigIntInput(value);
 }
 
 export function parseInteger(value: string | number): number {
