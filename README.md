@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Players Drafting
 
-## Getting Started
+Draft management app built with Next.js App Router + Prisma.
 
-First, run the development server:
+## Setup
+
+1. Install dependencies.
+```bash
+npm install
+```
+
+2. Create env file from template.
+```bash
+copy .env.example .env
+```
+
+3. Update secrets in `.env`:
+- `AUTH_SECRET`: long random string used to sign auth cookies.
+- `ADMIN_PASSWORD`: admin login password for `/admin`.
+- `ADMIN_PASSWORD_HASH`: optional bcrypt hash; if set, it takes precedence over `ADMIN_PASSWORD`.
+
+You can generate an admin hash with Node:
+```bash
+node -e "const b=require('bcryptjs'); b.hash(process.argv[1],10).then(h=>console.log(h))" "your-admin-password"
+```
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Authentication and Authorization
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project now uses stateless signed cookie sessions (`jose`) and server-side route checks.
 
-## Learn More
+- `GET` APIs are public.
+- Most `POST`/`PATCH`/`DELETE` APIs are admin-only.
+- Team writes are restricted to `POST /api/draft/pick` and must match the authenticated team.
+- `proxy.ts` adds an optimistic pre-check for API write requests (`/api/:path*`). Route handlers still perform authoritative checks.
+- `proxy.ts` also validates browser `Origin` on unsafe API methods as a CSRF mitigation.
 
-To learn more about Next.js, take a look at the following resources:
+Write policy is centralized in `src/lib/auth/policy.ts` to make future team-write route additions easy.
+Token signing/verification is centralized in `src/lib/auth/token.ts` and reused by both route handlers and `proxy.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Team passwords:
+- New/updated team passwords are stored as bcrypt hashes.
+- Existing plaintext team rows still authenticate for backward compatibility until you rotate/update them.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To hash all existing plaintext team passwords once:
+```bash
+npx tsx scripts/hash-team-passwords.ts
+```
 
-## Deploy on Vercel
+### Public APIs
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/players`
+- `GET /api/teams`
+- `GET /api/draft/session`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Team-Allowed Write APIs
+
+- `POST /api/draft/pick`
+
+### Admin-Only Write APIs
+
+- `PATCH /api/draft/session`
+- `POST /api/teams`
+- `PATCH /api/teams/[id]`
+- `DELETE /api/teams/[id]`
+- `POST /api/teams/reverse`
+- `POST /api/players`
+- `PATCH /api/players/[id]`
+- `DELETE /api/players/[id]`
+- `POST /api/players/[id]/assign`
+- `POST /api/players/bulk`
+- `DELETE /api/players/bulk`
+- `POST /api/upload`
+
+## Auth Endpoints
+
+- Admin:
+	- `POST /api/auth/admin/login`
+	- `POST /api/auth/admin/logout`
+	- `GET /api/auth/admin/me`
+- Team:
+	- `POST /api/auth/team/login`
+	- `POST /api/auth/team/logout`
+	- `GET /api/auth/team/me`
+
+## Validation
+
+```bash
+npm run lint
+npx tsc --noEmit
+```

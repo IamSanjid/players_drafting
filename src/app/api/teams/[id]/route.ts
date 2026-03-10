@@ -3,8 +3,15 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { getErrorMessage, idParamSchema, parseInteger, teamPatchSchema } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
+import { hashPassword } from "@/lib/auth/password";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const paramParse = idParamSchema.safeParse(await context.params);
     if (!paramParse.success) {
@@ -30,7 +37,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (data.name !== undefined) allowedUpdates.name = data.name;
     if (data.budgetBDT !== undefined) allowedUpdates.budgetBDT = BigInt(data.budgetBDT);
     if (data.budgetUSD !== undefined) allowedUpdates.budgetUSD = BigInt(data.budgetUSD);
-    if (data.password !== undefined) allowedUpdates.password = data.password;
+    if (data.password !== undefined) {
+      allowedUpdates.password = await hashPassword(data.password);
+    }
     if (data.logoUrl !== undefined) allowedUpdates.logoUrl = data.logoUrl;
     if (data.bannerUrl !== undefined) allowedUpdates.bannerUrl = data.bannerUrl;
 
@@ -68,6 +77,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 }
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const paramParse = idParamSchema.safeParse(await context.params);
     if (!paramParse.success) {

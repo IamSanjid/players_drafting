@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { getErrorMessage, playerCreateSchema, toNullableBigInt } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,7 +20,31 @@ export async function GET(request: Request) {
 
   const players = await prisma.player.findMany({
     where: whereClause,
-    include: { team: true },
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      subCategory: true,
+      position: true,
+      priceBDT: true,
+      priceUSD: true,
+      country: true,
+      availability: true,
+      imageUrl: true,
+      isPreBought: true,
+      teamId: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          serialNumber: true,
+          budgetBDT: true,
+          budgetUSD: true,
+          logoUrl: true,
+          bannerUrl: true,
+        },
+      },
+    },
     orderBy: [{ subCategory: "asc" }, { name: "asc" }]
   });
 
@@ -27,6 +52,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = playerCreateSchema.safeParse(body);

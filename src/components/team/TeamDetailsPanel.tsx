@@ -132,7 +132,7 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                     <span className="text-gray-600 font-medium">{p.position}</span>
                   </td>
                   <td className="px-3 py-2.5 text-right font-mono font-bold text-indigo-600 italic">
-                    {tab === "Local" ? `৳${Number(p.priceBDT).toLocaleString()}` : `$${Number(p.priceUSD).toLocaleString()}`}
+                    {p.isPreBought ? "Pre-Bought" : (tab === "Local" ? `৳${Number(p.priceBDT).toLocaleString()}` : `$${Number(p.priceUSD).toLocaleString()}`)}
                   </td>
                 </tr>
               ))}

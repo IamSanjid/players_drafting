@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getErrorMessage } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function POST() {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const teams = await prisma.team.findMany({
       orderBy: { serialNumber: "asc" }

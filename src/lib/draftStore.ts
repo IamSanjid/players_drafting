@@ -48,7 +48,7 @@ export const useDraftStore = create<DraftStoreState>((set) => ({
         const [teamsRes, playersRes, sessionRes] = await Promise.all([
           fetch("/api/teams"),
           fetch("/api/players"),
-          fetch("/api/session"),
+          fetch("/api/draft/session"),
         ]);
 
         if (!teamsRes.ok || !playersRes.ok || !sessionRes.ok) {
@@ -65,7 +65,7 @@ export const useDraftStore = create<DraftStoreState>((set) => ({
         set((state) => ({
           teams,
           players,
-          session,
+          session: session,
           loading: silent ? state.loading : false,
           error: null,
         }));

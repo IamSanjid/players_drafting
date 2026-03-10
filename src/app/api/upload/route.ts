@@ -3,10 +3,16 @@ import { writeFile } from "fs/promises";
 import path from "path";
 import { z } from "zod";
 import { getErrorMessage } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 const uploadTypeSchema = z.enum(["player", "team", "banner", "logo"]).or(z.string().min(1));
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const formData = await request.formData();
     const fileEntry = formData.get("file");

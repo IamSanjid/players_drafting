@@ -13,7 +13,7 @@ import type { ApiTeam } from "@/types/domain";
 export default function PublicDashboard() {
   const teams = useDraftStore((state) => state.teams);
   const players = useDraftStore((state) => state.players);
-  const session = useDraftStore((state) => state.session);
+  const draftSession = useDraftStore((state) => state.session);
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
@@ -46,8 +46,8 @@ export default function PublicDashboard() {
     );
   }
 
-  const currentTurnTeam = session?.currentTurnTeamId
-    ? teams.find((team) => team.id === session.currentTurnTeamId)
+  const currentTurnTeam = draftSession?.currentTurnTeamId
+    ? teams.find((team) => team.id === draftSession.currentTurnTeamId)
     : null;
   const activeSerial = currentTurnTeam ? currentTurnTeam.serialNumber : 9999;
   const sortedTeams = [...teams].sort((a, b) => a.serialNumber - b.serialNumber);
@@ -69,7 +69,7 @@ export default function PublicDashboard() {
           </div>
 
           <div className="flex items-center gap-6">
-            {session?.isActive ? (
+            {draftSession?.isActive ? (
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-2 flex items-center gap-4 shadow-inner">
                 <div className="flex flex-col text-right">
                   <span className="text-[10px] uppercase font-bold text-blue-500 tracking-wider">Current Turn</span>
@@ -119,14 +119,14 @@ export default function PublicDashboard() {
         {activeTab === "Session" && (
           <div className="max-w-4xl mx-auto h-full flex flex-col">
             <h2 className="text-xl font-bold text-gray-800 mb-6 uppercase tracking-wider">Draft Order & Live Status</h2>
-            {session?.draftStatus === "idle" || session?.draftStatus === "ended" || !session?.draftStatus ? (
+            {draftSession?.draftStatus === "idle" || draftSession?.draftStatus === "ended" || !draftSession?.draftStatus ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
                 <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl">⏳</div>
                 <p className="text-lg font-bold text-gray-500">
-                  {session?.draftStatus === "ended" ? "This draft session has ended." : "Waiting for the draft session to start..."}
+                  {draftSession?.draftStatus === "ended" ? "This draft session has ended." : "Waiting for the draft session to start..."}
                 </p>
                 <p className="text-sm text-gray-400">
-                  {session?.draftStatus === "ended"
+                  {draftSession?.draftStatus === "ended"
                     ? "The admin may start a new draft round."
                     : "The Admin will kick things off shortly. Stay tuned!"}
                 </p>
@@ -136,7 +136,7 @@ export default function PublicDashboard() {
                 {sortedTeams.map((team: ApiTeam) => {
                   let statusText = "Pending";
                   let statusColor = "bg-gray-100 text-gray-600 border-gray-200";
-                  if (team.id === session?.currentTurnTeamId) {
+                  if (team.id === draftSession?.currentTurnTeamId) {
                     statusText = "Drafting";
                     statusColor = "bg-blue-100 text-blue-700 border-blue-200 animate-pulse ring-2 ring-blue-300 ring-offset-1";
                   } else if (team.serialNumber < activeSerial) {
@@ -148,13 +148,13 @@ export default function PublicDashboard() {
                     <div
                       key={team.id}
                       className={`border rounded-xl overflow-hidden shadow-sm flex flex-col ${
-                        team.id === session?.currentTurnTeamId ? "border-blue-400" : "border-gray-200"
+                        team.id === draftSession?.currentTurnTeamId ? "border-blue-400" : "border-gray-200"
                       }`}
                     >
                       <button
                         onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
                         className={`w-full p-4 flex justify-between items-center transition ${
-                          team.id === session?.currentTurnTeamId ? "bg-blue-50/50 hover:bg-blue-50" : "bg-white hover:bg-gray-50"
+                          team.id === draftSession?.currentTurnTeamId ? "bg-blue-50/50 hover:bg-blue-50" : "bg-white hover:bg-gray-50"
                         }`}
                       >
                         <div className="flex gap-4 items-center">
@@ -201,7 +201,7 @@ export default function PublicDashboard() {
           <div className="h-full max-w-7xl mx-auto flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <PlayerSelectionGrid
               players={players}
-              session={session}
+              session={draftSession}
               currentTeamId={null}
               teams={teams}
               readOnly={true}

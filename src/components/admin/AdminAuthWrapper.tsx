@@ -4,34 +4,49 @@ import { useState, useEffect } from "react";
 
 export default function AdminAuthWrapper({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Defer to a microtask to avoid synchronous setState in effect body lint rule.
-    const timerId = setTimeout(() => {
-      if (localStorage.getItem("adminAuth") === "true") {
-        setIsAuthenticated(true);
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/admin/me", { method: "GET" });
+        setIsAuthenticated(res.ok);
+      } finally {
+        setCheckingAuth(false);
       }
-    }, 0);
-
-    return () => {
-      clearTimeout(timerId);
     };
+
+    void checkAuth();
   }, []);
 
-  const handleLogin = (e: React.SubmitEvent) => {
+  const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    // Simple hardcoded auth. Since there is no cloud/remote connection requirement,
-    // a basic environment/hardcoded check suffices.
-    if (password === "admin123") {
+
+    const res = await fetch("/api/auth/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+
+    if (res.ok) {
       setIsAuthenticated(true);
-      localStorage.setItem("adminAuth", "true");
       setError("");
     } else {
       setError("Incorrect Admin Password.");
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-gray-100 text-center">
+          <p className="text-sm font-semibold text-gray-600">Checking admin session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return <>{children}</>;

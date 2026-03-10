@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { draftPickSchema, getErrorMessage } from "@/lib/validation";
+import { requireTeamAccess } from "@/lib/auth/authorize";
 
 export async function POST(request: Request) {
   try {
@@ -16,6 +17,10 @@ export async function POST(request: Request) {
     }
 
     const { teamId, playerId } = parsed.data;
+    const auth = await requireTeamAccess(teamId);
+    if (!auth.ok) {
+      return auth.response;
+    }
 
     // Wrap in a transaction to ensure integrity
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -69,7 +74,20 @@ export async function POST(request: Request) {
           teamId: team.id,
           playerId: player.id,
         },
-        include: { player: true, team: true }
+        include: {
+          player: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+              serialNumber: true,
+              budgetBDT: true,
+              budgetUSD: true,
+              logoUrl: true,
+              bannerUrl: true,
+            },
+          },
+        }
       });
 
       // Move turn to the next team

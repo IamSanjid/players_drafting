@@ -16,7 +16,7 @@ type SessionUpdatePayload = Partial<{
 }>;
 
 export default function SessionControls() {
-  const session = useDraftStore((state) => state.session);
+  const draftSession = useDraftStore((state) => state.session);
   const teams = useDraftStore((state) => state.teams);
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
@@ -24,13 +24,13 @@ export default function SessionControls() {
   const socket = getSocket();
 
   useEffect(() => {
-    if (!session) {
+    if (!draftSession) {
       void fetchAll();
     }
-  }, [fetchAll, session]);
+  }, [fetchAll, draftSession]);
 
   const updateSession = async (updates: SessionUpdatePayload) => {
-    await fetch("/api/session", {
+    await fetch("/api/draft/session", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
@@ -44,7 +44,7 @@ export default function SessionControls() {
     const sortedTeams = [...teams].sort((a, b) => a.serialNumber - b.serialNumber);
     if (sortedTeams.length === 0) return alert("Add teams first before starting a draft.");
     const draftOrderIds = sortedTeams.map((t) => t.id);
-    const nextRound = (session?.draftRound || 0) + 1;
+    const nextRound = (draftSession?.draftRound || 0) + 1;
     await updateSession({
       isActive: true,
       draftStatus: "active",
@@ -67,10 +67,10 @@ export default function SessionControls() {
     const teamsWithNoPicks = teams.filter((t) =>
       (t.picks?.length || 0) === 0 ||
       t.picks.every((p) => {
-        if (!session?.draftStartedAt) {
+        if (!draftSession?.draftStartedAt) {
           return false;
         }
-        return p.createdAt < session.draftStartedAt;
+        return p.createdAt < draftSession.draftStartedAt;
       }),
     );
     if (!force && teamsWithNoPicks.length > 0) {
@@ -81,21 +81,21 @@ export default function SessionControls() {
     await updateSession({ isActive: false, draftStatus: "ended", currentTurnTeamId: null });
   };
 
-  if (!session) {
+  if (!draftSession) {
     if (loading) {
       return <div className="animate-pulse h-20 bg-gray-200 rounded-xl" />;
     }
     return <div className="h-20 bg-gray-50 rounded-xl border border-gray-100" />;
   }
 
-  const status = session.draftStatus || "idle";
+  const status = draftSession.draftStatus || "idle";
   const teamsWithNoPicks = teams.filter((t) =>
     (t.picks?.length || 0) === 0 ||
     t.picks.every((p) => {
-      if (!session?.draftStartedAt) {
+      if (!draftSession?.draftStartedAt) {
         return false;
       }
-      return p.createdAt < session.draftStartedAt;
+      return p.createdAt < draftSession.draftStartedAt;
     }),
   );
 
@@ -116,8 +116,8 @@ export default function SessionControls() {
             {status === "paused" && "Draft is PAUSED"}
             {status === "ended" && "Draft has ENDED"}
           </h3>
-          {(session.draftRound || 0) > 0 && status !== "idle" && status !== "ended" && (
-            <p className="text-xs text-gray-500">Round #{session.draftRound}</p>
+          {(draftSession.draftRound || 0) > 0 && status !== "idle" && status !== "ended" && (
+            <p className="text-xs text-gray-500">Round #{draftSession.draftRound}</p>
           )}
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function SessionControls() {
         <div className="p-4 border border-gray-200 rounded-xl">
           <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Allowed Categories</h3>
           <select
-            value={session.allowedCategories}
+            value={draftSession.allowedCategories}
             onChange={(e) => {
               const newVal = e.target.value;
               const updates: SessionUpdatePayload = { allowedCategories: newVal as SessionUpdatePayload["allowedCategories"] };
@@ -208,9 +208,9 @@ export default function SessionControls() {
         <div className="p-4 border border-gray-200 rounded-xl">
           <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Active Category</h3>
           <select
-            value={session.activeCategory}
+            value={draftSession.activeCategory}
             onChange={(e) => updateSession({ activeCategory: e.target.value as "Oversea" | "Local" })}
-            disabled={session.allowedCategories !== "Both"}
+            disabled={draftSession.allowedCategories !== "Both"}
             className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 disabled:opacity-50"
           >
             <option value="Local">Local Players</option>

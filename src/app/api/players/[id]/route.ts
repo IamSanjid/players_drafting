@@ -3,8 +3,14 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { getErrorMessage, idParamSchema, playerPatchSchema, toNullableBigInt } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const paramParse = idParamSchema.safeParse(await context.params);
     if (!paramParse.success) {
@@ -153,6 +159,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 }
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const paramParse = idParamSchema.safeParse(await context.params);
     if (!paramParse.success) {

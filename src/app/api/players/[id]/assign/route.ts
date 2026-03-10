@@ -3,8 +3,14 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { jsonWithBigInt } from "@/lib/serialization";
 import { idParamSchema, assignTeamSchema, getErrorMessage } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const paramParse = idParamSchema.safeParse(await context.params);
     if (!paramParse.success) {
@@ -90,7 +96,19 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       const updatedPlayer = await tx.player.update({
         where: { id: playerId },
         data: { teamId: teamId },
-        include: { team: true }
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              serialNumber: true,
+              budgetBDT: true,
+              budgetUSD: true,
+              logoUrl: true,
+              bannerUrl: true,
+            },
+          },
+        }
       });
 
       // D. Upsert Pick Record
@@ -103,7 +121,18 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         }
       });
 
-      return { player: updatedPlayer, team: targetTeam };
+      return {
+        player: updatedPlayer,
+        team: {
+          id: targetTeam.id,
+          name: targetTeam.name,
+          serialNumber: targetTeam.serialNumber,
+          budgetBDT: targetTeam.budgetBDT,
+          budgetUSD: targetTeam.budgetUSD,
+          logoUrl: targetTeam.logoUrl,
+          bannerUrl: targetTeam.bannerUrl,
+        },
+      };
     });
 
     return jsonWithBigInt({ success: true, ...result }, { status: 200 });

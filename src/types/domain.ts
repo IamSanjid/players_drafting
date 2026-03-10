@@ -51,7 +51,6 @@ export interface ApiTeamBase {
   serialNumber: number;
   budgetBDT: string;
   budgetUSD: string;
-  password: string;
   logoUrl: string | null;
   bannerUrl: string | null;
 }

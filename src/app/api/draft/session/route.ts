@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { getErrorMessage, sessionPatchSchema } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function GET() {
   let session = await prisma.draftSession.findFirst();
@@ -21,6 +22,11 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = sessionPatchSchema.safeParse(body);

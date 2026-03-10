@@ -18,7 +18,7 @@ type TeamUpdatePayload = Partial<{
 
 export default function TeamManagement() {
   const teams = useDraftStore((state) => state.teams);
-  const session = useDraftStore((state) => state.session);
+  const draftSession = useDraftStore((state) => state.session);
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
@@ -34,14 +34,14 @@ export default function TeamManagement() {
   const socket = getSocket();
 
   useEffect(() => {
-    if (!session && teams.length === 0) {
+    if (!draftSession && teams.length === 0) {
       void fetchAll();
     }
-  }, [fetchAll, session, teams.length]);
+  }, [fetchAll, draftSession, teams.length]);
 
   const handleAddTeam = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (session?.draftStatus === "active") {
+    if (draftSession?.draftStatus === "active") {
       alert("Draft is active. You cannot add new teams.");
       return;
     }
@@ -135,7 +135,7 @@ export default function TeamManagement() {
   };
 
   const handleTeamSerialSwap = async (teamId: string, newSerialNumber: number) => {
-    if (session?.draftStatus === "active") {
+    if (draftSession?.draftStatus === "active") {
       alert("Draft is active. You cannot change team serials.");
       return;
     }

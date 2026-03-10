@@ -12,16 +12,12 @@ import { useDraftStore } from "@/lib/draftStore";
 export default function TeamView() {
   const teams = useDraftStore((state) => state.teams);
   const players = useDraftStore((state) => state.players);
-  const session = useDraftStore((state) => state.session);
+  const draftSession = useDraftStore((state) => state.session);
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
-  const [authenticatedTeamId, setAuthenticatedTeamId] = useState<string | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    return localStorage.getItem("teamAuthId");
-  });
+  const [authenticatedTeamId, setAuthenticatedTeamId] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -41,6 +37,27 @@ export default function TeamView() {
     };
   }, [fetchAll, socket]);
 
+  useEffect(() => {
+    const checkTeamSession = async () => {
+      try {
+        const res = await fetch("/api/auth/team/me", { method: "GET" });
+        if (!res.ok) {
+          setAuthenticatedTeamId(null);
+          return;
+        }
+
+        const data = (await res.json()) as { teamId?: string };
+        setAuthenticatedTeamId(data.teamId ?? null);
+      } catch {
+        setAuthenticatedTeamId(null);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    void checkTeamSession();
+  }, []);
+
   const loggedInTeam = useMemo(() => {
     if (!authenticatedTeamId) {
       return null;
@@ -48,30 +65,37 @@ export default function TeamView() {
     return teams.find((team) => team.id === authenticatedTeamId) ?? null;
   }, [authenticatedTeamId, teams]);
 
-  const handleLogin = (e: React.SubmitEvent) => {
+  const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault();
+
     const team = teams.find((candidate) => candidate.id === selectedTeamId);
     if (!team) {
       setAuthError("Select a team");
       return;
     }
 
-    if (team.password !== password) {
+    const res = await fetch("/api/auth/team/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId: selectedTeamId, password }),
+    });
+
+    if (!res.ok) {
       setAuthError("Incorrect password");
       return;
     }
 
     setAuthenticatedTeamId(team.id);
-    localStorage.setItem("teamAuthId", team.id);
     setAuthError("");
+    setPassword("");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch("/api/auth/team/logout", { method: "POST" });
     setAuthenticatedTeamId(null);
-    localStorage.removeItem("teamAuthId");
   };
 
-  if (loading) {
+  if (loading || checkingAuth) {
     return <div className="flex justify-center items-center min-h-screen text-xl font-bold">Loading Draft State...</div>;
   }
 
@@ -129,8 +153,8 @@ export default function TeamView() {
         <div className="flex gap-6 text-right items-center">
           <div className="hidden md:block">
             <p className="text-xs uppercase text-gray-500 font-bold mb-1 tracking-wider">Draft Status</p>
-            {session?.isActive ? (
-              session?.currentTurnTeamId === liveTeamData?.id ? (
+            {draftSession?.isActive ? (
+              draftSession?.currentTurnTeamId === liveTeamData?.id ? (
                 <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold animate-pulse inline-block">YOUR TURN TO DRAFT</span>
               ) : (
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">WAITING FOR TURN</span>
@@ -147,11 +171,11 @@ export default function TeamView() {
 
       <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-3 h-full overflow-hidden">
-          <DraftOrderList teams={teams} activeTurnTeamId={session?.currentTurnTeamId} session={session} />
+          <DraftOrderList teams={teams} activeTurnTeamId={draftSession?.currentTurnTeamId} session={draftSession} />
         </div>
 
         <div className="lg:col-span-6 overflow-hidden flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-100">
-          <PlayerSelectionGrid players={players} session={session} currentTeamId={loggedInTeam.id} teams={teams} />
+          <PlayerSelectionGrid players={players} session={draftSession} currentTeamId={loggedInTeam.id} teams={teams} />
         </div>
 
         <div className="lg:col-span-3 h-full overflow-hidden">

@@ -41,8 +41,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
              <a href="/team" target="_blank" className="text-blue-600 hover:text-blue-800 font-medium">Open Team View ↗</a>
              <button 
-               onClick={() => {
-                 localStorage.removeItem("adminAuth");
+               onClick={async () => {
+                 await fetch("/api/auth/admin/logout", { method: "POST" });
                  window.location.reload();
                }} 
                className="text-red-500 hover:text-red-700 font-medium text-sm ml-4"

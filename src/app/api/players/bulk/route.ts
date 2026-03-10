@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { bulkPlayersSchema, categoryQuerySchema, getErrorMessage, toNullableBigInt } from "@/lib/validation";
+import { requireAdmin } from "@/lib/auth/authorize";
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = bulkPlayersSchema.safeParse(body);
@@ -42,6 +48,11 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const parsed = categoryQuerySchema.safeParse({ category: searchParams.get("category") });
