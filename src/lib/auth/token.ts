@@ -38,8 +38,9 @@ export async function encodeAuthToken(
 export async function decodeAuthToken(
   token: string
 ): Promise<AuthSession | null> {
+  const authSecret = getAuthSecret();
   try {
-    const { payload } = await jwtVerify(token, getAuthSecret());
+    const { payload } = await jwtVerify(token, authSecret);
     const sessionPayload = payload as SessionJwtPayload;
 
     if (sessionPayload.role !== 'admin' && sessionPayload.role !== 'team') {

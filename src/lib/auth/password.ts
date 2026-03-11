@@ -26,7 +26,7 @@ export async function verifyPassword(
 export async function verifyAdminPassword(
   candidatePassword: string
 ): Promise<boolean> {
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || null;
   if (adminPasswordHash) {
     return compare(candidatePassword, adminPasswordHash);
   }

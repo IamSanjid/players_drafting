@@ -40,7 +40,7 @@ function AdminDashboardContent() {
   const teams = useDraftStore((state) => state.teams);
   const session = useDraftStore((state) => state.session);
   const players = useDraftStore((state) => state.players);
-  const { pushSuccess } = useAdminToast();
+  const { pushSuccess, pushError, pushToastForSession } = useAdminToast();
   const {
     status,
     isDraftRunning,
@@ -92,43 +92,67 @@ function AdminDashboardContent() {
 
       if ((status === 'idle' || status === 'ended') && key === 's') {
         event.preventDefault();
-        void handleStartNewDraft();
-        pushSuccess('Start new draft triggered via keyboard shortcut.');
+        pushToastForSession(
+          handleStartNewDraft(),
+          'start',
+          ', triggered via keyboard shortcut.'
+        );
         return;
       }
 
       if (status === 'active' && key === 'p') {
         event.preventDefault();
-        void handlePause();
-        pushSuccess('Draft paused via keyboard shortcut.');
+        pushToastForSession(
+          handlePause(),
+          'pause',
+          ', triggered via keyboard shortcut.'
+        );
         return;
       }
 
       if (status === 'paused' && key === 'r') {
         event.preventDefault();
-        void handleResume();
-        pushSuccess('Draft resumed via keyboard shortcut.');
+        pushToastForSession(
+          handleResume(),
+          'resume',
+          ', triggered via keyboard shortcut.'
+        );
         return;
       }
 
       if (isDraftRunning && key === '[' && canGoToPreviousTurn) {
         event.preventDefault();
-        void handleGoToPreviousTurn();
-        pushSuccess('Previous turn triggered via keyboard shortcut.');
+        pushToastForSession(
+          handleGoToPreviousTurn(),
+          'prev',
+          ', triggered via keyboard shortcut.'
+        );
         return;
       }
 
       if (isDraftRunning && key === ']' && canSkipCurrentTurn) {
         event.preventDefault();
-        void handleSkipCurrentTurn();
-        pushSuccess('Skip turn triggered via keyboard shortcut.');
+        pushToastForSession(
+          handleSkipCurrentTurn(),
+          'skip',
+          ', triggered via keyboard shortcut.'
+        );
         return;
       }
 
       if ((status === 'active' || status === 'paused') && key === 'e') {
         event.preventDefault();
-        void handleEndDraft(false);
-        pushSuccess('End draft triggered via keyboard shortcut.');
+        // shift+e for force end without confirmation, e for normal end with confirmation
+        void handleEndDraft(event.shiftKey)
+          .then((success) => {
+            if (success) {
+              pushSuccess('Draft ended, triggered via keyboard shortcut.');
+            }
+          })
+          .catch(() => {
+            pushError('Failed to end draft, triggered via keyboard shortcut.');
+          });
+        return;
       }
     };
 
@@ -148,6 +172,8 @@ function AdminDashboardContent() {
     handleSkipCurrentTurn,
     handleEndDraft,
     pushSuccess,
+    pushError,
+    pushToastForSession,
   ]);
 
   return (

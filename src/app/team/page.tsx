@@ -6,9 +6,9 @@ import AnimatedLatestPick from '@/components/AnimatedLatestPick';
 import PlayerSelectionGrid from '@/components/PlayerSelectionGrid';
 import DraftOrderList from '@/components/team/DraftOrderList';
 import TeamDetailsPanel from '@/components/team/TeamDetailsPanel';
+import { BrandFooter } from '@/components/ui/BrandFooter';
 import { Card, CardBody } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { PoweredByFooter } from '@/components/ui/PoweredByFooter';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { authApi } from '@/lib/api';
@@ -100,15 +100,15 @@ export default function TeamView() {
         <PageHeader
           title="Team Draft Hub"
           subtitle="Connecting to live draft state"
-          logoSrc="/bpl_logo.png"
-          logoAlt="BPL logo"
+          logoSrc="/logo.png"
+          logoAlt="Logo"
         />
         <div className="flex min-h-0 flex-1 items-center justify-center">
           <p className="text-lg font-bold text-slate-700">
             Loading draft state...
           </p>
         </div>
-        <PoweredByFooter compact />
+        <BrandFooter compact />
       </div>
     );
   }
@@ -119,8 +119,8 @@ export default function TeamView() {
         <PageHeader
           title="Team Draft Hub"
           subtitle="Login to access your franchise control room"
-          logoSrc="/bpl_logo.png"
-          logoAlt="BPL logo"
+          logoSrc="/logo.png"
+          logoAlt="Logo"
         />
         <div className="flex min-h-0 flex-1 items-center justify-center">
           <Card className="w-full max-w-md">
@@ -184,7 +184,7 @@ export default function TeamView() {
             </CardBody>
           </Card>
         </div>
-        <PoweredByFooter compact />
+        <BrandFooter compact />
       </div>
     );
   }
@@ -198,8 +198,8 @@ export default function TeamView() {
       <PageHeader
         title={`${liveTeamData?.name ?? 'Team'} Draft Hub`}
         subtitle={`Serial #${liveTeamData?.serialNumber ?? '-'}`}
-        logoSrc="/bpl_logo.png"
-        logoAlt="BPL logo"
+        logoSrc="/logo.png"
+        logoAlt="Logo"
         actions={
           <>
             {isDraftRunning ? (
@@ -268,7 +268,7 @@ export default function TeamView() {
         </div>
       </div>
 
-      <PoweredByFooter />
+      <BrandFooter />
     </div>
   );
 }

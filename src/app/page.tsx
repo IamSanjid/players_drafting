@@ -7,8 +7,8 @@ import AnimatedLatestPick from '@/components/AnimatedLatestPick';
 import PlayerSelectionGrid from '@/components/PlayerSelectionGrid';
 import { TeamProfile } from '@/components/team/TeamDetailsPanel';
 import { Card, CardBody } from '@/components/ui/Card';
+import { BrandFooter } from '@/components/ui/BrandFooter';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { PoweredByFooter } from '@/components/ui/PoweredByFooter';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { getTeamDraftStatus } from '@/lib/draft';
@@ -18,7 +18,7 @@ import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
 import type { ApiTeam } from '@/types/domain';
 
 const dashboardTitle =
-  process.env.NEXT_PUBLIC_TITLE ?? "BPL Female Players' Draft 2026";
+  process.env.NEXT_PUBLIC_TITLE || "BPL Female Players' Draft 2026";
 
 type PublicTab = 'Session' | 'Players' | 'Teams';
 
@@ -54,8 +54,8 @@ export default function PublicDashboard() {
       <PageHeader
         title={dashboardTitle}
         subtitle="Live Draft Status"
-        logoSrc="/bpl_logo.png"
-        logoAlt="BPL logo"
+        logoSrc="/logo.png"
+        logoAlt="Logo"
         actions={
           draftSession?.isActive ? (
             <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2">
@@ -180,7 +180,7 @@ export default function PublicDashboard() {
         )}
       </main>
 
-      <PoweredByFooter />
+      <BrandFooter />
     </div>
   );
 }

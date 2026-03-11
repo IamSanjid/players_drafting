@@ -32,7 +32,7 @@ export default function SessionControls() {
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
   const [showEndWarning, setShowEndWarning] = useState(false);
-  const { pushSuccess, pushError } = useAdminToast();
+  const { pushSuccess, pushError, pushToastForSession } = useAdminToast();
   const { value: allowReorderDuringLive, setValue: setAllowReorderDuringLive } =
     useAppSetting('allowReorderDuringLiveDraft');
   const isReorderLocked = isDraftRunning && !allowReorderDuringLive;
@@ -116,44 +116,6 @@ export default function SessionControls() {
     );
   }
 
-  const pushToastForSession = (
-    promise: Promise<boolean | void>,
-    context: 'start' | 'pause' | 'resume' | 'end' | 'skip' | 'prev'
-  ) => {
-    const successActionText =
-      {
-        start: 'Draft started',
-        pause: 'Draft paused',
-        resume: 'Draft resumed',
-        end: 'Draft ended',
-        skip: 'Turn skipped',
-        prev: 'Moved to previous turn',
-      }[context] || 'Action completed';
-    const errorActionText =
-      {
-        start: 'Failed to start draft',
-        pause: 'Failed to pause draft',
-        resume: 'Failed to resume draft',
-        end: 'Failed to end draft',
-        skip: 'Failed to skip turn',
-        prev: 'Failed to move to previous turn',
-      }[context] || 'Action failed';
-    promise
-      .then((success) => {
-        if (
-          typeof success !== 'boolean' ||
-          (typeof success === 'boolean' && success)
-        ) {
-          pushSuccess(successActionText);
-        } else {
-          pushError(errorActionText);
-        }
-      })
-      .catch(() => {
-        pushError(errorActionText);
-      });
-  };
-
   const quickActions = [
     {
       id: 'start',
@@ -216,11 +178,15 @@ export default function SessionControls() {
       shortcut: 'E',
       className: 'border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100',
       onClick: () => {
-        handleEndDraft(false).then((success) => {
-          if (success) {
-            pushSuccess('Draft ended');
-          }
-        });
+        void handleEndDraft(false)
+          .then((success) => {
+            if (success) {
+              pushSuccess('Draft ended');
+            }
+          })
+          .catch(() => {
+            pushError('Failed to end draft');
+          });
       },
     },
   ].filter((action) => action.visible);

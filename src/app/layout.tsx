@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_TITLE ?? "BPL Female Players' Draft 2026",
+  title: process.env.NEXT_PUBLIC_TITLE || "BPL Female Players' Draft 2026",
   description:
-    process.env.NEXT_PUBLIC_DESCRIPTION ?? "Players' Drafting Application",
+    process.env.NEXT_PUBLIC_DESCRIPTION || "Players' Drafting Application",
 };
 
 export default function RootLayout({
