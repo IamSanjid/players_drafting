@@ -49,6 +49,8 @@ export default function AnimatedLatestPick() {
     if (canClose) setIsVisible(false);
   };
 
+  const playerImageUrl = pick?.player.imageUrl || '/pfp_placeholder.png';
+
   return (
     <AnimatePresence>
       {isVisible && pick && (
@@ -91,20 +93,14 @@ export default function AnimatedLatestPick() {
 
             {/* Image Side */}
             <div className="w-full md:w-5/12 relative bg-black flex items-center justify-center overflow-hidden min-h-[400px] md:min-h-[600px] z-30">
-              {pick.player.imageUrl ? (
-                <motion.img
-                  initial={{ scale: 1.2 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 10, ease: 'linear' }}
-                  src={pick.player.imageUrl}
-                  className="absolute inset-0 w-full h-full object-cover opacity-90"
-                  alt="Player"
-                />
-              ) : (
-                <div className="text-[15rem] font-black text-white/5 absolute select-none tracking-tighter">
-                  {pick.player.name.charAt(0)}
-                </div>
-              )}
+              <motion.img
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 10, ease: 'linear' }}
+                src={playerImageUrl}
+                className="absolute inset-0 w-full h-full object-cover opacity-90"
+                alt="Player"
+              />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
 

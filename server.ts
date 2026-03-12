@@ -11,7 +11,8 @@ import type {
 } from '@/lib/socketTypes';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+const hostname =
+  process.env.HOST || process.env.NEXT_PUBLIC_SITE_HOSTNAME || 'localhost';
 const port = parseInt(process.env.PORT || '3000', 10);
 
 // Initialize Next.js app

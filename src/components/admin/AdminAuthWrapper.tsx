@@ -28,7 +28,7 @@ export default function AdminAuthWrapper({
     void checkAuth();
   }, []);
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const res = await authApi.admin.login(password);

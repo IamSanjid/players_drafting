@@ -39,7 +39,7 @@ export default function TeamManagement() {
     }
   }, [fetchAll, draftSession, teams.length]);
 
-  const handleAddTeam = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddTeam = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (draftSession?.draftStatus === 'active') {
       alert('Draft is active. You cannot add new teams.');

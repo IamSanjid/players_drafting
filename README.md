@@ -24,6 +24,8 @@ copy .env.example .env
 - `DATABASE_URL`: SQLite connection string (default `file:./prisma/dev.db`).
 - `NEXT_PUBLIC_TITLE`: optional title.
 - `NEXT_PUBLIC_DESCRIPTION`: optional description.
+- `HOST`: optional hostname, default `localhost`.
+- `PORT`: optional port, default `3000`.
 
 You can generate an admin hash with Node:
 
@@ -34,17 +36,33 @@ node -e "const b=require('bcryptjs'); b.hash(process.argv[1],10).then(h=>console
 ## Run
 
 ```bash
+# First time
+npx prisma db push
 npx prisma generate
+```
+
+```bash
+# Development
 npm run dev
+# Production
+npm run build
+npm run start
 ```
 
 After schema changes, regenerate Prisma Client explicitly:
 
 ```bash
+npx prisma db push
 npx prisma generate
 ```
 
-Open `http://localhost:3000`.
+Resetting the db:
+
+```bash
+npx prisma db push --force-reset
+```
+
+Open `http://<hostname>:<port>`. Default development build: `http://localhost:3000`.
 
 ## Authentication and Authorization
 

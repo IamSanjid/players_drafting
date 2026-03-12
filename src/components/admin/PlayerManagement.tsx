@@ -15,6 +15,8 @@ import { getSocket } from '@/lib/socketClient';
 import { useDraftStore } from '@/lib/draftStore';
 import type { ApiPlayer, ApiTeam, PlayerCategory } from '@/types/domain';
 
+const SUB_CATEGORIES = ['Icon', 'A', 'B', 'C', 'D', 'E', 'F'];
+
 export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const players = useDraftStore((state) => state.players);
   const loading = useDraftStore((state) => state.loading);
@@ -22,7 +24,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<PlayerCategory>('Oversea');
-  const [subCategory, setSubCategory] = useState('A');
+  const [subCategory, setSubCategory] = useState(SUB_CATEGORIES[0]);
   const [position, setPosition] = useState('');
   const [priceBDT, setPriceBDT] = useState('');
   const [priceUSD, setPriceUSD] = useState('');
@@ -125,7 +127,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   };
 
   const handleAddOrUpdatePlayer = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
     const payload: PlayerUpsertPayload = {
@@ -473,7 +475,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   onChange={(e) => setSubCategory(e.target.value)}
                   className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
                 >
-                  {['A', 'B', 'C', 'D', 'E', 'F'].map((c) => (
+                  {SUB_CATEGORIES.map((c) => (
                     <option key={c} value={c}>
                       Category {c}
                     </option>
@@ -718,7 +720,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 transition hover:border-gray-300"
               >
                 <option value="All">All Categories</option>
-                {['A', 'B', 'C', 'D', 'E', 'F'].map((c) => (
+                {SUB_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     Category {c}
                   </option>
