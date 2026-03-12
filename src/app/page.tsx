@@ -13,7 +13,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { getTeamDraftStatus } from '@/lib/draft';
 import { useDraftStore } from '@/lib/draftStore';
-import { useSessionDerivedState } from '@/lib/hooks/useSessionDerivedState';
+import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
 import type { ApiTeam } from '@/types/domain';
 
@@ -25,9 +25,13 @@ type PublicTab = 'Session' | 'Players' | 'Teams';
 export default function PublicDashboard() {
   const teams = useDraftStore((state) => state.teams);
   const players = useDraftStore((state) => state.players);
-  const draftSession = useDraftStore((state) => state.session);
-  const { isDraftRunning, sortedTeams, currentTurnTeam, activeSerial } =
-    useSessionDerivedState();
+  const {
+    status: draftStatus,
+    isDraftRunning,
+    sortedTeams,
+    currentTurnTeam,
+    activeSerial,
+  } = useDraftSessionDerivedState();
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
@@ -57,7 +61,7 @@ export default function PublicDashboard() {
         logoSrc="/logo.png"
         logoAlt="Logo"
         actions={
-          draftSession?.isActive ? (
+          draftStatus === 'active' ? (
             <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2">
               <div className="text-right">
                 <p className="stat-label">Current turn</p>
@@ -90,20 +94,18 @@ export default function PublicDashboard() {
       <main className="min-h-0 flex-1">
         {activeTab === 'Session' && (
           <section className="mx-auto flex h-full min-h-0 max-w-5xl flex-col space-y-3">
-            {draftSession?.draftStatus === 'idle' ||
-            draftSession?.draftStatus === 'ended' ||
-            !draftSession?.draftStatus ? (
+            {draftStatus === 'idle' || draftStatus === 'ended' ? (
               <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-2xl">
                   ⏳
                 </div>
                 <p className="text-base font-bold text-slate-700">
-                  {draftSession?.draftStatus === 'ended'
+                  {draftStatus === 'ended'
                     ? 'This draft session has ended.'
                     : 'Waiting for the draft session to start.'}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
-                  {draftSession?.draftStatus === 'ended'
+                  {draftStatus === 'ended'
                     ? 'The admin may start a new round any time.'
                     : 'The admin will kick things off shortly.'}
                 </p>
@@ -116,7 +118,7 @@ export default function PublicDashboard() {
                     team={team}
                     isDraftRunning={isDraftRunning}
                     activeSerial={activeSerial}
-                    currentTurnTeamId={draftSession.currentTurnTeamId}
+                    currentTurnTeamId={currentTurnTeam?.id || null}
                     expanded={expandedTeamId === team.id}
                     onToggle={() =>
                       setExpandedTeamId(
@@ -134,7 +136,6 @@ export default function PublicDashboard() {
           <Card className="mx-auto h-full max-w-7xl overflow-hidden">
             <PlayerSelectionGrid
               players={players}
-              session={draftSession}
               currentTeamId={null}
               teams={teams}
               readOnly

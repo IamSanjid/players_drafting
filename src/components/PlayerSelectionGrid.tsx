@@ -7,12 +7,20 @@ import { draftApi } from '@/lib/api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatMoney } from '@/lib/ui';
 import { getSocket } from '@/lib/socketClient';
-import type { ApiDraftSession, ApiPlayer, ApiTeam } from '@/types/domain';
+import type {
+  PlayerCategory,
+  AllowedCategories,
+  DraftStatus,
+  ApiPlayer,
+  ApiTeam,
+} from '@/types/domain';
 
 type PlayerSelectionGridProps = {
   players: ApiPlayer[];
-  session: ApiDraftSession | null;
+  allowedCategories?: AllowedCategories | null;
   currentTeamId?: string | null;
+  currentTurnTeamId?: string | null;
+  draftStatus?: DraftStatus;
   teams: ApiTeam[];
   readOnly?: boolean;
   showAllCategories?: boolean;
@@ -20,16 +28,17 @@ type PlayerSelectionGridProps = {
 
 export default function PlayerSelectionGrid({
   players,
-  session,
+  allowedCategories,
   currentTeamId,
+  currentTurnTeamId,
+  draftStatus,
   teams,
   readOnly = false,
   showAllCategories = false,
 }: PlayerSelectionGridProps) {
   const socket = getSocket();
-  const [activeTabCategory, setActiveTabCategory] = useState<
-    'Oversea' | 'Local'
-  >('Oversea');
+  const [activeTabCategory, setActiveTabCategory] =
+    useState<PlayerCategory>('Oversea');
   const [activeSubCategory, setActiveSubCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,15 +47,14 @@ export default function PlayerSelectionGrid({
   const [error, setError] = useState<string | null>(null);
 
   const isMyTurn =
-    session?.currentTurnTeamId === currentTeamId && session?.isActive;
+    currentTurnTeamId === currentTeamId && draftStatus === 'active';
 
   // If showAllCategories is true (public view), never lock tabs regardless of admin session settings
-  const isTabsLocked =
-    !showAllCategories && session?.allowedCategories !== 'Both';
+  const isTabsLocked = !showAllCategories && allowedCategories !== 'Both';
   const lockedCategory = isTabsLocked
-    ? session?.allowedCategories === 'Local'
+    ? allowedCategories === 'Local'
       ? 'Local'
-      : session?.allowedCategories === 'Oversea'
+      : allowedCategories === 'Oversea'
         ? 'Oversea'
         : null
     : null;

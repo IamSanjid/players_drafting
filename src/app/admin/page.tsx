@@ -18,8 +18,8 @@ import { authApi } from '@/lib/api';
 import { isEditingElement } from '@/lib/dom';
 import { getSessionStatusTone } from '@/lib/draft';
 import { useDraftStore } from '@/lib/draftStore';
-import { useSessionDerivedState } from '@/lib/hooks/useSessionDerivedState';
-import { useSessionActions } from '@/lib/hooks/useSessionActions';
+import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
+import { useDraftSessionActions } from '@/lib/hooks/useDraftSessionActions';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
 import { resetAppSetting } from '@/lib/settings';
 
@@ -38,18 +38,18 @@ export default function AdminDashboard() {
 function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState<AdminTab>('session');
   const teams = useDraftStore((state) => state.teams);
-  const session = useDraftStore((state) => state.session);
+  const draftSession = useDraftStore((state) => state.session);
   const players = useDraftStore((state) => state.players);
   const { pushSuccess, pushError, pushToastForSession } = useAdminToast();
   const {
-    status,
+    status: draftStatus,
     isDraftRunning,
     sortedTeams,
     currentTurnTeam,
     currentTurnIndex,
     canSkipCurrentTurn,
     canGoToPreviousTurn,
-  } = useSessionDerivedState();
+  } = useDraftSessionDerivedState();
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
   useDraftStateSync({ fetchAll });
@@ -65,9 +65,9 @@ function AdminDashboardContent() {
     handleEndDraft,
     handleGoToPreviousTurn,
     handleSkipCurrentTurn,
-  } = useSessionActions({
+  } = useDraftSessionActions({
     teams,
-    session,
+    session: draftSession,
     sortedTeams,
     currentTurnIndex,
     canSkipCurrentTurn,
@@ -90,7 +90,7 @@ function AdminDashboardContent() {
 
       const key = event.key.toLowerCase();
 
-      if ((status === 'idle' || status === 'ended') && key === 's') {
+      if ((draftStatus === 'idle' || draftStatus === 'ended') && key === 's') {
         event.preventDefault();
         pushToastForSession(
           handleStartNewDraft(),
@@ -100,7 +100,7 @@ function AdminDashboardContent() {
         return;
       }
 
-      if (status === 'active' && key === 'p') {
+      if (draftStatus === 'active' && key === 'p') {
         event.preventDefault();
         pushToastForSession(
           handlePause(),
@@ -110,7 +110,7 @@ function AdminDashboardContent() {
         return;
       }
 
-      if (status === 'paused' && key === 'r') {
+      if (draftStatus === 'paused' && key === 'r') {
         event.preventDefault();
         pushToastForSession(
           handleResume(),
@@ -140,7 +140,10 @@ function AdminDashboardContent() {
         return;
       }
 
-      if ((status === 'active' || status === 'paused') && key === 'e') {
+      if (
+        (draftStatus === 'active' || draftStatus === 'paused') &&
+        key === 'e'
+      ) {
         event.preventDefault();
         // shift+e for force end without confirmation, e for normal end with confirmation
         void handleEndDraft(event.shiftKey)
@@ -161,7 +164,7 @@ function AdminDashboardContent() {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [
-    status,
+    draftStatus,
     isDraftRunning,
     canGoToPreviousTurn,
     canSkipCurrentTurn,
@@ -216,8 +219,8 @@ function AdminDashboardContent() {
                 <div className="space-y-1">
                   <p className="stat-label">Draft status</p>
                   <StatusBadge
-                    label={session?.draftStatus ?? 'idle'}
-                    tone={getSessionStatusTone(session?.draftStatus)}
+                    label={draftStatus}
+                    tone={getSessionStatusTone(draftStatus)}
                   />
                 </div>
 
@@ -238,7 +241,7 @@ function AdminDashboardContent() {
 
                 <div>
                   <p className="stat-label">Round</p>
-                  <p className="stat-value">{session?.draftRound ?? 0}</p>
+                  <p className="stat-value">{draftSession?.draftRound ?? 0}</p>
                 </div>
               </CardBody>
             </Card>

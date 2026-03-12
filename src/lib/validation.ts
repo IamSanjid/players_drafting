@@ -51,7 +51,7 @@ export const playerCreateSchema = z
         value.priceBDT === ''
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['priceBDT'],
           message: 'Local players require priceBDT.',
         });
@@ -65,7 +65,7 @@ export const playerCreateSchema = z
         value.priceUSD === ''
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['priceUSD'],
           message: 'Oversea players require priceUSD.',
         });
@@ -73,7 +73,7 @@ export const playerCreateSchema = z
 
       if (!value.country || !value.country.trim()) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['country'],
           message: 'Oversea players require country.',
         });
@@ -81,7 +81,7 @@ export const playerCreateSchema = z
 
       if (!value.availability || !value.availability.trim()) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['availability'],
           message: 'Oversea players require availability.',
         });
@@ -106,7 +106,7 @@ export const playerPatchSchema = z
   .superRefine((value, ctx) => {
     if (value.category === 'Local' && value.priceBDT === null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['priceBDT'],
         message: 'Local players cannot clear priceBDT.',
       });
@@ -115,7 +115,7 @@ export const playerPatchSchema = z
     if (value.category === 'Oversea') {
       if (value.priceUSD === null) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['priceUSD'],
           message: 'Oversea players cannot clear priceUSD.',
         });
@@ -123,7 +123,7 @@ export const playerPatchSchema = z
 
       if (value.country === null) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['country'],
           message: 'Oversea players cannot clear country.',
         });
@@ -131,7 +131,7 @@ export const playerPatchSchema = z
 
       if (value.availability === null) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['availability'],
           message: 'Oversea players cannot clear availability.',
         });

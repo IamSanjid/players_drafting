@@ -20,7 +20,7 @@ type FetchAllFn = (options?: {
   force?: boolean;
 }) => Promise<void>;
 
-export function useSessionActions({
+export function useDraftSessionActions({
   teams,
   session,
   sortedTeams,

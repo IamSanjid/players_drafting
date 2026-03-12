@@ -9,10 +9,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getTeamDraftStatus } from '@/lib/draft';
 import { useDraftStore } from '@/lib/draftStore';
 import {
-  useSessionActions,
+  useDraftSessionActions,
   type SessionUpdatePayload,
-} from '@/lib/hooks/useSessionActions';
-import { useSessionDerivedState } from '@/lib/hooks/useSessionDerivedState';
+} from '@/lib/hooks/useDraftSessionActions';
+import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useTeamOrderActions } from '@/lib/hooks/useTeamOrderActions';
 import { useAppSetting } from '@/lib/settings';
 
@@ -28,7 +28,7 @@ export default function SessionControls() {
     currentTurnIndex,
     canSkipCurrentTurn,
     canGoToPreviousTurn,
-  } = useSessionDerivedState();
+  } = useDraftSessionDerivedState();
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
   const [showEndWarning, setShowEndWarning] = useState(false);
@@ -53,7 +53,7 @@ export default function SessionControls() {
     handleEndDraft,
     handleGoToPreviousTurn,
     handleSkipCurrentTurn,
-  } = useSessionActions({
+  } = useDraftSessionActions({
     teams,
     session: draftSession,
     sortedTeams,

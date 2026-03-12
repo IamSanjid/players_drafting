@@ -13,7 +13,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { authApi } from '@/lib/api';
 import { useDraftStore } from '@/lib/draftStore';
-import { useSessionDerivedState } from '@/lib/hooks/useSessionDerivedState';
+import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
 
 type WorkspaceTab = 'Pick Board' | 'Order' | 'Intel';
@@ -21,8 +21,12 @@ type WorkspaceTab = 'Pick Board' | 'Order' | 'Intel';
 export default function TeamView() {
   const teams = useDraftStore((state) => state.teams);
   const players = useDraftStore((state) => state.players);
-  const draftSession = useDraftStore((state) => state.session);
-  const { currentTurnTeam, isDraftRunning } = useSessionDerivedState();
+  const {
+    status: draftStatus,
+    currentTurnTeam,
+    isDraftRunning,
+    allowedCategories,
+  } = useDraftSessionDerivedState();
   const loading = useDraftStore((state) => state.loading);
   const fetchAll = useDraftStore((state) => state.fetchAll);
 
@@ -242,7 +246,8 @@ export default function TeamView() {
               <DraftOrderList
                 teams={teams}
                 activeTurnTeamId={currentTurnTeam?.id}
-                session={draftSession}
+                draftStatus={draftStatus}
+                isDraftRunning={isDraftRunning}
               />
             </CardBody>
           </Card>
@@ -254,8 +259,10 @@ export default function TeamView() {
           <Card className="h-full overflow-hidden">
             <PlayerSelectionGrid
               players={players}
-              session={draftSession}
+              allowedCategories={allowedCategories}
               currentTeamId={loggedInTeam.id}
+              currentTurnTeamId={currentTurnTeam?.id}
+              draftStatus={draftStatus}
               teams={teams}
             />
           </Card>

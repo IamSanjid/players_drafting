@@ -8,34 +8,27 @@ import {
   getCurrentTurnTeam,
   getSortedTeams,
   getTeamDraftStatus,
-  isDraftRunningStatus,
 } from '@/lib/draft';
 import { formatMoney } from '@/lib/ui';
-import type {
-  ApiDraftSession,
-  ApiPick,
-  ApiPlayer,
-  ApiTeam,
-} from '@/types/domain';
+import type { DraftStatus, ApiPick, ApiPlayer, ApiTeam } from '@/types/domain';
 
 type DraftOrderListProps = {
   teams: ApiTeam[];
   activeTurnTeamId?: string | null;
-  session?: ApiDraftSession | null;
+  draftStatus: DraftStatus;
+  isDraftRunning: boolean;
 };
 
 export default function DraftOrderList({
   teams,
   activeTurnTeamId,
-  session,
+  draftStatus,
+  isDraftRunning,
 }: DraftOrderListProps) {
   const sortedTeams = getSortedTeams(teams);
 
   const activeTeam = getCurrentTurnTeam(teams, activeTurnTeamId);
   const activeSerial = activeTeam ? activeTeam.serialNumber : null;
-
-  const draftStatus = session?.draftStatus || 'idle';
-  const isDraftRunning = isDraftRunningStatus(draftStatus);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-slate-50">
