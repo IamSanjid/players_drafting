@@ -1,0 +1,22 @@
+.root {
+  border-radius: var(--radius-2xl);
+}
+
+.tab {
+  color: var(--text-muted);
+}
+
+.tab:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.tabActive {
+  background: var(--primary);
+  color: var(--text-light);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.tabIdle:hover {
+  background: color-mix(in srgb, var(--surface-muted) 75%, var(--surface));
+  color: var(--text-strong);
+}

@@ -5,8 +5,10 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { calculateCategorySpent, toBigIntSafe } from '@/lib/draft';
-import { formatMoney } from '@/lib/ui';
+import { cn, formatMoney } from '@/lib/ui';
 import type { ApiPlayer, ApiTeam } from '@/types/domain';
+
+import styles from './TeamDetailsPanel.module.css';
 
 export function TeamProfile({ team }: { team: ApiTeam }) {
   const [tab, setTab] = useState<'Local' | 'Oversea'>('Local');
@@ -36,7 +38,12 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="relative mb-4 h-32 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-sky-700 via-sky-900 to-slate-900 shadow-lg">
+      <header
+        className={cn(
+          styles.banner,
+          'relative mb-4 h-32 shrink-0 overflow-hidden rounded-xl'
+        )}
+      >
         {team.bannerUrl ? (
           <Image
             src={team.bannerUrl}
@@ -47,10 +54,15 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
           />
         ) : null}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+        <div className={cn(styles.bannerOverlay, 'absolute inset-0')} />
 
         <div className="absolute bottom-3 left-3 flex items-center gap-3">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white/50 bg-white p-1.5 shadow-2xl">
+          <div
+            className={cn(
+              styles.logoFrame,
+              'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1.5'
+            )}
+          >
             {team.logoUrl ? (
               <div className="relative h-full w-full">
                 <Image
@@ -62,17 +74,22 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                 />
               </div>
             ) : (
-              <span className="text-lg font-black text-slate-400">
+              <span className={cn(styles.logoPlaceholder, 'text-lg font-black')}>
                 {team.name.charAt(0)}
               </span>
             )}
           </div>
 
           <div>
-            <h3 className="text-lg font-black leading-none text-white">
+            <h3 className={cn(styles.bannerTitle, 'text-lg font-black leading-none')}>
               {team.name}
             </h3>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-sky-100">
+            <p
+              className={cn(
+                styles.bannerMeta,
+                'mt-1 text-[10px] font-bold uppercase tracking-widest'
+              )}
+            >
               Serial #{team.serialNumber}
             </p>
           </div>
@@ -102,37 +119,54 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
         ]}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div
+        className={cn(
+          styles.tableShell,
+          'flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl'
+        )}
+      >
         <div className="custom-scrollbar overflow-x-auto overflow-y-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b bg-slate-50 text-[10px] uppercase text-slate-500">
+            <thead className={cn(styles.tableHead, 'text-[10px] uppercase')}>
               <tr>
                 <th className="px-3 py-2.5 font-black">Player</th>
                 <th className="px-3 py-2.5 font-black">Pos</th>
                 <th className="px-3 py-2.5 text-right font-black">Price</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className={cn(styles.tableBody, 'divide-y')}>
               {currentPlayers.map((player: ApiPlayer) => (
                 <tr
                   key={player.id}
-                  className="transition-colors hover:bg-sky-50/60"
+                  className={cn(styles.tableRow, 'transition-colors')}
                 >
                   <td className="px-3 py-2.5">
-                    <p className="font-bold text-slate-900">{player.name}</p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <p className={cn(styles.playerName, 'font-bold')}>
+                      {player.name}
+                    </p>
+                    <p
+                      className={cn(
+                        styles.playerMeta,
+                        'text-[10px] font-semibold uppercase tracking-wider'
+                      )}
+                    >
                       Category {player.subCategory}
                     </p>
                     {player.category === 'Oversea' && player.country ? (
-                      <p className="text-[10px] font-semibold uppercase text-slate-500">
+                      <p
+                        className={cn(
+                          styles.playerMeta,
+                          'text-[10px] font-semibold uppercase'
+                        )}
+                      >
                         {player.country}
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2.5 text-slate-700">
+                  <td className={cn(styles.position, 'px-3 py-2.5')}>
                     {player.position}
                   </td>
-                  <td className="px-3 py-2.5 text-right font-mono font-bold text-sky-800">
+                  <td className={cn(styles.price, 'px-3 py-2.5 text-right font-mono font-bold')}>
                     {player.isPreBought
                       ? 'Pre-Bought'
                       : tab === 'Local'
@@ -145,7 +179,7 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                 <tr>
                   <td
                     colSpan={3}
-                    className="px-3 py-8 text-center text-slate-500"
+                    className={cn(styles.emptyState, 'px-3 py-8 text-center')}
                   >
                     No players drafted yet.
                   </td>
@@ -156,21 +190,32 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
         </div>
 
         {totalPages > 1 ? (
-          <div className="flex items-center justify-between border-t bg-slate-50 px-2 py-2">
+          <div className={cn(styles.pagination, 'flex items-center justify-between px-2 py-2')}>
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-slate-600 disabled:opacity-30"
+              className={cn(
+                styles.paginationButton,
+                'rounded px-2 py-1 text-[10px] font-bold'
+              )}
             >
               Prev
             </button>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span
+              className={cn(
+                styles.paginationMeta,
+                'text-[10px] font-bold uppercase tracking-wider'
+              )}
+            >
               Page {page} of {totalPages}
             </span>
             <button
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-slate-600 disabled:opacity-30"
+              className={cn(
+                styles.paginationButton,
+                'rounded px-2 py-1 text-[10px] font-bold'
+              )}
             >
               Next
             </button>
@@ -216,7 +261,7 @@ export default function TeamDetailsPanel({
             {otherTeams.map((team) => (
               <article
                 key={team.id}
-                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+                className={cn(styles.othersCard, 'overflow-hidden rounded-xl')}
               >
                 <button
                   onClick={() =>
@@ -224,7 +269,10 @@ export default function TeamDetailsPanel({
                       expandedTeamId === team.id ? null : team.id
                     )
                   }
-                  className="flex w-full items-center justify-between bg-slate-50 px-3 py-2 text-left font-bold text-slate-800 hover:bg-slate-100"
+                  className={cn(
+                    styles.othersButton,
+                    'flex w-full items-center justify-between px-3 py-2 text-left font-bold'
+                  )}
                 >
                   <span>{team.name}</span>
                   <StatusBadge
@@ -233,7 +281,7 @@ export default function TeamDetailsPanel({
                   />
                 </button>
                 {expandedTeamId === team.id ? (
-                  <div className="border-t border-slate-200 bg-slate-50 p-3">
+                  <div className={cn(styles.othersBody, 'p-3')}>
                     <TeamProfile team={team} />
                   </div>
                 ) : null}
@@ -256,10 +304,14 @@ function MetricCard({
   available: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+    <div className={cn(styles.metricCard, 'rounded-xl p-2.5')}>
       <p className="stat-label">{title} Status</p>
-      <p className="text-xs font-bold text-rose-700">Spent: {spent}</p>
-      <p className="text-sm font-black text-emerald-700">Avail: {available}</p>
+      <p className={cn(styles.metricSpent, 'text-xs font-bold')}>
+        Spent: {spent}
+      </p>
+      <p className={cn(styles.metricAvailable, 'text-sm font-black')}>
+        Avail: {available}
+      </p>
     </div>
   );
 }

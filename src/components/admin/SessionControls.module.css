@@ -1,0 +1,274 @@
+.headerTitle {
+  color: var(--text-strong);
+  letter-spacing: -0.03em;
+}
+
+.headerSubtitle {
+  color: var(--text-muted);
+}
+
+.loadingShell {
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.emptyShell {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-muted) 75%, var(--surface));
+}
+
+.quickActionShell {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.quickActionLabel {
+  color: var(--text-muted);
+}
+
+.quickAction {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.9rem;
+  font-weight: 900;
+}
+
+.quickAction:hover {
+  transform: translateY(-1px);
+}
+
+.quickActionStart {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--surface));
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.quickActionStart:hover {
+  background: color-mix(in srgb, var(--success-soft) 72%, var(--surface));
+}
+
+.quickActionPause {
+  border-color: color-mix(in srgb, var(--warning) 28%, var(--surface));
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.quickActionPause:hover {
+  background: color-mix(in srgb, var(--warning-soft) 70%, var(--surface));
+}
+
+.quickActionResume {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--surface));
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.quickActionResume:hover {
+  background: color-mix(in srgb, var(--primary-soft) 68%, var(--surface));
+}
+
+.quickActionPrev {
+  border-color: color-mix(in srgb, var(--info) 24%, var(--surface));
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.quickActionPrev:hover {
+  background: color-mix(in srgb, var(--info-soft) 70%, var(--surface));
+}
+
+.quickActionSkip {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--surface));
+  background: color-mix(in srgb, var(--primary-soft) 55%, var(--surface));
+  color: var(--primary-strong);
+}
+
+.quickActionSkip:hover {
+  background: color-mix(in srgb, var(--primary-soft) 78%, var(--surface));
+}
+
+.quickActionEnd {
+  border-color: color-mix(in srgb, var(--danger) 26%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.quickActionEnd:hover {
+  background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface));
+}
+
+.shortcutStrip {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.warningCallout {
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--surface));
+  border-radius: 1.25rem;
+  background: var(--warning-soft);
+}
+
+.warningTitle {
+  color: color-mix(in srgb, var(--warning) 92%, var(--foreground));
+}
+
+.warningText {
+  color: color-mix(in srgb, var(--warning) 82%, var(--foreground));
+}
+
+.warningConfirmButton {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.warningCancelButton {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.controlField {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+}
+
+.controlLabel {
+  color: var(--text-muted);
+}
+
+.controlHint {
+  color: var(--text-soft);
+}
+
+.selectField {
+  width: 100%;
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.reorderSection {
+  border: 1px solid var(--border);
+  border-radius: 1.4rem;
+  background: var(--surface-muted);
+}
+
+.reorderTitle {
+  color: var(--text-muted);
+}
+
+.reverseButton {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reorderToggle {
+  border: 1px solid var(--border-strong);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.currentTurnText {
+  color: var(--text-muted);
+}
+
+.lockNotice {
+  border: 1px solid color-mix(in srgb, var(--warning) 20%, var(--surface));
+  border-radius: 0.9rem;
+  background: var(--warning-soft);
+  color: color-mix(in srgb, var(--warning) 84%, var(--foreground));
+}
+
+.teamCard {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.teamCard:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.teamCardLocked {
+  opacity: 0.8;
+}
+
+.teamCardActive {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--surface));
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.serialStrip {
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface));
+}
+
+.serialSelect {
+  min-width: 62px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--surface));
+  border-radius: 0.75rem;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.serialSelectActive {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--surface));
+  background: color-mix(in srgb, var(--primary-soft) 40%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+
+.moveButton {
+  border: 1px solid var(--border-strong);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.logoShell {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--surface-muted);
+}
+
+.logoPlaceholder {
+  color: var(--text-soft);
+}
+
+.teamName {
+  color: var(--text-strong);
+}
+
+.emptyState {
+  min-height: 6rem;
+  border-radius: 1.2rem;
+}
+
+.shortcutKeyWrap {
+  margin-right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.shortcutKeyBadge {
+  border-radius: 0.5rem;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.shortcutKeyHint {
+  color: var(--text-soft);
+}

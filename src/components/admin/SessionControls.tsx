@@ -15,6 +15,9 @@ import {
 import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useTeamOrderActions } from '@/lib/hooks/useTeamOrderActions';
 import { useAppSetting } from '@/lib/settings';
+import { cn } from '@/lib/ui';
+
+import styles from './SessionControls.module.css';
 
 export default function SessionControls() {
   const draftSession = useDraftStore((state) => state.session);
@@ -37,6 +40,14 @@ export default function SessionControls() {
     useAppSetting('allowReorderDuringLiveDraft');
   const isReorderLocked = isDraftRunning && !allowReorderDuringLive;
   const canReverseDraftOrder = sortedTeams.length > 0 && !isReorderLocked;
+  const quickActionToneClass = {
+    start: styles.quickActionStart,
+    pause: styles.quickActionPause,
+    resume: styles.quickActionResume,
+    prev: styles.quickActionPrev,
+    skip: styles.quickActionSkip,
+    end: styles.quickActionEnd,
+  };
 
   useEffect(() => {
     if (!draftSession) {
@@ -108,12 +119,17 @@ export default function SessionControls() {
 
   if (!draftSession) {
     if (loading) {
-      return <div className="h-20 animate-pulse rounded-xl bg-slate-200" />;
+      return (
+        <div
+          className={cn(
+            'h-20 animate-pulse rounded-xl',
+            styles.loadingShell
+          )}
+        />
+      );
     }
 
-    return (
-      <div className="h-20 rounded-xl border border-slate-200 bg-slate-50" />
-    );
+    return <div className={cn('h-20 rounded-xl', styles.emptyShell)} />;
   }
 
   const quickActions = [
@@ -122,8 +138,7 @@ export default function SessionControls() {
       visible: status === 'idle' || status === 'ended',
       label: 'Start New Draft',
       shortcut: 'S',
-      className:
-        'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100',
+      toneClassName: quickActionToneClass.start,
       onClick: () => {
         pushToastForSession(handleStartNewDraft(), 'start');
       },
@@ -133,8 +148,7 @@ export default function SessionControls() {
       visible: status === 'active',
       label: 'Pause Draft',
       shortcut: 'P',
-      className:
-        'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100',
+      toneClassName: quickActionToneClass.pause,
       onClick: () => {
         pushToastForSession(handlePause(), 'pause');
       },
@@ -144,7 +158,7 @@ export default function SessionControls() {
       visible: status === 'paused',
       label: 'Resume Draft',
       shortcut: 'R',
-      className: 'border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100',
+      toneClassName: quickActionToneClass.resume,
       onClick: () => {
         pushToastForSession(handleResume(), 'resume');
       },
@@ -154,8 +168,7 @@ export default function SessionControls() {
       visible: isDraftRunning && canGoToPreviousTurn,
       label: 'Previous Turn',
       shortcut: '[',
-      className:
-        'border-violet-300 bg-violet-50 text-violet-800 hover:bg-violet-100',
+      toneClassName: quickActionToneClass.prev,
       onClick: () => {
         pushToastForSession(handleGoToPreviousTurn(), 'prev');
       },
@@ -165,8 +178,7 @@ export default function SessionControls() {
       visible: isDraftRunning && canSkipCurrentTurn,
       label: 'Skip Turn',
       shortcut: ']',
-      className:
-        'border-indigo-300 bg-indigo-50 text-indigo-800 hover:bg-indigo-100',
+      toneClassName: quickActionToneClass.skip,
       onClick: () => {
         pushToastForSession(handleSkipCurrentTurn(), 'skip');
       },
@@ -176,7 +188,7 @@ export default function SessionControls() {
       visible: status === 'active' || status === 'paused',
       label: 'End Draft',
       shortcut: 'E',
-      className: 'border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100',
+      toneClassName: quickActionToneClass.end,
       onClick: () => {
         void handleEndDraft(false)
           .then((success) => {
@@ -196,10 +208,10 @@ export default function SessionControls() {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-black text-slate-900">
+            <h2 className={cn('text-xl font-black', styles.headerTitle)}>
               Draft Session Controls
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className={cn('text-sm', styles.headerSubtitle)}>
               Manage live flow, category locks, and draft order.
             </p>
           </div>
@@ -207,8 +219,8 @@ export default function SessionControls() {
       </CardHeader>
 
       <CardBody className="space-y-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-2">
-          <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
+        <div className={cn('p-2', styles.quickActionShell)}>
+          <p className={cn('px-1 pb-2 text-[10px] font-black uppercase tracking-wider', styles.quickActionLabel)}>
             Quick Actions
           </p>
           <div className="custom-scrollbar flex gap-2 overflow-x-auto pb-1">
@@ -216,10 +228,14 @@ export default function SessionControls() {
               <button
                 key={action.id}
                 onClick={action.onClick}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-black transition ${action.className}`}
+                className={cn(
+                  'inline-flex shrink-0 items-center gap-2 px-2.5 py-1.5 text-xs',
+                  styles.quickAction,
+                  action.toneClassName
+                )}
               >
                 <span>{action.label}</span>
-                <kbd className="rounded border border-current/30 bg-white/70 px-1.5 py-0.5 text-[10px] font-black">
+                <kbd className={cn('theme-kbd px-1.5 py-0.5 text-[10px] font-black', styles.shortcutKeyBadge)}>
                   {action.shortcut}
                 </kbd>
               </button>
@@ -227,7 +243,7 @@ export default function SessionControls() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+        <div className={cn('px-3 py-2 text-xs font-semibold', styles.shortcutStrip)}>
           Shortcuts: <ShortcutKey label="S" hint="start" />{' '}
           <ShortcutKey label="P" hint="pause" />{' '}
           <ShortcutKey label="R" hint="resume" />{' '}
@@ -237,11 +253,11 @@ export default function SessionControls() {
         </div>
 
         {showEndWarning && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
-            <p className="font-bold text-amber-900">
+          <div className={cn('p-4', styles.warningCallout)}>
+            <p className={cn('font-bold', styles.warningTitle)}>
               Warning: Teams still without picks
             </p>
-            <p className="mt-1 text-sm text-amber-800">
+            <p className={cn('mt-1 text-sm', styles.warningText)}>
               {teamsWithNoPicks.length} team(s) have not drafted in this round:{' '}
               <strong>
                 {teamsWithNoPicks.map((team) => team.name).join(', ')}
@@ -258,13 +274,19 @@ export default function SessionControls() {
                     'end'
                   )
                 }
-                className="rounded-lg bg-rose-700 px-3 py-1.5 text-sm font-bold text-white hover:bg-rose-800"
+                className={cn(
+                  'theme-button theme-button-danger',
+                  styles.warningConfirmButton
+                )}
               >
                 Force End
               </button>
               <button
                 onClick={() => setShowEndWarning(false)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className={cn(
+                  'theme-button theme-button-secondary',
+                  styles.warningCancelButton
+                )}
               >
                 Cancel
               </button>
@@ -293,7 +315,7 @@ export default function SessionControls() {
                   pushSuccess('Session updated successfully.');
                 });
               }}
-              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
+              className={cn('theme-field', styles.selectField)}
             >
               <option value="Both">Both (Local + Oversea)</option>
               <option value="Local">Local only</option>
@@ -315,7 +337,7 @@ export default function SessionControls() {
                 })
               }
               disabled={draftSession.allowedCategories !== 'Both'}
-              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm disabled:opacity-50"
+              className={cn('theme-field disabled:opacity-50', styles.selectField)}
             >
               <option value="Local">Local Players</option>
               <option value="Oversea">Oversea Players</option>
@@ -323,9 +345,9 @@ export default function SessionControls() {
           </ControlField>
         </div>
 
-        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <section className={cn('p-4', styles.reorderSection)}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700">
+            <h3 className={cn('text-sm font-black uppercase tracking-wider', styles.reorderTitle)}>
               Team Draft Order
             </h3>
             <div className="flex flex-wrap items-center justify-end gap-3">
@@ -339,12 +361,15 @@ export default function SessionControls() {
                     ? 'Enable "Allow Reorder During Live Draft" to reverse order.'
                     : undefined
                 }
-                className="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                className={cn(
+                  'theme-button theme-button-info disabled:cursor-not-allowed',
+                  styles.reverseButton
+                )}
               >
                 Reverse Order
               </button>
               {isDraftRunning ? (
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                <label className={cn('inline-flex cursor-pointer items-center gap-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider', styles.reorderToggle)}>
                   <input
                     type="checkbox"
                     checked={allowReorderDuringLive}
@@ -357,7 +382,7 @@ export default function SessionControls() {
                 </label>
               ) : null}
               {currentTurnTeam ? (
-                <p className="text-xs text-slate-600">
+                <p className={cn('text-xs', styles.currentTurnText)}>
                   Current:{' '}
                   <strong>
                     #{currentTurnTeam.serialNumber} {currentTurnTeam.name}
@@ -368,7 +393,7 @@ export default function SessionControls() {
           </div>
 
           {isReorderLocked ? (
-            <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-800">
+            <p className={cn('mb-3 px-2.5 py-1.5 text-[11px] font-semibold', styles.lockNotice)}>
               Reordering is locked while draft is live. Enable the toggle to
               allow changes.
             </p>
@@ -396,7 +421,12 @@ export default function SessionControls() {
                 return (
                   <div
                     key={team.id}
-                    className={`w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${isReorderLocked ? 'opacity-80' : ''}`}
+                    className={cn(
+                      'w-64 p-3',
+                      styles.teamCard,
+                      isReorderLocked && styles.teamCardLocked,
+                      isDraftRunning && team.serialNumber === activeSerial && styles.teamCardActive
+                    )}
                     draggable
                     onDragStart={(e) => {
                       if (isReorderLocked) {
@@ -427,7 +457,7 @@ export default function SessionControls() {
                     }}
                   >
                     <div className="mb-3 space-y-2.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50/80 p-1.5">
+                      <div className={cn('flex min-w-0 flex-wrap items-center gap-1.5 p-1.5', styles.serialStrip)}>
                         <select
                           value={team.serialNumber}
                           disabled={isReorderLocked}
@@ -437,7 +467,11 @@ export default function SessionControls() {
                               Number(e.target.value)
                             );
                           }}
-                          className="min-w-[62px] shrink-0 rounded border border-sky-200 bg-sky-50 px-2 py-1 text-sm font-black text-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
+                          className={cn(
+                            'min-w-[62px] shrink-0 px-2 py-1 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50',
+                            styles.serialSelect,
+                            isDraftRunning && team.serialNumber === activeSerial && styles.serialSelectActive
+                          )}
                         >
                           {Array.from(
                             { length: sortedTeams.length },
@@ -455,7 +489,7 @@ export default function SessionControls() {
                             void moveTeamToEdge(team.id, 'top');
                           }}
                           disabled={!canMoveTop || isReorderLocked}
-                          className="rounded border border-slate-300 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
                           aria-label={`Move ${team.name} to top`}
                           title="Move to top"
                         >
@@ -468,7 +502,7 @@ export default function SessionControls() {
                             void moveTeamByStep(team.id, -1);
                           }}
                           disabled={!canMoveUp || isReorderLocked}
-                          className="rounded border border-slate-300 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
                           aria-label={`Move ${team.name} up`}
                           title="Move up"
                         >
@@ -481,7 +515,7 @@ export default function SessionControls() {
                             void moveTeamByStep(team.id, 1);
                           }}
                           disabled={!canMoveDown || isReorderLocked}
-                          className="rounded border border-slate-300 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
                           aria-label={`Move ${team.name} down`}
                           title="Move down"
                         >
@@ -494,7 +528,7 @@ export default function SessionControls() {
                             void moveTeamToEdge(team.id, 'bottom');
                           }}
                           disabled={!canMoveBottom || isReorderLocked}
-                          className="rounded border border-slate-300 bg-white px-1.5 py-1 text-[10px] font-black text-slate-700 disabled:cursor-not-allowed disabled:opacity-35"
+                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
                           aria-label={`Move ${team.name} to bottom`}
                           title="Move to bottom"
                         >
@@ -514,7 +548,7 @@ export default function SessionControls() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-slate-200 bg-slate-100">
+                      <div className={cn('flex h-10 w-10 items-center justify-center overflow-hidden', styles.logoShell)}>
                         {team.logoUrl ? (
                           <Image
                             src={team.logoUrl}
@@ -524,12 +558,12 @@ export default function SessionControls() {
                             className="h-full w-full object-contain"
                           />
                         ) : (
-                          <span className="text-[10px] font-bold text-slate-400">
+                          <span className={cn('text-[10px] font-bold', styles.logoPlaceholder)}>
                             LOGO
                           </span>
                         )}
                       </div>
-                      <p className="truncate text-sm font-bold text-slate-900">
+                      <p className={cn('truncate text-sm font-bold', styles.teamName)}>
                         {team.name}
                       </p>
                     </div>
@@ -538,7 +572,7 @@ export default function SessionControls() {
               })}
 
               {sortedTeams.length === 0 ? (
-                <div className="flex min-h-24 w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-sm text-slate-500">
+                <div className={cn('theme-empty-state flex w-full items-center justify-center text-sm', styles.emptyState)}>
                   No teams added yet.
                 </div>
               ) : null}
@@ -560,23 +594,23 @@ function ControlField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-xs font-black uppercase tracking-wider text-slate-600">
+    <div className={cn('p-4', styles.controlField)}>
+      <p className={cn('text-xs font-black uppercase tracking-wider', styles.controlLabel)}>
         {label}
       </p>
       <div className="mt-2">{children}</div>
-      <p className="mt-2 text-xs text-slate-500">{hint}</p>
+      <p className={cn('mt-2 text-xs', styles.controlHint)}>{hint}</p>
     </div>
   );
 }
 
 function ShortcutKey({ label, hint }: { label: string; hint: string }) {
   return (
-    <span className="mr-2 inline-flex items-center gap-1">
-      <kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-700">
+    <span className={styles.shortcutKeyWrap}>
+      <kbd className={cn('theme-kbd text-[10px] font-black', styles.shortcutKeyBadge)}>
         {label}
       </kbd>
-      <span className="text-[10px] uppercase tracking-wide text-slate-500">
+      <span className={cn('text-[10px] uppercase tracking-wide', styles.shortcutKeyHint)}>
         {hint}
       </span>
     </span>

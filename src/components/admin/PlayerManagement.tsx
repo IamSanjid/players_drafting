@@ -10,10 +10,12 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Tabs } from '@/components/ui/Tabs';
 import { playersApi, uploadApi } from '@/lib/api';
 import type { PlayerUpsertPayload } from '@/lib/api';
-import { formatMoney } from '@/lib/ui';
-import { getSocket } from '@/lib/socketClient';
 import { useDraftStore } from '@/lib/draftStore';
+import { getSocket } from '@/lib/socketClient';
+import { cn, formatMoney } from '@/lib/ui';
 import type { ApiPlayer, ApiTeam, PlayerCategory } from '@/types/domain';
+
+import styles from './PlayerManagement.module.css';
 
 const SUB_CATEGORIES = ['Icon', 'A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -35,11 +37,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   const [preBoughtTeamId, setPreBoughtTeamId] = useState('');
   const [uploading, setUploading] = useState(false);
   const [assigningId, setAssigningId] = useState<string | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // State for list filtering
   const [listCategory, setListCategory] = useState<'Oversea' | 'Local'>(
     'Oversea'
   );
@@ -79,7 +79,6 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     }
   }, [fetchAll, players.length]);
 
-  // Reset to page 1 on filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [listCategory, listSubCategory, listSearch]);
@@ -169,7 +168,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
   };
 
   const deletePlayer = async (id: string) => {
-    if (!confirm('Delete player?')) return;
+    if (!confirm('Delete player?')) {
+      return;
+    }
     const res = await playersApi.remove(id);
     if (!res.ok) {
       pushError('Failed to delete player.');
@@ -185,8 +186,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
       !confirm(
         `Are you absolutely sure you want to delete ALL ${cat} players? This cannot be undone.`
       )
-    )
+    ) {
       return;
+    }
     const res = await playersApi.removeByCategory(cat);
     if (!res.ok) {
       pushError(`Failed to delete ${cat} players.`);
@@ -215,7 +217,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setUploading(true);
 
@@ -240,7 +244,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     playerId: string
   ) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     try {
       const uploadRes = await uploadApi.uploadFile(file);
@@ -264,12 +270,19 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     }
   };
 
-  const filteredPlayers = players.filter((p) => {
-    if (p.category !== listCategory) return false;
-    if (listSubCategory !== 'All' && p.subCategory !== listSubCategory)
+  const filteredPlayers = players.filter((player) => {
+    if (player.category !== listCategory) {
       return false;
-    if (listSearch && !p.name.toLowerCase().includes(listSearch.toLowerCase()))
+    }
+    if (listSubCategory !== 'All' && player.subCategory !== listSubCategory) {
       return false;
+    }
+    if (
+      listSearch &&
+      !player.name.toLowerCase().includes(listSearch.toLowerCase())
+    ) {
+      return false;
+    }
     return true;
   });
 
@@ -280,21 +293,21 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     startIndex + itemsPerPage
   );
 
-  const draftedPlayersCount = players.filter((player) =>
-    Boolean(player.team)
-  ).length;
+  const draftedPlayersCount = players.filter((player) => Boolean(player.team))
+    .length;
   const availablePlayersCount = players.length - draftedPlayersCount;
   const preBoughtCount = players.filter((player) => player.isPreBought).length;
 
   const handleManualAssign = async (playerId: string, teamId: string) => {
-    if (!teamId) return;
+    if (!teamId) {
+      return;
+    }
 
     if (
       !confirm(
-        `Are you sure you want to assign this player? This will update budgets and counts.`
+        'Are you sure you want to assign this player? This will update budgets and counts.'
       )
     ) {
-      // Logic to reset dropdown would be nice but simple refresh/alert is fine
       return;
     }
 
@@ -303,7 +316,6 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
       const res = await playersApi.assign(playerId, teamId);
 
       if (res.ok) {
-        // Trigger latest pick animation
         socket.emit('pick_made', {
           player: res.data.player,
           team: res.data.team,
@@ -331,15 +343,27 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     pushSuccess(`Broadcast sent for ${player.name}.`);
   };
 
+  const fieldClassName = cn('theme-field', styles.fieldInput);
+  const uploadControlClassName = cn(
+    'flex items-center justify-center p-2.5 transition',
+    styles.uploadControl
+  );
+
   return (
     <Card className="overflow-hidden">
       <div ref={playerManagementRootRef} />
-      <CardHeader className="flex items-center justify-between gap-4 bg-slate-50">
+      <CardHeader
+        className={cn(
+          'flex items-center justify-between gap-4',
+          'theme-toolbar',
+          styles.cardHeader
+        )}
+      >
         <div>
-          <h2 className="text-xl font-black text-slate-900">
+          <h2 className={cn('text-xl font-black', styles.headerTitle)}>
             Player Management
           </h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className={cn('mt-1 text-sm', styles.headerSubtitle)}>
             Add players to the draft pool or register pre-bought contracts
           </p>
         </div>
@@ -347,11 +371,13 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
           <StatusBadge label={`${players.length} total`} tone="active" />
           <button
             onClick={() => setShowCsvUploader(!showCsvUploader)}
-            className={`rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+            className={cn(
+              'font-bold transition-all',
+              styles.csvToggleButton,
               showCsvUploader
-                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                : 'border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-            }`}
+                ? styles.csvToggleButtonOpen
+                : 'theme-button theme-button-info'
+            )}
           >
             {showCsvUploader ? 'Close CSV Tool' : 'Bulk Upload CSV'}
           </button>
@@ -382,8 +408,8 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
           />
         </div>
 
-        {showCsvUploader && (
-          <div className="mb-8 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 p-1">
+        {showCsvUploader ? (
+          <div className={cn('mb-8 p-1', styles.csvShell)}>
             <CSVBulkUploader
               onImportComplete={() => {
                 void fetchAll({ silent: true, force: true });
@@ -391,15 +417,20 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               }}
             />
           </div>
-        )}
+        ) : null}
 
-        <section className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <section className={cn('mb-8', styles.formSection)}>
+          <div
+            className={cn(
+              'flex flex-wrap items-center justify-between gap-3 px-4 py-3',
+              styles.formHeader
+            )}
+          >
             <div>
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-700">
+              <h3 className={cn('text-sm font-black uppercase tracking-wider', styles.sectionTitle)}>
                 {editingPlayerId ? 'Edit Player' : 'Add New Player'}
               </h3>
-              <p className="text-xs font-semibold text-slate-500">
+              <p className={cn('text-xs font-semibold', styles.sectionSubtitle)}>
                 {editingPlayerId
                   ? 'Editing selected player details'
                   : 'Create a new player entry'}
@@ -411,7 +442,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 <button
                   onClick={handleCancelEdit}
                   type="button"
-                  className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100"
+                  className={cn(
+                    'theme-button theme-button-danger',
+                    styles.cancelButton
+                  )}
                 >
                   Cancel Edit
                 </button>
@@ -421,7 +455,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 aria-expanded={isPlayerFormExpanded}
                 aria-controls="player-form-panel"
                 onClick={() => setIsPlayerFormExpanded((current) => !current)}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                className={cn(
+                  'theme-button theme-button-secondary inline-flex items-center gap-2',
+                  styles.toggleButton
+                )}
               >
                 {isPlayerFormExpanded ? 'Collapse' : 'Expand'}
                 <span className="text-sm leading-none" aria-hidden="true">
@@ -438,7 +475,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               className="grid grid-cols-1 gap-4 p-5 md:grid-cols-4"
             >
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                   Name
                 </label>
                 <input
@@ -447,43 +484,41 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   type="text"
-                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  className={fieldClassName}
                   placeholder="Player Name"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                   Category
                 </label>
                 <select
                   value={category}
-                  onChange={(e) =>
-                    setCategory(e.target.value as PlayerCategory)
-                  }
-                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  onChange={(e) => setCategory(e.target.value as PlayerCategory)}
+                  className={fieldClassName}
                 >
                   <option value="Oversea">Oversea</option>
                   <option value="Local">Local</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                   Sub-Category
                 </label>
                 <select
                   value={subCategory}
                   onChange={(e) => setSubCategory(e.target.value)}
-                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  className={fieldClassName}
                 >
-                  {SUB_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      Category {c}
+                  {SUB_CATEGORIES.map((subCategoryOption) => (
+                    <option key={subCategoryOption} value={subCategoryOption}>
+                      Category {subCategoryOption}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                   Position
                 </label>
                 <input
@@ -491,7 +526,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   type="text"
-                  className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                  className={fieldClassName}
                   placeholder="e.g. Batsman"
                 />
               </div>
@@ -500,7 +535,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 <div className="grid grid-cols-2 gap-4">
                   {category === 'Local' ? (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                         Price (BDT)
                       </label>
                       <input
@@ -508,13 +543,13 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         value={priceBDT}
                         onChange={(e) => setPriceBDT(e.target.value)}
                         type="number"
-                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        className={fieldClassName}
                         placeholder="0"
                       />
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                         Price (USD)
                       </label>
                       <input
@@ -522,14 +557,14 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         value={priceUSD}
                         onChange={(e) => setPriceUSD(e.target.value)}
                         type="number"
-                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        className={fieldClassName}
                         placeholder="0"
                       />
                     </div>
                   )}
-                  {category === 'Oversea' && (
+                  {category === 'Oversea' ? (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                         Country
                       </label>
                       <input
@@ -537,33 +572,33 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
                         type="text"
-                        className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                        className={fieldClassName}
                         placeholder="Country"
                       />
                     </div>
-                  )}
+                  ) : null}
                 </div>
-                {category === 'Oversea' && (
+                {category === 'Oversea' ? (
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                       Availability
                     </label>
                     <select
                       value={availability}
                       onChange={(e) => setAvailability(e.target.value)}
-                      className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                      className={fieldClassName}
                     >
                       <option value="Full-Time">Full-Time</option>
                       <option value="Partial">Partial</option>
                       <option value="Custom">Custom</option>
                     </select>
                   </div>
-                )}
+                ) : null}
               </div>
 
-              <div className="md:col-span-2 space-y-4">
+              <div className="space-y-4 md:col-span-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                  <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                     Player Image
                   </label>
                   <div className="flex gap-2">
@@ -571,11 +606,11 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
                       type="text"
-                      className="flex-1 bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                      className={cn('flex-1', fieldClassName)}
                       placeholder="Paste URL or upload..."
                     />
-                    <label className="cursor-pointer bg-white border border-gray-300 p-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm flex items-center justify-center min-w-[100px]">
-                      <span className="text-xs font-bold text-gray-600 truncate max-w-[80px]">
+                    <label className={uploadControlClassName}>
+                      <span className="max-w-[80px] truncate text-xs font-bold">
                         {uploading ? '...' : 'Upload'}
                       </span>
                       <input
@@ -586,45 +621,50 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                       />
                     </label>
                   </div>
-                  {imageUrl && (
+                  {imageUrl ? (
                     <div className="mt-2 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded border overflow-hidden">
+                      <div className={cn('h-8 w-8', styles.imagePreview)}>
                         <Image
                           src={imageUrl}
                           alt="Player preview"
                           width={32}
                           height={32}
-                          className="w-full h-full object-cover"
+                          className="h-full w-full object-cover"
                         />
                       </div>
-                      <span className="max-w-[220px] truncate text-[10px] text-gray-400">
+                      <span
+                        className={cn(
+                          'max-w-[220px] truncate text-[10px]',
+                          styles.imagePreviewText
+                        )}
+                      >
                         {imageUrl}
                       </span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
-              <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className={cn('grid grid-cols-1 gap-6 p-4 md:col-span-4 md:grid-cols-2', styles.preBoughtPanel)}>
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     id="preBought"
                     checked={isPreBought}
                     onChange={(e) => setIsPreBought(e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
+                    className={cn('h-5 w-5 rounded focus:ring-2', styles.checkboxInput)}
                   />
                   <label
                     htmlFor="preBought"
-                    className="text-sm font-black text-gray-700 uppercase tracking-tight"
+                    className={cn('text-sm font-black uppercase tracking-tight', styles.checkboxLabel)}
                   >
                     Register as Pre-bought?
                   </label>
                 </div>
 
-                {(isPreBought || editingPlayerId) && (
+                {isPreBought || editingPlayerId ? (
                   <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
                       {isPreBought
                         ? 'Assign To Team (Pre-bought)'
                         : 'Manually Assign/Re-assign To Team'}
@@ -632,29 +672,31 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     <select
                       value={preBoughtTeamId}
                       onChange={(e) => setPreBoughtTeamId(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 font-bold italic text-blue-800"
+                      className={cn(fieldClassName, styles.preBoughtSelect)}
                     >
                       <option value="">
                         {editingPlayerId ? 'Unassign' : 'Select a team...'}
                       </option>
-                      {teams.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
                         </option>
                       ))}
                     </select>
-                    <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tight">
-                      * Changing this for a drafted player will auto-swap
-                      budgets and counts.
+                    <p className={cn('mt-1 text-[9px] font-bold uppercase tracking-tight', styles.helperText)}>
+                      * Changing this for a drafted player will auto-swap budgets and counts.
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
 
-              <div className="md:col-span-4 flex justify-end">
+              <div className="flex justify-end md:col-span-4">
                 <button
                   type="submit"
-                  className="rounded-xl bg-blue-700 px-8 py-3 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-blue-200 transition hover:bg-blue-800 active:scale-95"
+                  className={cn(
+                    'theme-button theme-button-primary active:scale-95',
+                    styles.primaryButton
+                  )}
                 >
                   {editingPlayerId ? 'Update Player' : 'Add to Pool'}
                 </button>
@@ -676,27 +718,30 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
             <button
               onClick={() => handleDeleteAllByCategory(listCategory)}
-              className="text-red-500 border border-red-200 bg-red-50 px-4 py-2 rounded-lg text-xs font-black uppercase hover:bg-red-100 transition"
+              className={cn(
+                'theme-button theme-button-danger',
+                styles.deleteCategoryButton
+              )}
             >
               Delete All {listCategory}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 items-end gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-3">
+          <div className={cn('grid grid-cols-1 items-end gap-4 p-4 md:grid-cols-3', styles.filterShell)}>
             <div className="flex-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+              <label className={cn('ml-1 text-[10px] font-black', styles.filterLabel)}>
                 Search Player
               </label>
-              <div className="relative">
+              <div className={styles.searchWrap}>
                 <input
                   value={listSearch}
                   onChange={(e) => setListSearch(e.target.value)}
                   type="text"
                   placeholder="Name..."
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm"
+                  className={cn('theme-field text-sm', styles.searchInput)}
                 />
                 <svg
-                  className="w-4 h-4 text-gray-400 absolute left-3 top-2.5"
+                  className={cn('h-4 w-4', styles.searchIcon)}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -711,29 +756,29 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+              <label className={cn('ml-1 text-[10px] font-black', styles.filterLabel)}>
                 Sub-Category
               </label>
               <select
                 value={listSubCategory}
                 onChange={(e) => setListSubCategory(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 transition hover:border-gray-300"
+                className={fieldClassName}
               >
                 <option value="All">All Categories</option>
-                {SUB_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    Category {c}
+                {SUB_CATEGORIES.map((subCategoryOption) => (
+                  <option key={subCategoryOption} value={subCategoryOption}>
+                    Category {subCategoryOption}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="text-right text-xs font-black text-gray-400 uppercase tracking-tight pb-3 pr-2 flex flex-col items-end">
-              <div>
+            <div className="flex flex-col items-end pb-3 pr-2 text-right text-xs font-black uppercase tracking-tight">
+              <div className={styles.filterMeta}>
                 Showing {paginatedPlayers.length} / {filteredPlayers.length}
               </div>
-              <div className="text-[10px] text-gray-300 mt-0.5">
+              <div className={cn('mt-0.5 text-[10px]', styles.filterMetaSecondary)}>
                 Total pool:{' '}
-                {players.filter((p) => p.category === listCategory).length}
+                {players.filter((player) => player.category === listCategory).length}
               </div>
             </div>
           </div>
@@ -741,15 +786,15 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
-            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
-            <div className="h-10 w-full rounded-lg bg-gray-100"></div>
+            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
+            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
+            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="hidden overflow-x-auto rounded-2xl border border-slate-200 shadow-sm md:block">
-              <table className="w-full text-sm text-left">
-                <thead className="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase text-slate-500">
+            <div className={cn('hidden overflow-x-auto md:block', styles.tableShell)}>
+              <table className="w-full text-left text-sm">
+                <thead className={cn('text-[10px] font-black uppercase', styles.tableHead)}>
                   <tr>
                     <th scope="col" className="px-6 py-4">
                       Player Details
@@ -765,48 +810,50 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className={cn('divide-y divide-gray-50', styles.tableBody)}>
                   {paginatedPlayers.map((player) => (
-                    <tr
-                      key={player.id}
-                      className="group bg-white transition hover:bg-blue-50/30"
-                    >
+                    <tr key={player.id} className={styles.tableRow}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 border overflow-hidden flex items-center justify-center font-bold text-gray-400 shadow-sm border-white">
+                          <div
+                            className={cn(
+                              'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden font-bold',
+                              styles.avatarShell
+                            )}
+                          >
                             {player.imageUrl ? (
                               <Image
                                 src={player.imageUrl}
                                 alt={`${player.name} photo`}
                                 width={40}
                                 height={40}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                               />
                             ) : (
                               player.name.charAt(0)
                             )}
                           </div>
                           <div>
-                            <div className="font-black text-gray-900 leading-tight">
+                            <div className={cn('leading-tight font-black', styles.playerName)}>
                               {player.name}
                             </div>
-                            <div className="text-[10px] font-bold uppercase tracking-tight text-gray-400">
+                            <div className={cn('text-[10px] font-bold uppercase tracking-tight', styles.playerMeta)}>
                               {player.position} • Category {player.subCategory}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-mono font-black text-indigo-600">
+                        <div className={cn('font-mono font-black', styles.priceText)}>
                           {player.category === 'Local'
                             ? `${formatMoney(player.priceBDT || 0)} BDT`
                             : `$${formatMoney(player.priceUSD || 0)}`}
                         </div>
-                        {player.country && (
-                          <div className="text-[10px] text-gray-400 font-bold uppercase">
+                        {player.country ? (
+                          <div className={cn('text-[10px] font-bold uppercase', styles.infoText)}>
                             {player.country} • {player.availability}
                           </div>
-                        )}
+                        ) : null}
                       </td>
                       <td className="px-6 py-4">
                         {player.team ? (
@@ -822,10 +869,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => startEdit(player)}
-                            className="p-2 text-gray-400 hover:text-blue-600 transition hover:bg-blue-50 rounded-lg group-hover:bg-white/50"
+                            className={cn(styles.rowIconButton, styles.rowEditButton)}
                           >
                             <svg
-                              className="w-4 h-4"
+                              className="h-4 w-4"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -839,9 +886,15 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                             </svg>
                           </button>
 
-                          <label className="p-2 text-gray-400 hover:text-emerald-600 transition hover:bg-emerald-50 rounded-lg group-hover:bg-white/50 cursor-pointer">
+                          <label
+                            className={cn(
+                              'cursor-pointer',
+                              styles.rowIconButton,
+                              styles.rowUploadButton
+                            )}
+                          >
                             <svg
-                              className="w-4 h-4"
+                              className="h-4 w-4"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -857,16 +910,17 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) =>
-                                handleRowFileUpload(e, player.id)
-                              }
+                              onChange={(e) => handleRowFileUpload(e, player.id)}
                             />
                           </label>
 
                           {player.team ? (
                             <button
                               onClick={() => triggerAnimation(player)}
-                              className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-tighter transition shadow-sm border border-indigo-100"
+                              className={cn(
+                                'theme-button theme-button-info',
+                                styles.broadcastButton
+                              )}
                             >
                               Broadcast
                             </button>
@@ -878,21 +932,24 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                                 onChange={(e) =>
                                   handleManualAssign(player.id, e.target.value)
                                 }
-                                className="w-28 cursor-pointer rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-bold uppercase transition hover:border-blue-300"
+                                className={cn('theme-field', styles.assignSelect)}
                               >
                                 <option value="">Assign To...</option>
-                                {teams.map((t) => (
-                                  <option key={t.id} value={t.id}>
-                                    {t.name}
+                                {teams.map((team) => (
+                                  <option key={team.id} value={team.id}>
+                                    {team.name}
                                   </option>
                                 ))}
                               </select>
                               <button
                                 onClick={() => deletePlayer(player.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 transition hover:bg-red-50 rounded-lg"
+                                className={cn(
+                                  styles.rowIconButton,
+                                  styles.rowDeleteButton
+                                )}
                               >
                                 <svg
-                                  className="w-3.5 h-3.5"
+                                  className="h-3.5 w-3.5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -911,15 +968,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                       </td>
                     </tr>
                   ))}
-                  {paginatedPlayers.length === 0 && (
+                  {paginatedPlayers.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={5}
-                        className="bg-gray-50/50 py-20 text-center"
-                      >
+                      <td colSpan={5} className={cn('py-20 text-center', styles.emptyCell)}>
                         <div className="flex flex-col items-center">
                           <svg
-                            className="w-12 h-12 text-gray-200 mb-2"
+                            className={cn('mb-2 h-12 w-12', styles.emptyStateIcon)}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -931,26 +985,28 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                             ></path>
                           </svg>
-                          <span className="text-sm font-bold italic text-gray-400">
+                          <span className={cn('text-sm font-bold italic', styles.emptyStateText)}>
                             No players found match your current filters.
                           </span>
                         </div>
                       </td>
                     </tr>
-                  )}
+                  ) : null}
                 </tbody>
               </table>
             </div>
 
             <div className="space-y-3 md:hidden">
               {paginatedPlayers.map((player) => (
-                <article
-                  key={player.id}
-                  className="rounded-xl border border-slate-200 bg-white p-3"
-                >
+                <article key={player.id} className={cn('p-3', styles.mobileCard)}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="h-9 w-9 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                      <div
+                        className={cn(
+                          'flex h-9 w-9 items-center justify-center overflow-hidden font-bold',
+                          styles.avatarShell
+                        )}
+                      >
                         {player.imageUrl ? (
                           <Image
                             src={player.imageUrl}
@@ -960,16 +1016,16 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-500">
+                          <div className="flex h-full w-full items-center justify-center text-xs font-bold">
                             {player.name.charAt(0)}
                           </div>
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className={cn('text-sm font-black', styles.playerName)}>
                           {player.name}
                         </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
+                        <p className={cn('text-[10px] font-bold uppercase', styles.playerMeta)}>
                           {player.position} • {player.subCategory}
                         </p>
                       </div>
@@ -984,7 +1040,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     )}
                   </div>
 
-                  <p className="mt-2 text-xs font-bold text-indigo-700">
+                  <p className={cn('mt-2 text-xs font-bold', styles.mobilePrice)}>
                     {player.category === 'Local'
                       ? `${formatMoney(player.priceBDT || 0)} BDT`
                       : `$${formatMoney(player.priceUSD || 0)}`}
@@ -993,11 +1049,19 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => startEdit(player)}
-                      className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold uppercase text-slate-700"
+                      className={cn(
+                        'theme-button theme-button-secondary',
+                        styles.mobileActionButton
+                      )}
                     >
                       Edit
                     </button>
-                    <label className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">
+                    <label
+                      className={cn(
+                        'theme-button theme-button-secondary cursor-pointer',
+                        styles.mobileActionButton
+                      )}
+                    >
                       Photo
                       <input
                         type="file"
@@ -1009,7 +1073,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     {player.team ? (
                       <button
                         onClick={() => triggerAnimation(player)}
-                        className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase text-indigo-700"
+                        className={cn(
+                          'theme-button theme-button-info',
+                          styles.mobileActionButton
+                        )}
                       >
                         Broadcast
                       </button>
@@ -1020,7 +1087,7 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         onChange={(e) =>
                           handleManualAssign(player.id, e.target.value)
                         }
-                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold uppercase"
+                        className={cn('theme-field', styles.assignSelect)}
                       >
                         <option value="">Assign To...</option>
                         {teams.map((team) => (
@@ -1033,7 +1100,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     {!player.team ? (
                       <button
                         onClick={() => deletePlayer(player.id)}
-                        className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold uppercase text-rose-700"
+                        className={cn(
+                          'theme-button theme-button-danger',
+                          styles.mobileActionButton
+                        )}
                       >
                         Delete
                       </button>
@@ -1043,32 +1113,42 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               ))}
             </div>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <div className="text-xs font-black uppercase tracking-widest text-gray-400">
+            {totalPages > 1 ? (
+              <div
+                className={cn(
+                  'flex items-center justify-between p-4',
+                  styles.paginationShell
+                )}
+              >
+                <div className={cn('text-xs font-black uppercase tracking-widest', styles.paginationText)}>
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
                   <button
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-black uppercase text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition shadow-sm"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    className={cn(
+                      'theme-button theme-button-secondary',
+                      styles.paginationButton
+                    )}
                   >
                     Previous
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      setCurrentPage((page) => Math.min(totalPages, page + 1))
                     }
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-black uppercase text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition shadow-sm"
+                    className={cn(
+                      'theme-button theme-button-secondary',
+                      styles.paginationButton
+                    )}
                   >
                     Next
                   </button>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </CardBody>
@@ -1085,11 +1165,19 @@ function StatPill({
   value: string;
   tone: 'neutral' | 'active' | 'warning' | 'danger' | 'success';
 }) {
+  const toneClassName = {
+    neutral: styles.statPillNeutral,
+    active: styles.statPillActive,
+    warning: styles.statPillWarning,
+    danger: styles.statPillWarning,
+    success: styles.statPillSuccess,
+  };
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className={cn('px-3 py-2', styles.statPill, toneClassName[tone])}>
       <p className="stat-label">{label}</p>
       <div className="mt-1 flex items-center justify-between">
-        <p className="text-xl font-black text-slate-900">{value}</p>
+        <p className={cn('text-xl font-black', styles.statValue)}>{value}</p>
         <StatusBadge
           label={label}
           tone={tone}

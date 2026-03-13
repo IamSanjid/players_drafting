@@ -1,0 +1,44 @@
+.openTeamViewButton {
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--surface));
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.openTeamViewButton:hover {
+  background: color-mix(in srgb, var(--primary-soft) 70%, var(--surface));
+}
+
+.logoutButton {
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.logoutButton:hover {
+  background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface));
+}
+
+.snapshotTitle {
+  color: var(--text-strong);
+}
+
+.snapshotMeta {
+  color: var(--text-muted);
+}
+
+.statCard {
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.statValue {
+  color: var(--text-strong);
+}

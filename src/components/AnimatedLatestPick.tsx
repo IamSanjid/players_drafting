@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { getSocket } from '@/lib/socketClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/ui';
 import type { PickMadePayload } from '@/types/domain';
+import styles from './AnimatedLatestPick.module.css';
 
 export default function AnimatedLatestPick() {
   const [pick, setPick] = useState<PickMadePayload | null>(null);
@@ -59,7 +61,11 @@ export default function AnimatedLatestPick() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleManualClose}
-          className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-cursor ${canClose ? 'cursor-pointer' : 'cursor-wait'}`}
+          className={cn(
+            'fixed inset-0 z-[100] flex items-center justify-center p-4 transition-cursor',
+            styles.overlay,
+            canClose ? 'cursor-pointer' : 'cursor-wait'
+          )}
         >
           <motion.div
             initial={{ scale: 0.8, y: 100, opacity: 0 }}
@@ -67,12 +73,13 @@ export default function AnimatedLatestPick() {
             exit={{ scale: 0.8, y: -100, opacity: 0 }}
             transition={{ type: 'spring', bounce: 0.4, duration: 0.8 }}
             onClick={(e) => e.stopPropagation()} // Prevent click inside from closing
-            className="bg-indigo-950 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(30,58,138,0.5)] max-w-7xl w-full border-4 border-white/10 flex flex-col md:flex-row relative cursor-default"
+            className={cn(
+              'relative flex w-full max-w-7xl cursor-default flex-col overflow-hidden rounded-[2.5rem] md:flex-row',
+              styles.modal
+            )}
           >
-            {/* 1. Base Fallback Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-blue-950 to-black z-0"></div>
+            <div className={cn('absolute inset-0 z-0', styles.baseGradient)} />
 
-            {/* 2. Team Banner (Primary Background) */}
             {pick.team.bannerUrl && (
               <div className="absolute inset-0 z-10 overflow-hidden">
                 <div
@@ -83,16 +90,23 @@ export default function AnimatedLatestPick() {
                     backgroundPosition: 'center',
                   }}
                 />
-                {/* Darken the banner for text contrast */}
-                <div className="absolute inset-0 bg-black/40" />
+                <div className={cn('absolute inset-0', styles.bannerShade)} />
               </div>
             )}
 
-            {/* 3. Animated Glows & Lighting */}
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,_rgba(59,130,246,0.3)_0%,_transparent_70%)] opacity-70 pointer-events-none z-20"></div>
+            <div
+              className={cn(
+                'pointer-events-none absolute top-0 left-0 z-20 h-full w-full',
+                styles.glow
+              )}
+            />
 
-            {/* Image Side */}
-            <div className="w-full md:w-5/12 relative bg-black flex items-center justify-center overflow-hidden min-h-[400px] md:min-h-[600px] z-30">
+            <div
+              className={cn(
+                'relative z-30 flex min-h-[400px] w-full items-center justify-center overflow-hidden md:min-h-[600px] md:w-5/12',
+                styles.imagePanel
+              )}
+            >
               <motion.img
                 initial={{ scale: 1.2 }}
                 animate={{ scale: 1 }}
@@ -102,14 +116,17 @@ export default function AnimatedLatestPick() {
                 alt="Player"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+              <div className={cn('absolute inset-0', styles.imageShade)} />
 
               <div className="absolute top-8 left-8 flex flex-col gap-2">
                 <motion.div
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="font-mono text-cyan-400 font-black uppercase tracking-[0.2em] text-xs bg-black/60 px-4 py-1.5 rounded-full border border-cyan-400/30 backdrop-blur-xl inline-block"
+                  className={cn(
+                    'inline-block rounded-full px-4 py-1.5 font-mono text-xs font-black uppercase tracking-[0.2em] backdrop-blur-xl',
+                    styles.categoryPill
+                  )}
                 >
                   {pick.player.category}
                 </motion.div>
@@ -117,14 +134,16 @@ export default function AnimatedLatestPick() {
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="font-mono text-white/70 font-bold uppercase tracking-widest text-[10px] bg-white/10 px-4 py-1 rounded-full backdrop-blur-xl inline-block"
+                  className={cn(
+                    'inline-block rounded-full px-4 py-1 font-mono text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl',
+                    styles.subcategoryPill
+                  )}
                 >
                   Cat {pick.player.subCategory}
                 </motion.div>
               </div>
             </div>
 
-            {/* Info Side */}
             <div className="w-full md:w-7/12 p-8 md:p-16 relative flex flex-col justify-center z-30">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -138,14 +157,24 @@ export default function AnimatedLatestPick() {
                       alt={`${pick.team.name} logo`}
                       width={80}
                       height={80}
-                      className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                      className={cn('h-20 w-20 object-contain', styles.teamLogoFilter)}
                     />
                   )}
                   <div>
-                    <p className="text-cyan-400 uppercase tracking-[0.3em] font-black text-xs mb-1">
+                    <p
+                      className={cn(
+                        'mb-1 text-xs font-black uppercase tracking-[0.3em]',
+                        styles.eyebrow
+                      )}
+                    >
                       Franchise Secured
                     </p>
-                    <h2 className="text-4xl md:text-6xl font-black text-white drop-shadow-2xl leading-tight uppercase">
+                    <h2
+                      className={cn(
+                        'text-4xl font-black leading-tight uppercase md:text-6xl',
+                        styles.teamName
+                      )}
+                    >
                       {pick.team.name}
                     </h2>
                   </div>
@@ -158,38 +187,88 @@ export default function AnimatedLatestPick() {
                 transition={{ delay: 0.8, type: 'spring' }}
                 className="mt-8"
               >
-                <div className="bg-gradient-to-r from-blue-600/20 to-transparent border-l-8 border-cyan-400 rounded-2xl p-8 md:p-10 backdrop-blur-md -ml-8 md:-ml-24 relative z-10 shadow-2xl overflow-visible">
-                  <p className="text-cyan-200 text-sm font-black uppercase tracking-[0.4em] mb-4 opacity-70">
+                <div
+                  className={cn(
+                    'relative z-10 -ml-8 overflow-visible rounded-2xl p-8 backdrop-blur-md md:-ml-24 md:p-10',
+                    styles.selectionCard
+                  )}
+                >
+                  <p
+                    className={cn(
+                      'mb-4 text-sm font-black uppercase tracking-[0.4em] opacity-70',
+                      styles.selectionEyebrow
+                    )}
+                  >
                     Official Selection
                   </p>
-                  <h3 className="text-5xl md:text-7xl font-black text-white break-words leading-none tracking-tight">
+                  <h3
+                    className={cn(
+                      'break-words text-5xl font-black leading-none tracking-tight md:text-7xl',
+                      styles.playerName
+                    )}
+                  >
                     {pick.player.name}
                   </h3>
 
                   <div className="flex flex-wrap gap-4 mt-8">
-                    <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-                      <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">
+                    <div
+                      className={cn(
+                        'rounded-2xl px-6 py-3 backdrop-blur-md',
+                        styles.detailCard
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          'mb-1 text-[10px] font-bold uppercase tracking-widest',
+                          styles.detailLabel
+                        )}
+                      >
                         Position
                       </p>
-                      <p className="text-white font-black text-lg">
+                      <p className={cn('text-lg font-black', styles.detailValue)}>
                         {pick.player.position}
                       </p>
                     </div>
                     {pick.player.country && (
-                      <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
-                        <p className="text-[10px] uppercase font-bold text-white/40 mb-1 tracking-widest">
+                      <div
+                        className={cn(
+                          'rounded-2xl px-6 py-3 backdrop-blur-md',
+                          styles.detailCard
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            'mb-1 text-[10px] font-bold uppercase tracking-widest',
+                            styles.detailLabel
+                          )}
+                        >
                           Nationality
                         </p>
-                        <p className="text-white font-black text-lg">
+                        <p className={cn('text-lg font-black', styles.detailValue)}>
                           {pick.player.country}
                         </p>
                       </div>
                     )}
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 px-6 py-3 rounded-2xl backdrop-blur-md">
-                      <p className="text-[10px] uppercase font-bold text-emerald-400/60 mb-1 tracking-widest">
+                    <div
+                      className={cn(
+                        'rounded-2xl px-6 py-3 backdrop-blur-md',
+                        styles.valueCard
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          'mb-1 text-[10px] font-bold uppercase tracking-widest',
+                          styles.valueLabel
+                        )}
+                      >
                         Draft Value
                       </p>
-                      <p className="text-emerald-400 font-black text-xl font-mono">
+                      <p
+                        className={cn(
+                          'font-mono text-xl font-black',
+                          styles.valueAmount
+                        )}
+                      >
                         {pick.player.category === 'Local'
                           ? `৳${Number(pick.player.priceBDT || 0).toLocaleString()}`
                           : `$${Number(pick.player.priceUSD || 0).toLocaleString()}`}
@@ -203,10 +282,18 @@ export default function AnimatedLatestPick() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="absolute bottom-6 right-8 text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] flex items-center gap-2"
+                  className={cn(
+                    'absolute bottom-6 right-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em]',
+                    styles.dismissHint
+                  )}
                 >
                   Click anywhere to dismiss
-                  <div className="w-4 h-4 rounded-full border border-white/20 flex items-center justify-center text-[8px]">
+                  <div
+                    className={cn(
+                      'flex h-4 w-4 items-center justify-center rounded-full text-[8px]',
+                      styles.dismissIcon
+                    )}
+                  >
                     ×
                   </div>
                 </motion.div>

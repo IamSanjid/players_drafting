@@ -1,0 +1,33 @@
+.badge {
+  border-radius: var(--radius-pill);
+}
+
+.neutral {
+  border-color: color-mix(in srgb, var(--border) 92%, var(--surface));
+  background: color-mix(in srgb, var(--surface-muted) 92%, var(--surface));
+  color: var(--text-muted);
+}
+
+.active {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--surface));
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.warning {
+  border-color: color-mix(in srgb, var(--warning) 24%, var(--surface));
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.danger {
+  border-color: color-mix(in srgb, var(--danger) 24%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.success {
+  border-color: color-mix(in srgb, var(--success) 22%, var(--surface));
+  background: var(--success-soft);
+  color: var(--success);
+}

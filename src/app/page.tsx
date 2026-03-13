@@ -15,7 +15,9 @@ import { getTeamDraftStatus } from '@/lib/draft';
 import { useDraftStore } from '@/lib/draftStore';
 import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
+import { cn } from '@/lib/ui';
 import type { ApiTeam } from '@/types/domain';
+import styles from './page.module.css';
 
 const dashboardTitle =
   process.env.NEXT_PUBLIC_TITLE || "BPL Female Players' Draft 2026";
@@ -46,7 +48,9 @@ export default function PublicDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
-        <div className="h-16 w-16 animate-pulse rounded-full bg-sky-500" />
+        <div
+          className={cn('h-16 w-16 animate-pulse rounded-full', styles.loadingPulse)}
+        />
       </div>
     );
   }
@@ -62,14 +66,24 @@ export default function PublicDashboard() {
         logoAlt="Logo"
         actions={
           draftStatus === 'active' ? (
-            <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2">
+            <div
+              className={cn(
+                'flex items-center gap-3 rounded-xl px-4 py-2',
+                styles.currentTurnPanel
+              )}
+            >
               <div className="text-right">
                 <p className="stat-label">Current turn</p>
-                <p className="text-lg font-black text-sky-900">
+                <p className={cn('text-lg font-black', styles.currentTurnValue)}>
                   {currentTurnTeam?.name ?? 'N/A'}
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-sky-700 ring-2 ring-sky-300">
+              <div
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-full text-sm font-black',
+                  styles.currentTurnSerial
+                )}
+              >
                 {currentTurnTeam?.serialNumber ?? '#'}
               </div>
             </div>
@@ -95,16 +109,21 @@ export default function PublicDashboard() {
         {activeTab === 'Session' && (
           <section className="mx-auto flex h-full min-h-0 max-w-5xl flex-col space-y-3">
             {draftStatus === 'idle' || draftStatus === 'ended' ? (
-              <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-2xl">
+              <div className="theme-empty-state flex h-full min-h-70 flex-col items-center justify-center rounded-2xl p-8 text-center">
+                <div
+                  className={cn(
+                    'flex h-14 w-14 items-center justify-center rounded-full text-2xl',
+                    styles.emptyStateIcon
+                  )}
+                >
                   ⏳
                 </div>
-                <p className="text-base font-bold text-slate-700">
+                <p className={cn('text-base font-bold', styles.emptyStateTitle)}>
                   {draftStatus === 'ended'
                     ? 'This draft session has ended.'
                     : 'Waiting for the draft session to start.'}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className={cn('mt-1 text-sm', styles.emptyStateText)}>
                   {draftStatus === 'ended'
                     ? 'The admin may start a new round any time.'
                     : 'The admin will kick things off shortly.'}
@@ -155,22 +174,29 @@ export default function PublicDashboard() {
                         expandedProfileTeamId === team.id ? null : team.id
                       )
                     }
-                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50"
+                    className={cn(
+                      'flex w-full items-center justify-between gap-4 px-4 py-3 text-left',
+                      styles.teamRowButton
+                    )}
                   >
                     <div className="flex items-center gap-3">
                       <TeamLogo team={team} />
-                      <p className="text-lg font-black text-slate-900">
+                      <p className={cn('text-lg font-black', styles.teamName)}>
                         {team.name}
                       </p>
                     </div>
-                    <StatusBadge
+                    {/* <StatusBadge
                       label={`#${team.serialNumber}`}
                       tone="active"
                       className="font-black"
+                    /> */}
+                    <StatusBadge
+                      label={expandedProfileTeamId === team.id ? 'Open' : 'Expand'}
+                      tone={expandedProfileTeamId === team.id ? 'active' : 'neutral'}
                     />
                   </button>
                   {expandedProfileTeamId === team.id ? (
-                    <CardBody className="border-t border-slate-100 bg-slate-50">
+                    <CardBody className={styles.expandedBody}>
                       <TeamProfile team={team} />
                     </CardBody>
                   ) : null}
@@ -188,7 +214,12 @@ export default function PublicDashboard() {
 
 function TeamLogo({ team }: { team: ApiTeam }) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+    <div
+      className={cn(
+        'flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg',
+        styles.teamLogoFrame
+      )}
+    >
       {team.logoUrl ? (
         <Image
           src={team.logoUrl}
@@ -198,7 +229,9 @@ function TeamLogo({ team }: { team: ApiTeam }) {
           className="h-full w-full object-contain"
         />
       ) : (
-        <span className="text-[10px] font-bold text-slate-400">LOGO</span>
+        <span className={cn('text-[10px] font-bold', styles.teamLogoPlaceholder)}>
+          LOGO
+        </span>
       )}
     </div>
   );
@@ -227,16 +260,29 @@ function SessionTeamRow({
   });
 
   return (
-    <Card className={team.id === currentTurnTeamId ? 'border-sky-300' : ''}>
+    <Card
+      className={cn(
+        'overflow-hidden',
+        team.id === currentTurnTeamId && styles.activeTeamCard
+      )}
+    >
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50"
+        className={cn(
+          'flex w-full items-center justify-between gap-4 px-4 py-3 text-left',
+          styles.teamRowButton
+        )}
       >
         <div className="flex items-center gap-3">
           <TeamLogo team={team} />
           <div>
-            <p className="text-sm font-black text-slate-900">{team.name}</p>
-            <p className="text-xs font-bold uppercase tracking-wider text-sky-700">
+            <p className={cn('text-sm font-black', styles.teamName)}>{team.name}</p>
+            <p
+              className={cn(
+                'text-xs font-bold uppercase tracking-wider',
+                styles.teamMeta
+              )}
+            >
               Pick #{team.serialNumber}
             </p>
           </div>
@@ -244,12 +290,14 @@ function SessionTeamRow({
 
         <div className="flex items-center gap-3">
           <StatusBadge label={label} tone={tone} pulse={tone === 'active'} />
-          <span className="text-lg text-slate-400">{expanded ? '▴' : '▾'}</span>
+          <span className={cn('text-lg', styles.chevron)}>
+            {expanded ? '▴' : '▾'}
+          </span>
         </div>
       </button>
 
       {expanded ? (
-        <CardBody className="border-t border-slate-100 bg-slate-50">
+        <CardBody className={styles.expandedBody}>
           <TeamProfile team={team} />
         </CardBody>
       ) : null}

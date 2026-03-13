@@ -9,8 +9,10 @@ import {
   getSortedTeams,
   getTeamDraftStatus,
 } from '@/lib/draft';
-import { formatMoney } from '@/lib/ui';
+import { cn, formatMoney } from '@/lib/ui';
 import type { DraftStatus, ApiPick, ApiPlayer, ApiTeam } from '@/types/domain';
+
+import styles from './DraftOrderList.module.css';
 
 type DraftOrderListProps = {
   teams: ApiTeam[];
@@ -31,24 +33,24 @@ export default function DraftOrderList({
   const activeSerial = activeTeam ? activeTeam.serialNumber : null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-slate-50">
+    <div className={cn(styles.shell, 'flex h-full flex-col overflow-hidden')}>
       <div className="mb-2 mt-1 flex items-center justify-between px-1">
-        <h2 className="text-sm font-black uppercase tracking-wider text-slate-600">
+        <h2 className={cn(styles.heading, 'text-sm font-black uppercase tracking-wider')}>
           Draft Order
         </h2>
       </div>
 
       {!isDraftRunning ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-2xl">
+          <div className={cn(styles.waitingIcon, 'flex h-14 w-14 items-center justify-center rounded-full text-2xl')}>
             ⏳
           </div>
-          <p className="text-sm font-bold text-slate-600">
+          <p className={cn(styles.waitingTitle, 'text-sm font-bold')}>
             {draftStatus === 'ended'
               ? 'Draft has ended.'
               : 'Waiting for the draft session to start...'}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className={cn(styles.waitingSubtitle, 'text-xs')}>
             {draftStatus === 'ended'
               ? 'The admin may start a new draft.'
               : 'The admin will start the session shortly.'}
@@ -121,24 +123,26 @@ function TeamDraftCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-xl border bg-white shadow-sm transition-all ${
-        isActive ? 'border-sky-400 ring-2 ring-sky-200' : 'border-slate-200'
-      }`}
+      className={cn(
+        styles.card,
+        isActive && styles.cardActive,
+        'overflow-hidden rounded-xl transition-all'
+      )}
     >
       <header
-        className={`flex items-center justify-between border-b px-3 py-2 ${
-          isActive
-            ? 'border-sky-500/30 bg-sky-600 text-white'
-            : 'border-slate-200 bg-slate-100'
-        }`}
+        className={cn(
+          styles.header,
+          isActive && styles.headerActive,
+          'flex items-center justify-between px-3 py-2'
+        )}
       >
         <div className="flex items-center gap-2">
           <div
-            className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded border ${
-              isActive
-                ? 'border-white/30 bg-white/15'
-                : 'border-slate-200 bg-white'
-            }`}
+            className={cn(
+              styles.logoFrame,
+              isActive && styles.logoFrameActive,
+              'flex h-8 w-8 items-center justify-center overflow-hidden rounded'
+            )}
           >
             {team.logoUrl ? (
               <Image
@@ -154,11 +158,23 @@ function TeamDraftCard({
           </div>
           <div>
             <p
-              className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? 'text-sky-100' : 'text-slate-500'}`}
+              className={cn(
+                styles.pickMeta,
+                isActive && styles.pickMetaActive,
+                'text-[10px] font-bold uppercase tracking-wider'
+              )}
             >
               Pick #{team.serialNumber}
             </p>
-            <h3 className="truncate text-sm font-black">{team.name}</h3>
+            <h3
+              className={cn(
+                styles.teamTitle,
+                isActive && styles.teamTitleActive,
+                'truncate text-sm font-black'
+              )}
+            >
+              {team.name}
+            </h3>
           </div>
         </div>
         <StatusBadge label={statusLabel} tone={statusTone} pulse={isActive} />
@@ -176,7 +192,7 @@ function TeamDraftCard({
         />
 
         {tab === 'Local' ? (
-          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+          <div className={cn(styles.detailPanel, 'space-y-2 rounded-lg p-2')}>
             <Row label="Spent" value={`৳${formatMoney(spentBDT)}`} danger />
             <Row
               label="Avail"
@@ -186,7 +202,7 @@ function TeamDraftCard({
             <Row label="Last Pick" value={lastLocalTarget?.name ?? 'None'} />
           </div>
         ) : (
-          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+          <div className={cn(styles.detailPanel, 'space-y-2 rounded-lg p-2')}>
             <Row label="Spent" value={`$${formatMoney(spentUSD)}`} danger />
             <Row
               label="Avail"
@@ -214,15 +230,14 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between text-xs">
-      <span className="font-semibold text-slate-500">{label}</span>
+      <span className={cn(styles.rowLabel, 'font-semibold')}>{label}</span>
       <span
-        className={`font-mono font-bold ${
-          success
-            ? 'text-emerald-700'
-            : danger
-              ? 'text-rose-700'
-              : 'text-slate-800'
-        }`}
+        className={cn(
+          styles.rowValue,
+          success && styles.rowValueSuccess,
+          danger && styles.rowValueDanger,
+          'font-mono font-bold'
+        )}
       >
         {value}
       </span>

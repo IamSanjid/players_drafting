@@ -1,0 +1,355 @@
+.cardHeader {
+  background: var(--surface-muted);
+}
+
+.headerTitle {
+  color: var(--text-strong);
+  letter-spacing: -0.03em;
+}
+
+.headerSubtitle {
+  color: var(--text-muted);
+}
+
+.csvToggleButton {
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+}
+
+.csvToggleButtonOpen {
+  background: var(--border);
+  color: var(--text-muted);
+}
+
+.csvToggleButtonOpen:hover {
+  background: var(--border-strong);
+}
+
+.statPill {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface-muted);
+}
+
+.statPillActive {
+  background: color-mix(in srgb, var(--primary-soft) 38%, var(--surface));
+}
+
+.statPillSuccess {
+  background: color-mix(in srgb, var(--success-soft) 56%, var(--surface));
+}
+
+.statPillWarning {
+  background: color-mix(in srgb, var(--warning-soft) 60%, var(--surface));
+}
+
+.statPillNeutral {
+  background: color-mix(in srgb, var(--surface-muted) 86%, var(--surface));
+}
+
+.statValue {
+  color: var(--text-strong);
+}
+
+.csvShell {
+  border-radius: 1rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--info) 72%, var(--surface)),
+    color-mix(in srgb, var(--primary) 88%, var(--surface))
+  );
+}
+
+.formSection {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.4rem;
+  background: var(--surface-muted);
+}
+
+.formHeader {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.sectionTitle {
+  color: var(--text-muted);
+}
+
+.sectionSubtitle {
+  color: var(--text-soft);
+}
+
+.cancelButton {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.toggleButton {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.fieldLabel {
+  margin-bottom: 0.35rem;
+  display: block;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fieldInput {
+  width: 100%;
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.uploadControl {
+  display: inline-flex;
+  min-width: 100px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.uploadControl:hover {
+  background: var(--surface-muted);
+}
+
+.imagePreview {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  overflow: hidden;
+}
+
+.imagePreviewText {
+  color: var(--text-soft);
+}
+
+.preBoughtPanel {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkboxInput {
+  accent-color: var(--primary);
+}
+
+.checkboxLabel {
+  color: var(--text-muted);
+}
+
+.preBoughtSelect {
+  font-style: italic;
+  color: var(--primary-strong);
+  background: var(--surface-muted);
+}
+
+.helperText {
+  color: var(--text-soft);
+}
+
+.primaryButton {
+  padding: 0.8rem 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.deleteCategoryButton {
+  padding: 0.55rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.filterShell {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.filterLabel {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--text-soft);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  border-radius: 0.9rem;
+  padding: 0.65rem 1rem 0.65rem 2.35rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.7rem;
+  color: var(--text-soft);
+}
+
+.filterMeta {
+  color: var(--text-soft);
+}
+
+.filterMetaSecondary {
+  color: color-mix(in srgb, var(--text-soft) 72%, var(--surface));
+}
+
+.loadingSkeleton {
+  background: color-mix(in srgb, var(--surface-muted) 90%, var(--surface));
+}
+
+.tableShell {
+  border: 1px solid var(--border);
+  border-radius: 1.4rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.tableHead {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.tableBody {
+  background: var(--surface);
+}
+
+.tableRow {
+  transition: background-color 160ms ease;
+}
+
+.tableRow:hover {
+  background: color-mix(in srgb, var(--primary-soft) 18%, var(--surface));
+}
+
+.avatarShell {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.playerName {
+  color: var(--text-strong);
+}
+
+.playerMeta {
+  color: var(--text-soft);
+}
+
+.priceText {
+  color: var(--info);
+}
+
+.infoText {
+  color: var(--text-soft);
+}
+
+.rowIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  padding: 0.5rem;
+  color: var(--text-soft);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.rowEditButton:hover {
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--surface));
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.rowUploadButton:hover {
+  border-color: color-mix(in srgb, var(--success) 18%, var(--surface));
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.rowDeleteButton:hover {
+  border-color: color-mix(in srgb, var(--danger) 16%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.broadcastButton {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assignSelect {
+  width: 7rem;
+  border-radius: 0.8rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.emptyCell {
+  background: color-mix(in srgb, var(--surface-muted) 50%, var(--surface));
+}
+
+.emptyStateIcon {
+  color: color-mix(in srgb, var(--border-strong) 55%, var(--surface));
+}
+
+.emptyStateText {
+  color: var(--text-soft);
+}
+
+.mobileCard {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.mobilePrice {
+  color: var(--info);
+}
+
+.mobileActionButton {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.paginationShell {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface-muted);
+}
+
+.paginationText {
+  color: var(--text-soft);
+}
+
+.paginationButton {
+  padding: 0.55rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

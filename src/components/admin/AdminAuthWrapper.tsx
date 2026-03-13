@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 
 import { Card, CardBody } from '@/components/ui/Card';
 import { authApi } from '@/lib/api';
+import { cn } from '@/lib/ui';
+
+import styles from './AdminAuthWrapper.module.css';
 
 export default function AdminAuthWrapper({
   children,
@@ -47,7 +50,7 @@ export default function AdminAuthWrapper({
       <div className="flex min-h-dvh items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardBody className="p-8 text-center">
-            <p className="text-sm font-semibold text-slate-600">
+            <p className={cn('text-sm font-semibold', styles.loadingText)}>
               Checking admin session...
             </p>
           </CardBody>
@@ -65,7 +68,12 @@ export default function AdminAuthWrapper({
       <Card className="w-full max-w-sm">
         <CardBody className="p-8">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-600 to-rose-800 text-white shadow-lg shadow-rose-300/50">
+            <div
+              className={cn(
+                'flex h-16 w-16 items-center justify-center',
+                styles.authIconPanel
+              )}
+            >
               <svg
                 className="h-8 w-8"
                 fill="none"
@@ -83,15 +91,15 @@ export default function AdminAuthWrapper({
             </div>
           </div>
 
-          <h2 className="mb-1 text-center text-2xl font-black text-slate-900">
+          <h2 className={cn('mb-1 text-center text-2xl font-black', styles.title)}>
             Admin Portal
           </h2>
-          <p className="mb-6 text-center text-sm font-medium text-slate-500">
+          <p className={cn('mb-6 text-center text-sm font-medium', styles.subtitle)}>
             Restricted Access
           </p>
 
           {error ? (
-            <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-center text-sm font-medium text-rose-700">
+            <div className={cn('mb-4 rounded-lg p-3 text-center text-sm font-medium', styles.errorPanel)}>
               {error}
             </div>
           ) : null}
@@ -100,7 +108,7 @@ export default function AdminAuthWrapper({
             <div>
               <label
                 htmlFor="adminPassword"
-                className="mb-1 block text-sm font-semibold text-slate-700"
+                className={cn('mb-1 block text-sm font-semibold', styles.fieldLabel)}
               >
                 Admin Password
               </label>
@@ -110,13 +118,19 @@ export default function AdminAuthWrapper({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-center font-mono tracking-widest"
+                className={cn(
+                  'theme-field w-full rounded-lg p-3',
+                  styles.passwordInput
+                )}
                 placeholder="••••••••"
               />
             </div>
             <button
               type="submit"
-              className="w-full rounded-lg bg-rose-700 p-3 font-bold text-white transition hover:bg-rose-800 active:scale-[0.99]"
+              className={cn(
+                'theme-button theme-button-danger active:scale-[0.99]',
+                styles.submitButton
+              )}
             >
               Authenticate
             </button>

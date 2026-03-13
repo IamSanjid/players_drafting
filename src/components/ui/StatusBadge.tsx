@@ -1,4 +1,5 @@
 import { cn } from '@/lib/ui';
+import styles from './StatusBadge.module.css';
 
 type StatusTone = 'neutral' | 'active' | 'warning' | 'danger' | 'success';
 
@@ -10,11 +11,11 @@ type StatusBadgeProps = {
 };
 
 const toneClass: Record<StatusTone, string> = {
-  neutral: 'border-slate-200 bg-slate-100 text-slate-700',
-  active: 'border-sky-200 bg-sky-100 text-sky-700',
-  warning: 'border-amber-200 bg-amber-100 text-amber-700',
-  danger: 'border-rose-200 bg-rose-100 text-rose-700',
-  success: 'border-emerald-200 bg-emerald-100 text-emerald-700',
+  neutral: styles.neutral,
+  active: styles.active,
+  warning: styles.warning,
+  danger: styles.danger,
+  success: styles.success,
 };
 
 export function StatusBadge({
@@ -26,7 +27,8 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider',
+        'inline-flex shrink-0 items-center whitespace-nowrap border px-3 py-1 text-[11px] font-bold uppercase tracking-wider',
+        styles.badge,
         toneClass[tone],
         pulse && 'animate-pulse',
         className

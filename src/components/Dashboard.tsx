@@ -1,6 +1,9 @@
 'use client';
 
+import { cn } from '@/lib/ui';
 import type { ApiPlayer, ApiTeam } from '@/types/domain';
+
+import styles from './Dashboard.module.css';
 
 export default function Dashboard({
   teams,
@@ -14,25 +17,40 @@ export default function Dashboard({
       {teams.map((team) => (
         <div
           key={team.id}
-          className={`bg-white rounded-2xl shadow-lg border-2 transition-all ${
-            activeTurnTeamId === team.id
-              ? 'border-blue-500 ring-4 ring-blue-100 shadow-blue-200 transform scale-105 z-10'
-              : 'border-gray-100'
-          } overflow-hidden flex flex-col`}
+          className={cn(
+            styles.card,
+            activeTurnTeamId === team.id && styles.cardActive,
+            'flex flex-col overflow-hidden rounded-2xl transition-all',
+            activeTurnTeamId === team.id && 'z-10 scale-105'
+          )}
         >
           <div
-            className={`p-4 ${activeTurnTeamId === team.id ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-900'} border-b flex justify-between items-center`}
+            className={cn(
+              styles.header,
+              activeTurnTeamId === team.id
+                ? styles.headerActive
+                : styles.headerInactive,
+              'flex items-center justify-between p-4'
+            )}
           >
             <div>
-              <div className="text-xs uppercase tracking-wider opacity-80 font-bold">
+              <div className={cn(styles.pickMeta, 'text-xs font-bold uppercase tracking-wider')}>
                 Pick #{team.serialNumber}
               </div>
-              <h3 className="text-xl font-black">{team.name}</h3>
+              <h3
+                className={cn(
+                  styles.teamTitle,
+                  activeTurnTeamId === team.id && styles.teamTitleActive,
+                  'text-xl font-black'
+                )}
+              >
+                {team.name}
+              </h3>
             </div>
             {activeTurnTeamId === team.id && (
               <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-current"></span>
               </span>
             )}
           </div>
@@ -40,24 +58,29 @@ export default function Dashboard({
           <div className="p-4 flex-1">
             <div className="flex justify-between items-center mb-4 text-sm font-medium">
               <div className="flex flex-col">
-                <span className="text-gray-500 uppercase text-xs">
+                <span className={cn(styles.budgetLabel, 'text-xs uppercase')}>
                   BDT Left
                 </span>
-                <span className="text-lg text-emerald-600 font-mono">
+                <span className={cn(styles.budgetValueBdt, 'text-lg font-mono')}>
                   ৳{Number(team.budgetBDT).toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col text-right">
-                <span className="text-gray-500 uppercase text-xs">
+                <span className={cn(styles.budgetLabel, 'text-xs uppercase')}>
                   USD Left
                 </span>
-                <span className="text-lg text-blue-600 font-mono">
+                <span className={cn(styles.budgetValueUsd, 'text-lg font-mono')}>
                   ${Number(team.budgetUSD).toLocaleString()}
                 </span>
               </div>
             </div>
 
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 border-b pb-1">
+            <h4
+              className={cn(
+                styles.sectionHeading,
+                'mb-2 border-b pb-1 text-xs font-semibold uppercase tracking-widest'
+              )}
+            >
               Drafted Players ({team.players?.length || 0})
             </h4>
             <div className="space-y-1 mt-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
@@ -65,25 +88,33 @@ export default function Dashboard({
                 team.players.map((p: ApiPlayer) => (
                   <div
                     key={p.id}
-                    className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0"
+                    className={cn(
+                      styles.playerRow,
+                      'flex items-center justify-between py-1 last:border-0'
+                    )}
                   >
-                    <div className="truncate pr-2 border-l-2 border-indigo-400 pl-2">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
+                    <div className={cn(styles.playerLead, 'truncate pl-2 pr-2')}>
+                      <p className={cn(styles.playerName, 'truncate text-sm font-semibold')}>
                         {p.name}
                       </p>
-                      <p className="text-[10px] text-gray-500 uppercase">
+                      <p className={cn(styles.playerMeta, 'text-[10px] uppercase')}>
                         {p.category} • {p.subCategory} • {p.position}
                       </p>
                     </div>
                     {p.isPreBought && (
-                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[9px] rounded font-bold">
+                      <span
+                        className={cn(
+                          styles.preBoughtBadge,
+                          'rounded px-1.5 py-0.5 text-[9px] font-bold'
+                        )}
+                      >
                         PRE
                       </span>
                     )}
                   </div>
                 ))
               ) : (
-                <div className="text-xs text-gray-400 font-medium italic text-center py-4">
+                <div className={cn(styles.emptyState, 'py-4 text-center text-xs font-medium italic')}>
                   No players drafted yet
                 </div>
               )}

@@ -21,7 +21,9 @@ import { useDraftStore } from '@/lib/draftStore';
 import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useDraftSessionActions } from '@/lib/hooks/useDraftSessionActions';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
+import { cn } from '@/lib/ui';
 import { resetAppSetting } from '@/lib/settings';
+import styles from './page.module.css';
 
 type AdminTab = 'session' | 'teams' | 'players';
 
@@ -190,7 +192,10 @@ function AdminDashboardContent() {
               <a
                 href="/team"
                 target="_blank"
-                className="rounded-lg border border-sky-200 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-50"
+                className={cn(
+                  'rounded-lg px-3 py-1.5 text-sm font-semibold',
+                  styles.openTeamViewButton
+                )}
               >
                 Open Team View
               </a>
@@ -199,7 +204,10 @@ function AdminDashboardContent() {
                   await authApi.admin.logout();
                   window.location.reload();
                 }}
-                className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+                className={cn(
+                  'rounded-lg px-3 py-1.5 text-sm font-semibold',
+                  styles.logoutButton
+                )}
               >
                 Logout
               </button>
@@ -211,7 +219,12 @@ function AdminDashboardContent() {
           <aside className="xl:col-span-3">
             <Card className="h-full">
               <CardHeader>
-                <h2 className="text-sm font-black uppercase tracking-wider text-slate-800">
+                <h2
+                  className={cn(
+                    'text-sm font-black uppercase tracking-wider',
+                    styles.snapshotTitle
+                  )}
+                >
                   Live Snapshot
                 </h2>
               </CardHeader>
@@ -227,7 +240,7 @@ function AdminDashboardContent() {
                 <div>
                   <p className="stat-label">Current turn</p>
                   <p className="stat-value">{currentTurnTeam?.name ?? 'N/A'}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className={cn('text-xs', styles.snapshotMeta)}>
                     {currentTurnTeam
                       ? `Serial #${currentTurnTeam.serialNumber}`
                       : 'No active turn'}
@@ -274,9 +287,9 @@ function AdminDashboardContent() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className={cn('rounded-xl px-3 py-2', styles.statCard)}>
       <p className="stat-label">{label}</p>
-      <p className="text-xl font-black text-slate-900">{value}</p>
+      <p className={cn('text-xl font-black', styles.statValue)}>{value}</p>
     </div>
   );
 }

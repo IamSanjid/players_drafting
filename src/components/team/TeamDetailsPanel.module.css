@@ -1,0 +1,120 @@
+.banner {
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 48%, var(--foreground) 100%);
+  box-shadow: var(--shadow-md);
+}
+
+.bannerOverlay {
+  background: linear-gradient(to top, var(--overlay-strong), color-mix(in srgb, var(--foreground) 22%, transparent), transparent);
+}
+
+.logoFrame {
+  border: 2px solid color-mix(in srgb, var(--surface) 50%, transparent);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 18px 32px color-mix(in srgb, var(--text-strong) 32%, transparent);
+}
+
+.logoPlaceholder {
+  color: var(--text-soft);
+}
+
+.bannerTitle {
+  color: var(--text-light);
+}
+
+.bannerMeta {
+  color: color-mix(in srgb, var(--surface) 82%, var(--primary-soft));
+}
+
+.metricCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.metricSpent {
+  color: var(--danger);
+}
+
+.metricAvailable {
+  color: var(--success);
+}
+
+.tableShell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.tableHead {
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.tableBody {
+  border-color: color-mix(in srgb, var(--border) 68%, var(--surface));
+}
+
+.tableRow:hover {
+  background: color-mix(in srgb, var(--primary-soft) 38%, var(--surface));
+}
+
+.playerName {
+  color: var(--text-strong);
+}
+
+.playerMeta {
+  color: var(--text-muted);
+}
+
+.position {
+  color: var(--foreground);
+}
+
+.price {
+  color: var(--primary-strong);
+}
+
+.emptyState {
+  color: var(--text-muted);
+}
+
+.pagination {
+  background: var(--surface-muted);
+  border-top: 1px solid var(--border);
+}
+
+.paginationButton {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.paginationButton:disabled {
+  opacity: 0.3;
+}
+
+.paginationMeta {
+  color: var(--text-muted);
+}
+
+.othersCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.othersButton {
+  background: var(--surface-muted);
+  color: var(--foreground);
+}
+
+.othersButton:hover {
+  background: color-mix(in srgb, var(--surface-muted) 82%, var(--surface));
+}
+
+.othersBody {
+  background: color-mix(in srgb, var(--surface-muted) 78%, var(--surface));
+  border-top: 1px solid var(--border);
+}

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 
 import { cn } from '@/lib/ui';
+import styles from './PageHeader.module.css';
 
 type PageHeaderProps = {
   title: string;
@@ -23,14 +24,15 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-sm backdrop-blur',
+        'theme-panel px-5 py-4',
+        styles.header,
         className
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {logoSrc ? (
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm md:h-14 md:w-14">
+            <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1.5 md:h-14 md:w-14', styles.logoFrame)}>
               <Image
                 src={logoSrc}
                 alt={logoAlt ?? 'Brand logo'}
@@ -42,16 +44,16 @@ export function PageHeader({
           ) : null}
 
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-black tracking-tight text-slate-900">
+            <h1 className={cn('truncate text-2xl', styles.title)}>
               {title}
             </h1>
             {subtitle ? (
-              <p className="truncate mt-1 text-sm text-slate-600">{subtitle}</p>
+              <p className={cn('truncate mt-1 text-sm', styles.subtitle)}>{subtitle}</p>
             ) : null}
           </div>
         </div>
         {actions ? (
-          <div className="flex w-full items-center justify-end gap-3 sm:w-auto sm:flex-wrap">
+          <div className={cn('flex w-full items-center justify-end gap-3 sm:w-auto sm:flex-wrap', styles.actions)}>
             {actions}
           </div>
         ) : null}

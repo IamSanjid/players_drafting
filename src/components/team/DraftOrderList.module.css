@@ -1,0 +1,91 @@
+.shell {
+  background: var(--surface-muted);
+}
+
+.heading {
+  color: var(--text-muted);
+}
+
+.waitingIcon {
+  background: color-mix(in srgb, var(--surface-muted) 80%, var(--border));
+  color: var(--text-muted);
+}
+
+.waitingTitle {
+  color: var(--foreground);
+}
+
+.waitingSubtitle {
+  color: var(--text-muted);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardActive {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--surface));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--primary) 18%, var(--surface)),
+    0 18px 42px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.headerActive {
+  background: var(--primary);
+  border-bottom-color: color-mix(in srgb, var(--primary) 68%, var(--surface));
+  color: var(--text-light);
+}
+
+.logoFrame {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.logoFrameActive {
+  border-color: color-mix(in srgb, var(--surface) 30%, transparent);
+  background: color-mix(in srgb, var(--surface) 15%, transparent);
+}
+
+.pickMeta {
+  color: var(--text-muted);
+}
+
+.pickMetaActive {
+  color: color-mix(in srgb, var(--surface) 84%, var(--primary-soft));
+}
+
+.teamTitle {
+  color: var(--text-strong);
+}
+
+.teamTitleActive {
+  color: var(--text-light);
+}
+
+.detailPanel {
+  background: color-mix(in srgb, var(--surface-muted) 84%, var(--surface));
+  border: 1px solid var(--border);
+}
+
+.rowLabel {
+  color: var(--text-muted);
+}
+
+.rowValue {
+  color: var(--foreground);
+}
+
+.rowValueSuccess {
+  color: var(--success);
+}
+
+.rowValueDanger {
+  color: var(--danger);
+}

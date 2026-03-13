@@ -1,0 +1,23 @@
+.header {
+  border-radius: var(--radius-card);
+}
+
+.logoFrame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  color: var(--text-strong);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  color: var(--text-muted);
+}
+
+.actions {
+  color: var(--foreground);
+}

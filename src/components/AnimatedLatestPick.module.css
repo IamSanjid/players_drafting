@@ -1,0 +1,111 @@
+.overlay {
+  background: var(--overlay-strong);
+  backdrop-filter: blur(18px);
+}
+
+.modal {
+  border: 4px solid color-mix(in srgb, var(--surface) 10%, transparent);
+  background: var(--foreground);
+  box-shadow: 0 0 100px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.baseGradient {
+  background: linear-gradient(135deg, var(--foreground) 0%, var(--primary-strong) 52%, var(--text-strong) 100%);
+}
+
+.bannerShade {
+  background: color-mix(in srgb, var(--text-strong) 42%, transparent);
+}
+
+.glow {
+  background: radial-gradient(
+    circle at 50% 0%,
+    color-mix(in srgb, var(--primary) 32%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0.7;
+}
+
+.imagePanel {
+  background: var(--text-strong);
+}
+
+.imageShade {
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--text-strong) 88%, transparent) 100%);
+}
+
+.categoryPill {
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  background: color-mix(in srgb, var(--text-strong) 62%, transparent);
+  color: color-mix(in srgb, var(--primary-soft) 76%, var(--surface));
+}
+
+.subcategoryPill {
+  background: color-mix(in srgb, var(--surface) 10%, transparent);
+  color: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.teamLogoFilter {
+  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--surface) 30%, transparent));
+}
+
+.eyebrow {
+  color: color-mix(in srgb, var(--primary-soft) 76%, var(--surface));
+}
+
+.teamName {
+  color: var(--text-light);
+  text-shadow: 0 14px 36px color-mix(in srgb, var(--text-strong) 55%, transparent);
+}
+
+.selectionCard {
+  border-left: 8px solid color-mix(in srgb, var(--primary-soft) 78%, var(--surface));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--primary) 20%, transparent) 0%,
+    transparent 100%
+  );
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--text-strong) 32%, transparent);
+}
+
+.selectionEyebrow {
+  color: color-mix(in srgb, var(--primary-soft) 66%, var(--surface));
+}
+
+.playerName {
+  color: var(--text-light);
+}
+
+.detailCard {
+  border: 1px solid color-mix(in srgb, var(--surface) 10%, transparent);
+  background: color-mix(in srgb, var(--surface) 5%, transparent);
+}
+
+.detailLabel {
+  color: color-mix(in srgb, var(--surface) 40%, transparent);
+}
+
+.detailValue {
+  color: var(--text-light);
+}
+
+.valueCard {
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+
+.valueLabel {
+  color: color-mix(in srgb, var(--success-soft) 56%, var(--success));
+}
+
+.valueAmount {
+  color: color-mix(in srgb, var(--success-soft) 24%, var(--success));
+}
+
+.dismissHint {
+  color: color-mix(in srgb, var(--surface) 20%, transparent);
+}
+
+.dismissIcon {
+  border: 1px solid color-mix(in srgb, var(--surface) 20%, transparent);
+}

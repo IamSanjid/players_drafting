@@ -1,0 +1,206 @@
+.panel {
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, var(--surface));
+  box-shadow: var(--shadow-md);
+}
+
+.categoryTabs {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.categoryTab {
+  color: var(--text-muted);
+}
+
+.categoryTab:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface) 75%, var(--border));
+  color: var(--text-strong);
+}
+
+.categoryTabActive {
+  background: var(--primary);
+  color: var(--text-light);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.categoryTabActive:hover:not(:disabled) {
+  background: var(--primary-strong);
+  color: var(--text-light);
+}
+
+.searchInput {
+  box-shadow: var(--shadow-sm);
+}
+
+.searchIcon {
+  color: var(--text-soft);
+}
+
+.subcategoryPill {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.subcategoryPill:hover {
+  background: color-mix(in srgb, var(--surface-muted) 80%, var(--surface));
+}
+
+.subcategoryPillActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-light);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.subcategoryPillActive:hover {
+  background: var(--primary-strong);
+  border-color: var(--primary-strong);
+}
+
+.subcategoryPillInfo {
+  background: var(--info);
+  border-color: var(--info);
+  color: var(--text-light);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--info) 18%, transparent);
+}
+
+.subcategoryPillInfo:hover {
+  background: color-mix(in srgb, var(--info) 82%, black);
+  border-color: color-mix(in srgb, var(--info) 82%, black);
+}
+
+.errorPanel {
+  border-left: 4px solid var(--danger);
+  background: var(--danger-soft);
+}
+
+.errorText {
+  color: color-mix(in srgb, var(--danger) 78%, var(--foreground));
+}
+
+.tableHead {
+  background: color-mix(in srgb, var(--surface-muted) 92%, var(--surface));
+}
+
+.tableHeadRow {
+  color: var(--text-muted);
+}
+
+.row {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.rowAvailable:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--foreground) 9%, transparent);
+}
+
+.rowMine {
+  background: color-mix(in srgb, var(--success-soft) 82%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 24%, var(--surface));
+}
+
+.rowDrafted {
+  background: color-mix(in srgb, var(--surface-muted) 82%, var(--surface));
+  border-color: color-mix(in srgb, var(--border) 88%, var(--surface));
+  opacity: 0.6;
+}
+
+.avatarShell {
+  background: color-mix(in srgb, var(--surface-muted) 70%, var(--surface));
+  border: 2px solid color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-soft);
+}
+
+.name {
+  color: var(--text-strong);
+}
+
+.nameDrafted {
+  color: var(--text-soft);
+}
+
+.subCategoryLabel {
+  color: var(--info);
+}
+
+.availabilityLabel {
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, var(--surface));
+}
+
+.detailPrimary {
+  color: var(--foreground);
+}
+
+.detailSecondary {
+  color: var(--text-soft);
+}
+
+.price {
+  color: var(--info);
+}
+
+.priceCurrency {
+  color: var(--text-muted);
+}
+
+.draftButton {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.draftButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.pagination {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 10px color-mix(in srgb, var(--foreground) 4%, transparent);
+}
+
+.paginationMeta {
+  color: var(--text-soft);
+}
+
+.paginationButton {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.paginationButton:disabled {
+  opacity: 0.3;
+}
+
+.paginationButtonActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-light);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, var(--surface));
+}
+
+.paginationButtonActive:hover:not(:disabled) {
+  background: var(--primary-strong);
+  border-color: var(--primary-strong);
+  color: var(--text-light);
+}
+
+.ellipsis {
+  color: var(--text-soft);
+}

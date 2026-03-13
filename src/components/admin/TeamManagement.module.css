@@ -1,0 +1,184 @@
+.cardHeader {
+  background: var(--surface-muted);
+}
+
+.headerTitle {
+  color: var(--text-strong);
+  letter-spacing: -0.03em;
+}
+
+.headerSubtitle {
+  color: var(--text-muted);
+}
+
+.formShell {
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  background: var(--surface-muted);
+}
+
+.fieldLabel {
+  margin-bottom: 0.35rem;
+  display: block;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fieldInput {
+  width: 100%;
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.uploadButton {
+  display: inline-flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.uploadButton:hover {
+  background: var(--surface-muted);
+}
+
+.primaryButton {
+  padding: 0.6rem 1.5rem;
+}
+
+.searchShell {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.searchLabel {
+  color: var(--text-muted);
+}
+
+.counterText {
+  color: var(--text-soft);
+}
+
+.savingText {
+  color: var(--primary-strong);
+}
+
+.skeleton {
+  background: color-mix(in srgb, var(--surface-muted) 90%, var(--surface));
+}
+
+.tableShell {
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+}
+
+.table {
+  color: var(--text-muted);
+}
+
+.tableHead {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.tableRow {
+  transition: background-color 160ms ease;
+}
+
+.tableRow:hover {
+  background: color-mix(in srgb, var(--surface-muted) 70%, var(--surface));
+}
+
+.serialBadge {
+  min-width: 50px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--surface));
+  border-radius: 0.8rem;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.logoShell {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--surface-muted);
+}
+
+.logoPlaceholder {
+  color: var(--text-soft);
+}
+
+.teamNameInput {
+  min-width: 11rem;
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.55rem;
+  font-weight: 700;
+}
+
+.mediaLink {
+  color: var(--primary);
+}
+
+.mediaLink:hover {
+  text-decoration: underline;
+}
+
+.mediaLinkSecondary {
+  color: var(--info);
+}
+
+.helperText {
+  color: var(--text-soft);
+}
+
+.budgetField {
+  width: 7rem;
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.55rem;
+}
+
+.budgetText {
+  color: var(--text-soft);
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.exportButton {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+.deleteButton {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.emptyState {
+  color: var(--text-muted);
+}
+
+.mobileCard {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.mobileMeta {
+  color: var(--text-soft);
+}
+
+.mobileBudgetField {
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.55rem;
+}

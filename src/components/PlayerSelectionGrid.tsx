@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import { draftApi } from '@/lib/api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { formatMoney } from '@/lib/ui';
+import { cn, formatMoney } from '@/lib/ui';
 import { getSocket } from '@/lib/socketClient';
 import type {
   PlayerCategory,
@@ -14,6 +14,8 @@ import type {
   ApiPlayer,
   ApiTeam,
 } from '@/types/domain';
+
+import styles from './PlayerSelectionGrid.module.css';
 
 type PlayerSelectionGridProps = {
   players: ApiPlayer[];
@@ -118,20 +120,26 @@ export default function PlayerSelectionGrid({
   const subCategories = getSubcategories();
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden h-full">
-      <div className="flex flex-col gap-4 border-b border-gray-100 bg-gray-50 p-4">
+    <div
+      className={cn(
+        styles.panel,
+        'flex h-full flex-col overflow-hidden rounded-2xl'
+      )}
+    >
+      <div className={cn('theme-toolbar', 'flex flex-col gap-4 p-4')}>
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           {/* Category Tabs */}
-          <div className="flex space-x-1 p-1 bg-gray-200 rounded-lg">
+          <div className={cn(styles.categoryTabs, 'flex space-x-1 rounded-lg p-1')}>
             <button
               disabled={lockedCategory === 'Local'}
               onClick={() => setActiveTabCategory('Oversea')}
               aria-pressed={currentCategory === 'Oversea'}
-              className={`px-6 py-2 rounded-md font-semibold transition-all ${
-                currentCategory === 'Oversea'
-                  ? 'bg-white shadow text-blue-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              } ${lockedCategory === 'Local' ? 'opacity-30 cursor-not-allowed hidden' : ''}`}
+              className={cn(
+                styles.categoryTab,
+                currentCategory === 'Oversea' && styles.categoryTabActive,
+                lockedCategory === 'Local' && 'hidden cursor-not-allowed opacity-30',
+                'rounded-md px-6 py-2 font-semibold transition-all'
+              )}
             >
               Oversea Players
             </button>
@@ -139,11 +147,12 @@ export default function PlayerSelectionGrid({
               disabled={lockedCategory === 'Oversea'}
               onClick={() => setActiveTabCategory('Local')}
               aria-pressed={currentCategory === 'Local'}
-              className={`px-6 py-2 rounded-md font-semibold transition-all ${
-                currentCategory === 'Local'
-                  ? 'bg-white shadow text-blue-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              } ${lockedCategory === 'Oversea' ? 'opacity-30 cursor-not-allowed hidden' : ''}`}
+              className={cn(
+                styles.categoryTab,
+                currentCategory === 'Local' && styles.categoryTabActive,
+                lockedCategory === 'Oversea' && 'hidden cursor-not-allowed opacity-30',
+                'rounded-md px-6 py-2 font-semibold transition-all'
+              )}
             >
               Local Players
             </button>
@@ -160,10 +169,13 @@ export default function PlayerSelectionGrid({
               placeholder={`Search in ${currentCategory}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+              className={cn(
+                'theme-field w-full rounded-xl px-4 py-2 pl-10 transition-all',
+                styles.searchInput
+              )}
             />
             <svg
-              className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
+              className={cn(styles.searchIcon, 'absolute left-3 top-2.5 h-5 w-5')}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -182,11 +194,12 @@ export default function PlayerSelectionGrid({
         <div className="flex overflow-x-auto pb-1 gap-2 custom-scrollbar">
           <button
             onClick={() => setActiveSubCategory('All')}
-            className={`px-5 py-1.5 rounded-full border text-sm font-bold transition-all whitespace-nowrap ${
-              activeSubCategory === 'All'
-                ? 'bg-blue-600 border-blue-600 text-white shadow-md transform scale-105'
-                : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-            }`}
+            className={cn(
+              styles.subcategoryPill,
+              activeSubCategory === 'All' && styles.subcategoryPillActive,
+              'whitespace-nowrap rounded-full px-5 py-1.5 text-sm font-bold transition-all',
+              activeSubCategory === 'All' && 'scale-105'
+            )}
           >
             All Category
           </button>
@@ -195,11 +208,12 @@ export default function PlayerSelectionGrid({
             <button
               key={cat}
               onClick={() => setActiveSubCategory(cat)}
-              className={`px-5 py-1.5 rounded-full border text-sm font-bold transition-all whitespace-nowrap ${
-                activeSubCategory === cat
-                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-md transform scale-105'
-                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
+              className={cn(
+                styles.subcategoryPill,
+                activeSubCategory === cat && styles.subcategoryPillInfo,
+                'whitespace-nowrap rounded-full px-5 py-1.5 text-sm font-bold transition-all',
+                activeSubCategory === cat && 'scale-105'
+              )}
             >
               Category {cat}
             </button>
@@ -211,18 +225,18 @@ export default function PlayerSelectionGrid({
         <div
           role="status"
           aria-live="polite"
-          className="m-4 border-l-4 border-red-500 bg-red-50 p-4"
+          className={cn(styles.errorPanel, 'm-4 p-4')}
         >
-          <p className="text-sm font-medium text-red-800">{error}</p>
+          <p className={cn(styles.errorText, 'text-sm font-medium')}>{error}</p>
         </div>
       )}
 
       {/* Table View */}
-      <div className="flex-1 overflow-hidden flex flex-col bg-slate-50">
+      <div className={cn('theme-table-shell', 'flex flex-1 flex-col overflow-hidden')}>
         <div className="overflow-x-auto h-full pr-2 custom-scrollbar">
           <table className="w-full text-left border-separate border-spacing-y-2 px-4">
-            <thead className="sticky top-0 bg-slate-50 z-10">
-              <tr className="text-gray-500 text-xs uppercase tracking-widest font-black">
+            <thead className={cn(styles.tableHead, 'sticky top-0 z-10')}>
+              <tr className={cn(styles.tableHeadRow, 'text-xs font-black uppercase tracking-widest')}>
                 <th className="px-4 py-3">Player</th>
                 <th className="px-4 py-3">Details</th>
                 <th className="px-4 py-3">Price</th>
@@ -234,7 +248,10 @@ export default function PlayerSelectionGrid({
                 <tr>
                   <td
                     colSpan={4}
-                    className="py-20 text-center text-gray-500 font-medium bg-white rounded-xl border border-dashed border-gray-300"
+                    className={cn(
+                      'theme-empty-state',
+                      'rounded-xl py-20 text-center font-medium'
+                    )}
                   >
                     No players found in this category.
                   </td>
@@ -251,14 +268,9 @@ export default function PlayerSelectionGrid({
                     ? teams.find((t) => t.id === p.teamId)
                     : null;
 
-                  let rowStyle =
-                    'bg-white border-gray-200 hover:shadow-md hover:border-blue-200';
                   let bgInlineStyle = {};
 
                   if (isDrafted) {
-                    rowStyle = myPlayer
-                      ? 'bg-emerald-50/80 border-emerald-200'
-                      : 'bg-gray-100/50 opacity-60';
                     if (draftingTeam?.bannerUrl) {
                       bgInlineStyle = {
                         backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.95), rgba(255,255,255,0.7)), url(${draftingTeam.bannerUrl})`,
@@ -272,11 +284,24 @@ export default function PlayerSelectionGrid({
                     <tr
                       key={p.id}
                       style={bgInlineStyle}
-                      className={`transition-all group border rounded-xl shadow-sm ${rowStyle}`}
+                      className={cn(
+                        styles.row,
+                        isDrafted
+                          ? myPlayer
+                            ? styles.rowMine
+                            : styles.rowDrafted
+                          : styles.rowAvailable,
+                        'group rounded-xl transition-all'
+                      )}
                     >
                       <td className="px-4 py-3 rounded-l-xl">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden border-2 border-white shadow-sm flex items-center justify-center font-bold text-gray-400">
+                          <div
+                            className={cn(
+                              styles.avatarShell,
+                              'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full font-bold'
+                            )}
+                          >
                             {p.imageUrl ? (
                               <Image
                                 src={p.imageUrl}
@@ -291,17 +316,32 @@ export default function PlayerSelectionGrid({
                           </div>
                           <div className="min-w-0">
                             <div
-                              className={`font-bold truncate ${isDrafted ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                              className={cn(
+                                styles.name,
+                                isDrafted && styles.nameDrafted,
+                                'truncate font-bold',
+                                isDrafted && 'line-through'
+                              )}
                             >
                               {p.name}
                             </div>
                             {activeSubCategory === 'All' && (
-                              <div className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">
+                              <div
+                                className={cn(
+                                  styles.subCategoryLabel,
+                                  'text-[9px] font-bold uppercase tracking-tighter'
+                                )}
+                              >
                                 Category {p.subCategory}
                               </div>
                             )}
                             {p.category === 'Oversea' && (
-                              <span className="text-[10px] font-black uppercase text-gray-400 border border-gray-200 px-1 rounded inline-block mt-0.5">
+                              <span
+                                className={cn(
+                                  styles.availabilityLabel,
+                                  'mt-0.5 inline-block rounded px-1 text-[10px] font-black uppercase'
+                                )}
+                              >
                                 {p.availability}
                               </span>
                             )}
@@ -309,17 +349,24 @@ export default function PlayerSelectionGrid({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-gray-700">
+                        <div className={cn(styles.detailPrimary, 'text-sm font-medium')}>
                           {p.position}
                         </div>
-                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">
+                        <div
+                          className={cn(
+                            styles.detailSecondary,
+                            'text-[10px] font-bold uppercase tracking-tight'
+                          )}
+                        >
                           {p.country}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-mono text-sm font-black text-indigo-600">
+                        <div className={cn(styles.price, 'font-mono text-sm font-black')}>
                           {formatMoney(price)}{' '}
-                          <span className="text-[10px]">{currency}</span>
+                          <span className={cn(styles.priceCurrency, 'text-[10px]')}>
+                            {currency}
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right rounded-r-xl">
@@ -334,7 +381,10 @@ export default function PlayerSelectionGrid({
                           <button
                             onClick={() => draftPlayer(p.id)}
                             disabled={!isMyTurn || draftingPlayerId === p.id}
-                            className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-black shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95 uppercase tracking-widest"
+                            className={cn(
+                              'theme-button theme-button-primary px-4 py-1.5 transition',
+                              styles.draftButton
+                            )}
                           >
                             {draftingPlayerId === p.id ? '...' : 'Draft'}
                           </button>
@@ -350,8 +400,8 @@ export default function PlayerSelectionGrid({
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 bg-white flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <div className={cn(styles.pagination, 'flex items-center justify-between p-4')}>
+            <div className={cn(styles.paginationMeta, 'text-xs font-bold uppercase tracking-widest')}>
               Page {currentPage} of {totalPages} ({filteredPlayers.length}{' '}
               Total)
             </div>
@@ -359,7 +409,10 @@ export default function PlayerSelectionGrid({
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((prev) => prev - 1)}
-                className="w-10 h-10 rounded border flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className={cn(
+                  styles.paginationButton,
+                  'flex h-10 w-10 items-center justify-center rounded-lg transition'
+                )}
               >
                 <svg
                   className="w-4 h-4"
@@ -389,11 +442,11 @@ export default function PlayerSelectionGrid({
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded text-sm font-bold border transition ${
-                          currentPage === page
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-2 ring-blue-200'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
+                        className={cn(
+                          styles.paginationButton,
+                          currentPage === page && styles.paginationButtonActive,
+                          'h-10 w-10 rounded-lg text-sm font-bold transition'
+                        )}
                       >
                         {page}
                       </button>
@@ -402,7 +455,7 @@ export default function PlayerSelectionGrid({
                     return (
                       <span
                         key={page}
-                        className="px-2 self-center text-gray-400"
+                        className={cn(styles.ellipsis, 'self-center px-2')}
                       >
                         ...
                       </span>
@@ -415,7 +468,10 @@ export default function PlayerSelectionGrid({
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((prev) => prev + 1)}
-                className="w-10 h-10 rounded border flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                className={cn(
+                  styles.paginationButton,
+                  'flex h-10 w-10 items-center justify-center rounded-lg transition'
+                )}
               >
                 <svg
                   className="w-4 h-4"

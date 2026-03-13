@@ -1,0 +1,81 @@
+.card {
+  background: var(--surface);
+  border: 2px solid color-mix(in srgb, var(--border) 78%, var(--surface));
+  box-shadow: var(--shadow-md);
+}
+
+.cardActive {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 4px var(--primary-ring),
+    0 22px 44px rgba(3, 105, 161, 0.18);
+}
+
+.header {
+  border-bottom: 1px solid var(--border);
+}
+
+.headerActive {
+  background: var(--primary);
+  color: var(--surface);
+  border-bottom-color: color-mix(in srgb, var(--primary) 68%, var(--surface));
+}
+
+.headerInactive {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.pickMeta {
+  opacity: 0.8;
+}
+
+.teamTitle {
+  color: var(--text-strong);
+}
+
+.teamTitleActive {
+  color: var(--surface);
+}
+
+.budgetLabel {
+  color: var(--text-muted);
+}
+
+.budgetValueBdt {
+  color: var(--success);
+}
+
+.budgetValueUsd {
+  color: var(--primary);
+}
+
+.sectionHeading {
+  color: var(--text-soft);
+  border-bottom: 1px solid var(--border);
+}
+
+.playerRow {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, var(--surface));
+}
+
+.playerLead {
+  border-left: 2px solid var(--info);
+}
+
+.playerName {
+  color: var(--foreground);
+}
+
+.playerMeta {
+  color: var(--text-muted);
+}
+
+.preBoughtBadge {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.emptyState {
+  color: var(--text-soft);
+}

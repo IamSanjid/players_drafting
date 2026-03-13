@@ -1,0 +1,122 @@
+.dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: 1.25rem;
+  background: var(--surface);
+}
+
+.dropzone:hover {
+  background: var(--surface-muted);
+}
+
+.dropzoneActive {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--surface));
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, var(--surface));
+}
+
+.uploadIcon {
+  color: var(--text-soft);
+}
+
+.uploadIconActive {
+  color: var(--primary);
+}
+
+.uploadHeading {
+  color: var(--text-strong);
+}
+
+.uploadHeadingActive {
+  color: var(--primary-strong);
+}
+
+.uploadHint {
+  color: var(--text-soft);
+}
+
+.checkboxRow {
+  color: var(--text-muted);
+}
+
+.checkboxText {
+  color: var(--text-muted);
+}
+
+.errorCallout {
+  border: 1px solid color-mix(in srgb, var(--danger) 16%, var(--surface));
+  border-radius: 0.9rem;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.mappingShell {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.mappingHeader {
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, var(--surface));
+  background: var(--primary-soft);
+}
+
+.mappingTitle {
+  color: var(--primary-strong);
+}
+
+.mappingSubtitle {
+  color: var(--primary);
+}
+
+.resetButton {
+  color: var(--text-muted);
+}
+
+.resetButton:hover {
+  color: var(--text-strong);
+}
+
+.globalRow {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.globalLabel {
+  color: var(--text-muted);
+}
+
+.selectField {
+  border-radius: 0.8rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.mappingGrid {
+  background: var(--surface-muted);
+}
+
+.fieldCard {
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.fieldLabel {
+  color: var(--text-muted);
+}
+
+.required {
+  color: var(--danger);
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.importButton {
+  padding: 0.6rem 1.5rem;
+}

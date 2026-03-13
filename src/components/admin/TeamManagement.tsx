@@ -8,10 +8,11 @@ import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { teamsApi, uploadApi } from '@/lib/api';
 import type { TeamUpdatePayload } from '@/lib/api';
-import { formatMoney } from '@/lib/ui';
+import { cn, formatMoney } from '@/lib/ui';
 import { getSocket } from '@/lib/socketClient';
 import { useDraftStore } from '@/lib/draftStore';
 import type { ApiPlayer, ApiTeam } from '@/types/domain';
+import styles from './TeamManagement.module.css';
 
 export default function TeamManagement() {
   const teams = useDraftStore((state) => state.teams);
@@ -205,13 +206,21 @@ export default function TeamManagement() {
     .filter((team) =>
       team.name.toLowerCase().includes(teamSearch.trim().toLowerCase())
     );
+  const fieldClassName = cn('theme-field', styles.fieldInput);
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex items-center justify-between gap-4 bg-slate-50">
+      <CardHeader
+        className={cn(
+          'theme-toolbar flex items-center justify-between gap-4',
+          styles.cardHeader
+        )}
+      >
         <div>
-          <h2 className="text-xl font-black text-slate-900">Team Management</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <h2 className={cn('text-xl font-black', styles.headerTitle)}>
+            Team Management
+          </h2>
+          <p className={cn('mt-1 text-sm', styles.headerSubtitle)}>
             Manage franchises and budgets
           </p>
         </div>
@@ -220,10 +229,18 @@ export default function TeamManagement() {
       <CardBody>
         <form
           onSubmit={handleAddTeam}
-          className="mb-8 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-6"
+          className={cn(
+            'mb-8 grid grid-cols-1 gap-4 p-4 md:grid-cols-6',
+            styles.formShell
+          )}
         >
           <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               Team Name
             </label>
             <input
@@ -231,12 +248,17 @@ export default function TeamManagement() {
               value={newTeamName}
               onChange={(e) => setNewTeamName(e.target.value)}
               type="text"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
+              className={fieldClassName}
               placeholder="e.g. Dhaka Dominators"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               BDT Budget
             </label>
             <input
@@ -244,12 +266,17 @@ export default function TeamManagement() {
               value={newTeamBudgetBDT}
               onChange={(e) => setNewTeamBudgetBDT(e.target.value)}
               type="number"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
+              className={fieldClassName}
               placeholder="0"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               USD Budget
             </label>
             <input
@@ -257,12 +284,17 @@ export default function TeamManagement() {
               value={newTeamBudgetUSD}
               onChange={(e) => setNewTeamBudgetUSD(e.target.value)}
               type="number"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
+              className={fieldClassName}
               placeholder="0"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               Password
             </label>
             <input
@@ -270,13 +302,18 @@ export default function TeamManagement() {
               value={newTeamPassword}
               onChange={(e) => setNewTeamPassword(e.target.value)}
               type="text"
-              className="w-full bg-white border border-gray-300 text-sm rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
+              className={fieldClassName}
               placeholder="Secret"
             />
           </div>
 
           <div className="md:col-span-3">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               Logo URL (or Upload)
             </label>
             <div className="flex gap-2">
@@ -284,10 +321,15 @@ export default function TeamManagement() {
                 value={newTeamLogo}
                 onChange={(e) => setNewTeamLogo(e.target.value)}
                 type="text"
-                className="flex-1 bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                className={cn(fieldClassName, 'flex-1')}
                 placeholder="Logo path..."
               />
-              <label className="cursor-pointer bg-white border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
+              <label
+                className={cn(
+                  'theme-button px-3 py-2 text-xs font-bold',
+                  styles.uploadButton
+                )}
+              >
                 {uploading === 'logo' ? '...' : 'Upload'}
                 <input
                   type="file"
@@ -299,7 +341,12 @@ export default function TeamManagement() {
             </div>
           </div>
           <div className="md:col-span-3">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label
+              className={cn(
+                'mb-1 block text-xs font-semibold tracking-wider',
+                styles.fieldLabel
+              )}
+            >
               Banner URL (or Upload)
             </label>
             <div className="flex gap-2">
@@ -307,10 +354,15 @@ export default function TeamManagement() {
                 value={newTeamBanner}
                 onChange={(e) => setNewTeamBanner(e.target.value)}
                 type="text"
-                className="flex-1 bg-white border border-gray-300 text-sm rounded-lg p-2.5"
+                className={cn(fieldClassName, 'flex-1')}
                 placeholder="Banner path..."
               />
-              <label className="cursor-pointer bg-white border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
+              <label
+                className={cn(
+                  'theme-button px-3 py-2 text-xs font-bold',
+                  styles.uploadButton
+                )}
+              >
                 {uploading === 'banner' ? '...' : 'Upload'}
                 <input
                   type="file"
@@ -325,31 +377,49 @@ export default function TeamManagement() {
           <div className="md:col-span-6 flex justify-end">
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition shadow-md shadow-blue-200"
+              className={cn(
+                'theme-button theme-button-primary font-medium',
+                styles.primaryButton
+              )}
             >
               Add Team
             </button>
           </div>
         </form>
 
-        <div className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-3 md:grid-cols-3 md:items-end">
+        <div
+          className={cn(
+            'mb-4 grid grid-cols-1 gap-3 p-3 md:grid-cols-3 md:items-end',
+            styles.searchShell
+          )}
+        >
           <div className="md:col-span-2">
-            <label className="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-500">
+            <label
+              className={cn(
+                'mb-1 block text-[10px] font-black uppercase tracking-wider',
+                styles.searchLabel
+              )}
+            >
               Search Team
             </label>
             <input
               value={teamSearch}
               onChange={(e) => setTeamSearch(e.target.value)}
               placeholder="Search by franchise name..."
-              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm"
+              className={fieldClassName}
             />
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+            <p
+              className={cn(
+                'text-[10px] font-black uppercase tracking-wider',
+                styles.counterText
+              )}
+            >
               Showing {filteredTeams.length} / {teams.length}
             </p>
             {savingTeamId ? (
-              <p className="mt-1 text-xs font-semibold text-sky-700">
+              <p className={cn('mt-1 text-xs font-semibold', styles.savingText)}>
                 Saving team changes...
               </p>
             ) : null}
@@ -358,15 +428,15 @@ export default function TeamManagement() {
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className="h-12 w-full rounded-lg bg-slate-100"></div>
-            <div className="h-12 w-full rounded-lg bg-slate-100"></div>
-            <div className="h-12 w-full rounded-lg bg-slate-100"></div>
+            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
+            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
+            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
           </div>
         ) : (
           <>
-            <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
-              <table className="w-full text-sm text-left text-gray-500">
-                <thead className="rounded-t-lg bg-slate-50 text-xs uppercase text-slate-700">
+            <div className={cn('hidden overflow-x-auto md:block', styles.tableShell)}>
+              <table className={cn('w-full text-left text-sm', styles.table)}>
+                <thead className={cn('rounded-t-lg text-xs uppercase', styles.tableHead)}>
                   <tr>
                     <th scope="col" className="px-4 py-3">
                       Serial
@@ -389,16 +459,26 @@ export default function TeamManagement() {
                   {filteredTeams.map((team) => (
                     <tr
                       key={team.id}
-                      className="border-b hover:bg-gray-100 transition duration-150 group"
+                      className={cn('group border-b duration-150', styles.tableRow)}
                     >
-                      <td className="px-4 py-4 font-medium text-gray-900">
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-50 text-indigo-700 font-black min-w-[50px] justify-center">
+                      <td className="px-4 py-4 font-medium">
+                        <span
+                          className={cn(
+                            'inline-flex min-w-[50px] items-center justify-center px-2 py-1 font-black',
+                            styles.serialBadge
+                          )}
+                        >
                           {team.serialNumber}
                         </span>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded bg-gray-100 border flex flex-shrink-0 items-center justify-center overflow-hidden">
+                          <div
+                            className={cn(
+                              'flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden',
+                              styles.logoShell
+                            )}
+                          >
                             {team.logoUrl ? (
                               <Image
                                 src={team.logoUrl}
@@ -408,7 +488,12 @@ export default function TeamManagement() {
                                 className="w-full h-full object-contain"
                               />
                             ) : (
-                              <span className="text-[10px] font-bold text-gray-400">
+                              <span
+                                className={cn(
+                                  'text-[10px] font-bold',
+                                  styles.logoPlaceholder
+                                )}
+                              >
                                 LOGO
                               </span>
                             )}
@@ -423,7 +508,10 @@ export default function TeamManagement() {
                                   void updateTeam(team.id, { name: next });
                                 }
                               }}
-                              className="w-full min-w-44 rounded border border-slate-200 bg-white px-2 py-1 text-sm font-bold text-slate-900"
+                              className={cn(
+                                'theme-field w-full text-sm',
+                                styles.teamNameInput
+                              )}
                               aria-label={`Team name for ${team.name}`}
                             />
                             <div className="mt-1 flex items-center gap-2">
@@ -434,7 +522,12 @@ export default function TeamManagement() {
                               />
                             </div>
                             <div className="flex gap-2 mt-1">
-                              <label className="text-[10px] uppercase font-bold text-blue-500 cursor-pointer hover:underline">
+                              <label
+                                className={cn(
+                                  'cursor-pointer text-[10px] font-bold uppercase',
+                                  styles.mediaLink
+                                )}
+                              >
                                 Set Logo
                                 <input
                                   type="file"
@@ -445,7 +538,12 @@ export default function TeamManagement() {
                                   }
                                 />
                               </label>
-                              <label className="text-[10px] uppercase font-bold text-indigo-500 cursor-pointer hover:underline">
+                              <label
+                                className={cn(
+                                  'cursor-pointer text-[10px] font-bold uppercase',
+                                  styles.mediaLinkSecondary
+                                )}
+                              >
                                 Set Banner
                                 <input
                                   type="file"
@@ -458,7 +556,12 @@ export default function TeamManagement() {
                               </label>
                             </div>
                             {team.bannerUrl && (
-                              <div className="text-[8px] text-gray-400 truncate max-w-[120px] mt-0.5">
+                              <div
+                                className={cn(
+                                  'mt-0.5 max-w-[120px] truncate text-[8px]',
+                                  styles.helperText
+                                )}
+                              >
                                 Banner: Set
                               </div>
                             )}
@@ -474,9 +577,9 @@ export default function TeamManagement() {
                               budgetBDT: e.target.value,
                             })
                           }
-                          className="w-28 rounded border border-slate-300 px-2 py-1"
+                          className={cn('theme-field', styles.budgetField)}
                         />
-                        <p className="mt-1 text-[10px] font-semibold text-slate-500">
+                        <p className={cn('mt-1 text-[10px] font-semibold', styles.budgetText)}>
                           {formatMoney(team.budgetBDT)} BDT left
                         </p>
                       </td>
@@ -489,22 +592,28 @@ export default function TeamManagement() {
                               budgetUSD: e.target.value,
                             })
                           }
-                          className="w-28 rounded border border-slate-300 px-2 py-1"
+                          className={cn('theme-field', styles.budgetField)}
                         />
-                        <p className="mt-1 text-[10px] font-semibold text-slate-500">
+                        <p className={cn('mt-1 text-[10px] font-semibold', styles.budgetText)}>
                           {formatMoney(team.budgetUSD)} USD left
                         </p>
                       </td>
-                      <td className="px-4 py-4 text-right flex items-center justify-end gap-3">
+                      <td className={cn('px-4 py-4', styles.actionBar)}>
                         <button
                           onClick={() => handleExportCSV(team)}
-                          className="text-indigo-600 hover:text-indigo-800 font-bold text-xs bg-indigo-50 px-2 py-1 rounded"
+                          className={cn(
+                            'theme-button theme-button-info font-bold',
+                            styles.exportButton
+                          )}
                         >
                           Export
                         </button>
                         <button
                           onClick={() => deleteTeam(team.id)}
-                          className="text-red-500 hover:text-red-700 font-medium text-sm"
+                          className={cn(
+                            'theme-button theme-button-danger font-medium',
+                            styles.deleteButton
+                          )}
                         >
                           Delete
                         </button>
@@ -515,7 +624,7 @@ export default function TeamManagement() {
                     <tr>
                       <td
                         colSpan={5}
-                        className="text-center py-8 text-gray-500"
+                        className={cn('py-8 text-center', styles.emptyState)}
                       >
                         No teams match the current search.
                       </td>
@@ -529,11 +638,16 @@ export default function TeamManagement() {
               {filteredTeams.map((team) => (
                 <article
                   key={team.id}
-                  className="rounded-xl border border-slate-200 bg-white p-3"
+                  className={cn('p-3', styles.mobileCard)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+                      <div
+                        className={cn(
+                          'flex h-9 w-9 items-center justify-center overflow-hidden',
+                          styles.logoShell
+                        )}
+                      >
                         {team.logoUrl ? (
                           <Image
                             src={team.logoUrl}
@@ -543,16 +657,26 @@ export default function TeamManagement() {
                             className="h-full w-full object-contain"
                           />
                         ) : (
-                          <span className="text-[9px] font-bold text-slate-400">
+                          <span
+                            className={cn(
+                              'text-[9px] font-bold',
+                              styles.logoPlaceholder
+                            )}
+                          >
                             LOGO
                           </span>
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className={cn('text-sm font-black', styles.headerTitle)}>
                           {team.name}
                         </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
+                        <p
+                          className={cn(
+                            'text-[10px] font-bold uppercase',
+                            styles.mobileMeta
+                          )}
+                        >
                           Serial #{team.serialNumber}
                         </p>
                       </div>
@@ -571,7 +695,10 @@ export default function TeamManagement() {
                       onBlur={(e) =>
                         void updateTeam(team.id, { budgetBDT: e.target.value })
                       }
-                      className="rounded border border-slate-300 px-2 py-1 text-xs"
+                      className={cn(
+                        'theme-field text-xs',
+                        styles.mobileBudgetField
+                      )}
                       aria-label={`BDT budget for ${team.name}`}
                     />
                     <input
@@ -580,12 +707,15 @@ export default function TeamManagement() {
                       onBlur={(e) =>
                         void updateTeam(team.id, { budgetUSD: e.target.value })
                       }
-                      className="rounded border border-slate-300 px-2 py-1 text-xs"
+                      className={cn(
+                        'theme-field text-xs',
+                        styles.mobileBudgetField
+                      )}
                       aria-label={`USD budget for ${team.name}`}
                     />
                   </div>
 
-                  <p className="mt-2 text-[10px] font-semibold text-slate-500">
+                  <p className={cn('mt-2 text-[10px] font-semibold', styles.mobileMeta)}>
                     Left: {formatMoney(team.budgetBDT)} BDT /{' '}
                     {formatMoney(team.budgetUSD)} USD
                   </p>
@@ -593,13 +723,19 @@ export default function TeamManagement() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => handleExportCSV(team)}
-                      className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase text-indigo-700"
+                      className={cn(
+                        'theme-button theme-button-info text-[10px] font-bold uppercase',
+                        styles.exportButton
+                      )}
                     >
                       Export
                     </button>
                     <button
                       onClick={() => deleteTeam(team.id)}
-                      className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold uppercase text-rose-700"
+                      className={cn(
+                        'theme-button theme-button-danger text-[10px] font-bold uppercase',
+                        styles.deleteButton
+                      )}
                     >
                       Delete
                     </button>

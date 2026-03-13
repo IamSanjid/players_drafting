@@ -1,0 +1,44 @@
+.toast {
+  border-radius: 1rem;
+  border-width: 1px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+.success {
+  border-color: color-mix(in srgb, var(--success) 18%, var(--surface));
+  background: color-mix(in srgb, var(--success-soft) 88%, var(--surface));
+  color: var(--success);
+}
+
+.danger {
+  border-color: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  background: color-mix(in srgb, var(--danger-soft) 90%, var(--surface));
+  color: var(--danger);
+}
+
+.warning {
+  border-color: color-mix(in srgb, var(--warning) 20%, var(--surface));
+  background: color-mix(in srgb, var(--warning-soft) 90%, var(--surface));
+  color: var(--warning);
+}
+
+.info {
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--surface));
+  background: color-mix(in srgb, var(--primary-soft) 88%, var(--surface));
+  color: var(--primary-strong);
+}
+
+.dismissButton {
+  border-radius: 0.45rem;
+  padding: 0 0.25rem;
+  opacity: 0.7;
+  transition:
+    opacity 160ms ease,
+    background-color 160ms ease;
+}
+
+.dismissButton:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}

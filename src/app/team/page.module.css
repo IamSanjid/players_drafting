@@ -1,0 +1,35 @@
+.loadingMessage {
+  color: var(--text-muted);
+}
+
+.loginTitle {
+  color: var(--text-strong);
+}
+
+.loginText {
+  color: var(--text-muted);
+}
+
+.authError {
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.fieldLabel {
+  color: var(--text-muted);
+}
+
+.dangerActionButton {
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--surface));
+  background: var(--danger-soft);
+  color: var(--danger);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.dangerActionButton:hover {
+  background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface));
+}

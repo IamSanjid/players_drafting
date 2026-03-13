@@ -1,0 +1,11 @@
+.card {
+  border-radius: var(--radius-card);
+}
+
+.header {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, var(--surface));
+}
+
+.body {
+  color: var(--foreground);
+}

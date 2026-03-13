@@ -1,4 +1,5 @@
 import { cn } from '@/lib/ui';
+import styles from './ToastStack.module.css';
 
 export type ToastTone = 'success' | 'danger' | 'warning' | 'info';
 
@@ -20,10 +21,10 @@ export function ToastStack({
   }
 
   const toneClass: Record<ToastTone, string> = {
-    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-    danger: 'border-rose-200 bg-rose-50 text-rose-800',
-    warning: 'border-amber-200 bg-amber-50 text-amber-800',
-    info: 'border-sky-200 bg-sky-50 text-sky-800',
+    success: styles.success,
+    danger: styles.danger,
+    warning: styles.warning,
+    info: styles.info,
   };
 
   return (
@@ -32,7 +33,8 @@ export function ToastStack({
         <div
           key={toast.id}
           className={cn(
-            'pointer-events-auto rounded-lg border px-3 py-2 text-sm font-semibold shadow-lg backdrop-blur',
+            'pointer-events-auto border px-3 py-2 text-sm font-semibold',
+            styles.toast,
             toneClass[toast.tone]
           )}
         >
@@ -41,7 +43,7 @@ export function ToastStack({
             <button
               type="button"
               onClick={() => onDismiss(toast.id)}
-              className="rounded px-1 text-xs font-bold opacity-70 hover:opacity-100"
+              className={cn('text-xs font-bold', styles.dismissButton)}
               aria-label="Dismiss notification"
             >
               x

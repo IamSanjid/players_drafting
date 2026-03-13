@@ -15,6 +15,8 @@ import { authApi } from '@/lib/api';
 import { useDraftStore } from '@/lib/draftStore';
 import { useDraftSessionDerivedState } from '@/lib/hooks/useDraftSessionDerivedState';
 import { useDraftStateSync } from '@/lib/hooks/useDraftStateSync';
+import { cn } from '@/lib/ui';
+import styles from './page.module.css';
 
 type WorkspaceTab = 'Pick Board' | 'Order' | 'Intel';
 
@@ -108,7 +110,7 @@ export default function TeamView() {
           logoAlt="Logo"
         />
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          <p className="text-lg font-bold text-slate-700">
+          <p className={cn('text-lg font-bold', styles.loadingMessage)}>
             Loading draft state...
           </p>
         </div>
@@ -130,30 +132,35 @@ export default function TeamView() {
           <Card className="w-full max-w-md">
             <CardBody className="space-y-5 p-6">
               <div className="space-y-1 text-center">
-                <h2 className="text-3xl font-black text-slate-900">
+                <h2 className={cn('text-3xl font-black', styles.loginTitle)}>
                   Team Login
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className={cn('text-sm', styles.loginText)}>
                   Enter your franchise credentials
                 </p>
               </div>
 
               {authError ? (
-                <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+                <p
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-sm font-semibold',
+                    styles.authError
+                  )}
+                >
                   {authError}
                 </p>
               ) : null}
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className={cn('text-sm font-semibold', styles.fieldLabel)}>
                     Select Franchise
                   </label>
                   <select
                     required
                     value={selectedTeamId}
                     onChange={(e) => setSelectedTeamId(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm"
+                    className="theme-field w-full rounded-xl px-3 py-2.5 text-sm"
                   >
                     <option value="">Choose team</option>
                     {teams.map((team) => (
@@ -165,7 +172,7 @@ export default function TeamView() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className={cn('text-sm font-semibold', styles.fieldLabel)}>
                     Passcode
                   </label>
                   <input
@@ -173,14 +180,14 @@ export default function TeamView() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm"
+                    className="theme-field w-full rounded-xl px-3 py-2.5 text-sm"
                     placeholder="Enter password"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800"
+                  className="theme-button theme-button-primary w-full px-4 py-2.5 text-sm font-bold"
                 >
                   Access Draft Room
                 </button>
@@ -217,7 +224,10 @@ export default function TeamView() {
             )}
             <button
               onClick={handleLogout}
-              className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+              className={cn(
+                'rounded-lg px-3 py-1.5 text-sm font-semibold',
+                styles.dangerActionButton
+              )}
             >
               Logout
             </button>
