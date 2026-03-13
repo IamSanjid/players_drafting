@@ -22,9 +22,11 @@ export function BrandFooter({ compact = false }: BrandFooterProps) {
       >
         <p
           className={cn(
-            'max-w-full break-words font-semibold',
+            'max-w-full wrap-break-word font-semibold',
             styles.text,
-            compact ? 'text-[10px] leading-4' : 'text-[11px] leading-4 sm:text-xs'
+            compact
+              ? 'text-[10px] leading-4'
+              : 'text-[11px] leading-4 sm:text-xs'
           )}
         >
           Copyright {'\u00A9'} {year} CosmicAbyss. All rights reserved.

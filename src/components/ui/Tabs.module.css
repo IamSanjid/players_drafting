@@ -1,9 +1,11 @@
 .root {
   border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--surface) 92%, var(--primary-soft));
 }
 
 .tab {
   color: var(--text-muted);
+  border: 1px solid transparent;
 }
 
 .tab:focus-visible {
@@ -11,12 +13,17 @@
 }
 
 .tabActive {
-  background: var(--primary);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-strong) 100%
+  );
   color: var(--text-light);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+  border-color: color-mix(in srgb, var(--primary-strong) 26%, var(--surface));
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--primary) 24%, transparent);
 }
 
 .tabIdle:hover {
-  background: color-mix(in srgb, var(--surface-muted) 75%, var(--surface));
+  background: color-mix(in srgb, var(--primary-soft) 42%, var(--surface));
   color: var(--text-strong);
 }

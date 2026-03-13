@@ -1,5 +1,10 @@
 .footer {
   border-radius: var(--radius-card);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 90%, var(--primary-soft)) 0%,
+    var(--surface) 100%
+  );
 }
 
 .text {

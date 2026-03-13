@@ -34,7 +34,12 @@ export default function Dashboard({
             )}
           >
             <div>
-              <div className={cn(styles.pickMeta, 'text-xs font-bold uppercase tracking-wider')}>
+              <div
+                className={cn(
+                  styles.pickMeta,
+                  'text-xs font-bold uppercase tracking-wider'
+                )}
+              >
                 Pick #{team.serialNumber}
               </div>
               <h3
@@ -61,7 +66,9 @@ export default function Dashboard({
                 <span className={cn(styles.budgetLabel, 'text-xs uppercase')}>
                   BDT Left
                 </span>
-                <span className={cn(styles.budgetValueBdt, 'text-lg font-mono')}>
+                <span
+                  className={cn(styles.budgetValueBdt, 'text-lg font-mono')}
+                >
                   ৳{Number(team.budgetBDT).toLocaleString()}
                 </span>
               </div>
@@ -69,7 +76,9 @@ export default function Dashboard({
                 <span className={cn(styles.budgetLabel, 'text-xs uppercase')}>
                   USD Left
                 </span>
-                <span className={cn(styles.budgetValueUsd, 'text-lg font-mono')}>
+                <span
+                  className={cn(styles.budgetValueUsd, 'text-lg font-mono')}
+                >
                   ${Number(team.budgetUSD).toLocaleString()}
                 </span>
               </div>
@@ -93,11 +102,23 @@ export default function Dashboard({
                       'flex items-center justify-between py-1 last:border-0'
                     )}
                   >
-                    <div className={cn(styles.playerLead, 'truncate pl-2 pr-2')}>
-                      <p className={cn(styles.playerName, 'truncate text-sm font-semibold')}>
+                    <div
+                      className={cn(styles.playerLead, 'truncate pl-2 pr-2')}
+                    >
+                      <p
+                        className={cn(
+                          styles.playerName,
+                          'truncate text-sm font-semibold'
+                        )}
+                      >
                         {p.name}
                       </p>
-                      <p className={cn(styles.playerMeta, 'text-[10px] uppercase')}>
+                      <p
+                        className={cn(
+                          styles.playerMeta,
+                          'text-[10px] uppercase'
+                        )}
+                      >
                         {p.category} • {p.subCategory} • {p.position}
                       </p>
                     </div>
@@ -114,7 +135,12 @@ export default function Dashboard({
                   </div>
                 ))
               ) : (
-                <div className={cn(styles.emptyState, 'py-4 text-center text-xs font-medium italic')}>
+                <div
+                  className={cn(
+                    styles.emptyState,
+                    'py-4 text-center text-xs font-medium italic'
+                  )}
+                >
                   No players drafted yet
                 </div>
               )}

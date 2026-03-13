@@ -74,14 +74,21 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                 />
               </div>
             ) : (
-              <span className={cn(styles.logoPlaceholder, 'text-lg font-black')}>
+              <span
+                className={cn(styles.logoPlaceholder, 'text-lg font-black')}
+              >
                 {team.name.charAt(0)}
               </span>
             )}
           </div>
 
           <div>
-            <h3 className={cn(styles.bannerTitle, 'text-lg font-black leading-none')}>
+            <h3
+              className={cn(
+                styles.bannerTitle,
+                'text-lg font-black leading-none'
+              )}
+            >
               {team.name}
             </h3>
             <p
@@ -166,7 +173,12 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
                   <td className={cn(styles.position, 'px-3 py-2.5')}>
                     {player.position}
                   </td>
-                  <td className={cn(styles.price, 'px-3 py-2.5 text-right font-mono font-bold')}>
+                  <td
+                    className={cn(
+                      styles.price,
+                      'px-3 py-2.5 text-right font-mono font-bold'
+                    )}
+                  >
                     {player.isPreBought
                       ? 'Pre-Bought'
                       : tab === 'Local'
@@ -190,7 +202,12 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
         </div>
 
         {totalPages > 1 ? (
-          <div className={cn(styles.pagination, 'flex items-center justify-between px-2 py-2')}>
+          <div
+            className={cn(
+              styles.pagination,
+              'flex items-center justify-between px-2 py-2'
+            )}
+          >
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}

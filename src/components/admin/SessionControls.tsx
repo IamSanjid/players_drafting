@@ -121,10 +121,7 @@ export default function SessionControls() {
     if (loading) {
       return (
         <div
-          className={cn(
-            'h-20 animate-pulse rounded-xl',
-            styles.loadingShell
-          )}
+          className={cn('h-20 animate-pulse rounded-xl', styles.loadingShell)}
         />
       );
     }
@@ -220,7 +217,12 @@ export default function SessionControls() {
 
       <CardBody className="space-y-5">
         <div className={cn('p-2', styles.quickActionShell)}>
-          <p className={cn('px-1 pb-2 text-[10px] font-black uppercase tracking-wider', styles.quickActionLabel)}>
+          <p
+            className={cn(
+              'px-1 pb-2 text-[10px] font-black uppercase tracking-wider',
+              styles.quickActionLabel
+            )}
+          >
             Quick Actions
           </p>
           <div className="custom-scrollbar flex gap-2 overflow-x-auto pb-1">
@@ -235,7 +237,12 @@ export default function SessionControls() {
                 )}
               >
                 <span>{action.label}</span>
-                <kbd className={cn('theme-kbd px-1.5 py-0.5 text-[10px] font-black', styles.shortcutKeyBadge)}>
+                <kbd
+                  className={cn(
+                    'theme-kbd px-1.5 py-0.5 text-[10px] font-black',
+                    styles.shortcutKeyBadge
+                  )}
+                >
                   {action.shortcut}
                 </kbd>
               </button>
@@ -243,7 +250,12 @@ export default function SessionControls() {
           </div>
         </div>
 
-        <div className={cn('px-3 py-2 text-xs font-semibold', styles.shortcutStrip)}>
+        <div
+          className={cn(
+            'px-3 py-2 text-xs font-semibold',
+            styles.shortcutStrip
+          )}
+        >
           Shortcuts: <ShortcutKey label="S" hint="start" />{' '}
           <ShortcutKey label="P" hint="pause" />{' '}
           <ShortcutKey label="R" hint="resume" />{' '}
@@ -337,7 +349,10 @@ export default function SessionControls() {
                 })
               }
               disabled={draftSession.allowedCategories !== 'Both'}
-              className={cn('theme-field disabled:opacity-50', styles.selectField)}
+              className={cn(
+                'theme-field disabled:opacity-50',
+                styles.selectField
+              )}
             >
               <option value="Local">Local Players</option>
               <option value="Oversea">Oversea Players</option>
@@ -347,7 +362,12 @@ export default function SessionControls() {
 
         <section className={cn('p-4', styles.reorderSection)}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className={cn('text-sm font-black uppercase tracking-wider', styles.reorderTitle)}>
+            <h3
+              className={cn(
+                'text-sm font-black uppercase tracking-wider',
+                styles.reorderTitle
+              )}
+            >
               Team Draft Order
             </h3>
             <div className="flex flex-wrap items-center justify-end gap-3">
@@ -369,7 +389,12 @@ export default function SessionControls() {
                 Reverse Order
               </button>
               {isDraftRunning ? (
-                <label className={cn('inline-flex cursor-pointer items-center gap-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider', styles.reorderToggle)}>
+                <label
+                  className={cn(
+                    'inline-flex cursor-pointer items-center gap-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider',
+                    styles.reorderToggle
+                  )}
+                >
                   <input
                     type="checkbox"
                     checked={allowReorderDuringLive}
@@ -393,7 +418,12 @@ export default function SessionControls() {
           </div>
 
           {isReorderLocked ? (
-            <p className={cn('mb-3 px-2.5 py-1.5 text-[11px] font-semibold', styles.lockNotice)}>
+            <p
+              className={cn(
+                'mb-3 px-2.5 py-1.5 text-[11px] font-semibold',
+                styles.lockNotice
+              )}
+            >
               Reordering is locked while draft is live. Enable the toggle to
               allow changes.
             </p>
@@ -425,7 +455,9 @@ export default function SessionControls() {
                       'w-64 p-3',
                       styles.teamCard,
                       isReorderLocked && styles.teamCardLocked,
-                      isDraftRunning && team.serialNumber === activeSerial && styles.teamCardActive
+                      isDraftRunning &&
+                        team.serialNumber === activeSerial &&
+                        styles.teamCardActive
                     )}
                     draggable
                     onDragStart={(e) => {
@@ -457,7 +489,12 @@ export default function SessionControls() {
                     }}
                   >
                     <div className="mb-3 space-y-2.5">
-                      <div className={cn('flex min-w-0 flex-wrap items-center gap-1.5 p-1.5', styles.serialStrip)}>
+                      <div
+                        className={cn(
+                          'flex min-w-0 flex-wrap items-center gap-1.5 p-1.5',
+                          styles.serialStrip
+                        )}
+                      >
                         <select
                           value={team.serialNumber}
                           disabled={isReorderLocked}
@@ -470,7 +507,9 @@ export default function SessionControls() {
                           className={cn(
                             'min-w-[62px] shrink-0 px-2 py-1 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50',
                             styles.serialSelect,
-                            isDraftRunning && team.serialNumber === activeSerial && styles.serialSelectActive
+                            isDraftRunning &&
+                              team.serialNumber === activeSerial &&
+                              styles.serialSelectActive
                           )}
                         >
                           {Array.from(
@@ -489,7 +528,10 @@ export default function SessionControls() {
                             void moveTeamToEdge(team.id, 'top');
                           }}
                           disabled={!canMoveTop || isReorderLocked}
-                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
+                          className={cn(
+                            'px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35',
+                            styles.moveButton
+                          )}
                           aria-label={`Move ${team.name} to top`}
                           title="Move to top"
                         >
@@ -502,7 +544,10 @@ export default function SessionControls() {
                             void moveTeamByStep(team.id, -1);
                           }}
                           disabled={!canMoveUp || isReorderLocked}
-                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
+                          className={cn(
+                            'px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35',
+                            styles.moveButton
+                          )}
                           aria-label={`Move ${team.name} up`}
                           title="Move up"
                         >
@@ -515,7 +560,10 @@ export default function SessionControls() {
                             void moveTeamByStep(team.id, 1);
                           }}
                           disabled={!canMoveDown || isReorderLocked}
-                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
+                          className={cn(
+                            'px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35',
+                            styles.moveButton
+                          )}
                           aria-label={`Move ${team.name} down`}
                           title="Move down"
                         >
@@ -528,7 +576,10 @@ export default function SessionControls() {
                             void moveTeamToEdge(team.id, 'bottom');
                           }}
                           disabled={!canMoveBottom || isReorderLocked}
-                          className={cn('px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35', styles.moveButton)}
+                          className={cn(
+                            'px-1.5 py-1 text-[10px] font-black disabled:cursor-not-allowed disabled:opacity-35',
+                            styles.moveButton
+                          )}
                           aria-label={`Move ${team.name} to bottom`}
                           title="Move to bottom"
                         >
@@ -548,7 +599,12 @@ export default function SessionControls() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className={cn('flex h-10 w-10 items-center justify-center overflow-hidden', styles.logoShell)}>
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 items-center justify-center overflow-hidden',
+                          styles.logoShell
+                        )}
+                      >
                         {team.logoUrl ? (
                           <Image
                             src={team.logoUrl}
@@ -558,12 +614,22 @@ export default function SessionControls() {
                             className="h-full w-full object-contain"
                           />
                         ) : (
-                          <span className={cn('text-[10px] font-bold', styles.logoPlaceholder)}>
+                          <span
+                            className={cn(
+                              'text-[10px] font-bold',
+                              styles.logoPlaceholder
+                            )}
+                          >
                             LOGO
                           </span>
                         )}
                       </div>
-                      <p className={cn('truncate text-sm font-bold', styles.teamName)}>
+                      <p
+                        className={cn(
+                          'truncate text-sm font-bold',
+                          styles.teamName
+                        )}
+                      >
                         {team.name}
                       </p>
                     </div>
@@ -572,7 +638,12 @@ export default function SessionControls() {
               })}
 
               {sortedTeams.length === 0 ? (
-                <div className={cn('theme-empty-state flex w-full items-center justify-center text-sm', styles.emptyState)}>
+                <div
+                  className={cn(
+                    'theme-empty-state flex w-full items-center justify-center text-sm',
+                    styles.emptyState
+                  )}
+                >
                   No teams added yet.
                 </div>
               ) : null}
@@ -595,7 +666,12 @@ function ControlField({
 }) {
   return (
     <div className={cn('p-4', styles.controlField)}>
-      <p className={cn('text-xs font-black uppercase tracking-wider', styles.controlLabel)}>
+      <p
+        className={cn(
+          'text-xs font-black uppercase tracking-wider',
+          styles.controlLabel
+        )}
+      >
         {label}
       </p>
       <div className="mt-2">{children}</div>
@@ -607,10 +683,20 @@ function ControlField({
 function ShortcutKey({ label, hint }: { label: string; hint: string }) {
   return (
     <span className={styles.shortcutKeyWrap}>
-      <kbd className={cn('theme-kbd text-[10px] font-black', styles.shortcutKeyBadge)}>
+      <kbd
+        className={cn(
+          'theme-kbd text-[10px] font-black',
+          styles.shortcutKeyBadge
+        )}
+      >
         {label}
       </kbd>
-      <span className={cn('text-[10px] uppercase tracking-wide', styles.shortcutKeyHint)}>
+      <span
+        className={cn(
+          'text-[10px] uppercase tracking-wide',
+          styles.shortcutKeyHint
+        )}
+      >
         {hint}
       </span>
     </span>

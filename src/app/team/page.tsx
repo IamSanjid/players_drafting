@@ -153,7 +153,9 @@ export default function TeamView() {
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1">
-                  <label className={cn('text-sm font-semibold', styles.fieldLabel)}>
+                  <label
+                    className={cn('text-sm font-semibold', styles.fieldLabel)}
+                  >
                     Select Franchise
                   </label>
                   <select
@@ -172,7 +174,9 @@ export default function TeamView() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className={cn('text-sm font-semibold', styles.fieldLabel)}>
+                  <label
+                    className={cn('text-sm font-semibold', styles.fieldLabel)}
+                  >
                     Passcode
                   </label>
                   <input

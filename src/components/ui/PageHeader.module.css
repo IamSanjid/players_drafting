@@ -1,5 +1,10 @@
 .header {
   border-radius: var(--radius-card);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--primary-soft) 34%, var(--surface)) 0%,
+    color-mix(in srgb, var(--surface) 96%, transparent) 100%
+  );
 }
 
 .logoFrame {

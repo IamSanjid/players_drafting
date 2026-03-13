@@ -49,7 +49,10 @@ export default function PublicDashboard() {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <div
-          className={cn('h-16 w-16 animate-pulse rounded-full', styles.loadingPulse)}
+          className={cn(
+            'h-16 w-16 animate-pulse rounded-full',
+            styles.loadingPulse
+          )}
         />
       </div>
     );
@@ -74,7 +77,9 @@ export default function PublicDashboard() {
             >
               <div className="text-right">
                 <p className="stat-label">Current turn</p>
-                <p className={cn('text-lg font-black', styles.currentTurnValue)}>
+                <p
+                  className={cn('text-lg font-black', styles.currentTurnValue)}
+                >
                   {currentTurnTeam?.name ?? 'N/A'}
                 </p>
               </div>
@@ -118,7 +123,9 @@ export default function PublicDashboard() {
                 >
                   ⏳
                 </div>
-                <p className={cn('text-base font-bold', styles.emptyStateTitle)}>
+                <p
+                  className={cn('text-base font-bold', styles.emptyStateTitle)}
+                >
                   {draftStatus === 'ended'
                     ? 'This draft session has ended.'
                     : 'Waiting for the draft session to start.'}
@@ -191,8 +198,12 @@ export default function PublicDashboard() {
                       className="font-black"
                     /> */}
                     <StatusBadge
-                      label={expandedProfileTeamId === team.id ? 'Open' : 'Expand'}
-                      tone={expandedProfileTeamId === team.id ? 'active' : 'neutral'}
+                      label={
+                        expandedProfileTeamId === team.id ? 'Open' : 'Expand'
+                      }
+                      tone={
+                        expandedProfileTeamId === team.id ? 'active' : 'neutral'
+                      }
                     />
                   </button>
                   {expandedProfileTeamId === team.id ? (
@@ -229,7 +240,9 @@ function TeamLogo({ team }: { team: ApiTeam }) {
           className="h-full w-full object-contain"
         />
       ) : (
-        <span className={cn('text-[10px] font-bold', styles.teamLogoPlaceholder)}>
+        <span
+          className={cn('text-[10px] font-bold', styles.teamLogoPlaceholder)}
+        >
           LOGO
         </span>
       )}
@@ -276,7 +289,9 @@ function SessionTeamRow({
         <div className="flex items-center gap-3">
           <TeamLogo team={team} />
           <div>
-            <p className={cn('text-sm font-black', styles.teamName)}>{team.name}</p>
+            <p className={cn('text-sm font-black', styles.teamName)}>
+              {team.name}
+            </p>
             <p
               className={cn(
                 'text-xs font-bold uppercase tracking-wider',

@@ -35,14 +35,24 @@ export default function DraftOrderList({
   return (
     <div className={cn(styles.shell, 'flex h-full flex-col overflow-hidden')}>
       <div className="mb-2 mt-1 flex items-center justify-between px-1">
-        <h2 className={cn(styles.heading, 'text-sm font-black uppercase tracking-wider')}>
+        <h2
+          className={cn(
+            styles.heading,
+            'text-sm font-black uppercase tracking-wider'
+          )}
+        >
           Draft Order
         </h2>
       </div>
 
       {!isDraftRunning ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-          <div className={cn(styles.waitingIcon, 'flex h-14 w-14 items-center justify-center rounded-full text-2xl')}>
+          <div
+            className={cn(
+              styles.waitingIcon,
+              'flex h-14 w-14 items-center justify-center rounded-full text-2xl'
+            )}
+          >
             ⏳
           </div>
           <p className={cn(styles.waitingTitle, 'text-sm font-bold')}>

@@ -129,7 +129,9 @@ export default function PlayerSelectionGrid({
       <div className={cn('theme-toolbar', 'flex flex-col gap-4 p-4')}>
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           {/* Category Tabs */}
-          <div className={cn(styles.categoryTabs, 'flex space-x-1 rounded-lg p-1')}>
+          <div
+            className={cn(styles.categoryTabs, 'flex space-x-1 rounded-lg p-1')}
+          >
             <button
               disabled={lockedCategory === 'Local'}
               onClick={() => setActiveTabCategory('Oversea')}
@@ -137,7 +139,8 @@ export default function PlayerSelectionGrid({
               className={cn(
                 styles.categoryTab,
                 currentCategory === 'Oversea' && styles.categoryTabActive,
-                lockedCategory === 'Local' && 'hidden cursor-not-allowed opacity-30',
+                lockedCategory === 'Local' &&
+                  'hidden cursor-not-allowed opacity-30',
                 'rounded-md px-6 py-2 font-semibold transition-all'
               )}
             >
@@ -150,7 +153,8 @@ export default function PlayerSelectionGrid({
               className={cn(
                 styles.categoryTab,
                 currentCategory === 'Local' && styles.categoryTabActive,
-                lockedCategory === 'Oversea' && 'hidden cursor-not-allowed opacity-30',
+                lockedCategory === 'Oversea' &&
+                  'hidden cursor-not-allowed opacity-30',
                 'rounded-md px-6 py-2 font-semibold transition-all'
               )}
             >
@@ -175,7 +179,10 @@ export default function PlayerSelectionGrid({
               )}
             />
             <svg
-              className={cn(styles.searchIcon, 'absolute left-3 top-2.5 h-5 w-5')}
+              className={cn(
+                styles.searchIcon,
+                'absolute left-3 top-2.5 h-5 w-5'
+              )}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -232,11 +239,21 @@ export default function PlayerSelectionGrid({
       )}
 
       {/* Table View */}
-      <div className={cn('theme-table-shell', 'flex flex-1 flex-col overflow-hidden')}>
+      <div
+        className={cn(
+          'theme-table-shell',
+          'flex flex-1 flex-col overflow-hidden'
+        )}
+      >
         <div className="overflow-x-auto h-full pr-2 custom-scrollbar">
           <table className="w-full text-left border-separate border-spacing-y-2 px-4">
             <thead className={cn(styles.tableHead, 'sticky top-0 z-10')}>
-              <tr className={cn(styles.tableHeadRow, 'text-xs font-black uppercase tracking-widest')}>
+              <tr
+                className={cn(
+                  styles.tableHeadRow,
+                  'text-xs font-black uppercase tracking-widest'
+                )}
+              >
                 <th className="px-4 py-3">Player</th>
                 <th className="px-4 py-3">Details</th>
                 <th className="px-4 py-3">Price</th>
@@ -273,7 +290,7 @@ export default function PlayerSelectionGrid({
                   if (isDrafted) {
                     if (draftingTeam?.bannerUrl) {
                       bgInlineStyle = {
-                        backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.95), rgba(255,255,255,0.7)), url(${draftingTeam.bannerUrl})`,
+                        backgroundImage: `linear-gradient(to right, color-mix(in srgb, var(--surface) 88%, var(--primary-soft)), color-mix(in srgb, var(--surface) 70%, transparent)), url(${draftingTeam.bannerUrl})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                       };
@@ -349,7 +366,12 @@ export default function PlayerSelectionGrid({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className={cn(styles.detailPrimary, 'text-sm font-medium')}>
+                        <div
+                          className={cn(
+                            styles.detailPrimary,
+                            'text-sm font-medium'
+                          )}
+                        >
                           {p.position}
                         </div>
                         <div
@@ -362,9 +384,16 @@ export default function PlayerSelectionGrid({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className={cn(styles.price, 'font-mono text-sm font-black')}>
+                        <div
+                          className={cn(
+                            styles.price,
+                            'font-mono text-sm font-black'
+                          )}
+                        >
                           {formatMoney(price)}{' '}
-                          <span className={cn(styles.priceCurrency, 'text-[10px]')}>
+                          <span
+                            className={cn(styles.priceCurrency, 'text-[10px]')}
+                          >
                             {currency}
                           </span>
                         </div>
@@ -400,8 +429,18 @@ export default function PlayerSelectionGrid({
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className={cn(styles.pagination, 'flex items-center justify-between p-4')}>
-            <div className={cn(styles.paginationMeta, 'text-xs font-bold uppercase tracking-widest')}>
+          <div
+            className={cn(
+              styles.pagination,
+              'flex items-center justify-between p-4'
+            )}
+          >
+            <div
+              className={cn(
+                styles.paginationMeta,
+                'text-xs font-bold uppercase tracking-widest'
+              )}
+            >
               Page {currentPage} of {totalPages} ({filteredPlayers.length}{' '}
               Total)
             </div>

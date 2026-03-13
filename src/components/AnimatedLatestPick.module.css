@@ -10,7 +10,12 @@
 }
 
 .baseGradient {
-  background: linear-gradient(135deg, var(--foreground) 0%, var(--primary-strong) 52%, var(--text-strong) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--foreground) 0%,
+    var(--primary-strong) 52%,
+    var(--text-strong) 100%
+  );
 }
 
 .bannerShade {
@@ -31,7 +36,11 @@
 }
 
 .imageShade {
-  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--text-strong) 88%, transparent) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text-strong) 88%, transparent) 100%
+  );
 }
 
 .categoryPill {
@@ -46,7 +55,9 @@
 }
 
 .teamLogoFilter {
-  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--surface) 30%, transparent));
+  filter: drop-shadow(
+    0 0 15px color-mix(in srgb, var(--surface) 30%, transparent)
+  );
 }
 
 .eyebrow {
@@ -55,17 +66,20 @@
 
 .teamName {
   color: var(--text-light);
-  text-shadow: 0 14px 36px color-mix(in srgb, var(--text-strong) 55%, transparent);
+  text-shadow: 0 14px 36px
+    color-mix(in srgb, var(--text-strong) 55%, transparent);
 }
 
 .selectionCard {
-  border-left: 8px solid color-mix(in srgb, var(--primary-soft) 78%, var(--surface));
+  border-left: 8px solid
+    color-mix(in srgb, var(--primary-soft) 78%, var(--surface));
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--primary) 20%, transparent) 0%,
     transparent 100%
   );
-  box-shadow: 0 24px 60px color-mix(in srgb, var(--text-strong) 32%, transparent);
+  box-shadow: 0 24px 60px
+    color-mix(in srgb, var(--text-strong) 32%, transparent);
 }
 
 .selectionEyebrow {

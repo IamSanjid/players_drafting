@@ -258,7 +258,12 @@ export default function CSVBulkUploader({
         </label>
 
         <div className="mt-6 flex items-center justify-center gap-3">
-          <label className={cn('group flex cursor-pointer items-center gap-2', styles.checkboxRow)}>
+          <label
+            className={cn(
+              'group flex cursor-pointer items-center gap-2',
+              styles.checkboxRow
+            )}
+          >
             <div className="relative flex items-center">
               <input
                 type="checkbox"
@@ -311,9 +316,16 @@ export default function CSVBulkUploader({
 
   return (
     <div className={styles.mappingShell}>
-      <div className={cn('flex items-center justify-between px-4 py-3', styles.mappingHeader)}>
+      <div
+        className={cn(
+          'flex items-center justify-between px-4 py-3',
+          styles.mappingHeader
+        )}
+      >
         <div>
-          <h3 className={cn('font-bold', styles.mappingTitle)}>Map CSV Columns</h3>
+          <h3 className={cn('font-bold', styles.mappingTitle)}>
+            Map CSV Columns
+          </h3>
           <p className={cn('text-xs', styles.mappingSubtitle)}>
             Step 2 of 2: match your CSV fields. Parsed rows: {csvData.length}
           </p>
@@ -327,12 +339,19 @@ export default function CSVBulkUploader({
       </div>
 
       {error ? (
-        <div className={cn('mx-4 mt-3 p-3 text-sm font-medium', styles.errorCallout)}>
+        <div
+          className={cn(
+            'mx-4 mt-3 p-3 text-sm font-medium',
+            styles.errorCallout
+          )}
+        >
           {error}
         </div>
       ) : null}
 
-      <div className={cn('flex items-center gap-4 px-4 py-3', styles.globalRow)}>
+      <div
+        className={cn('flex items-center gap-4 px-4 py-3', styles.globalRow)}
+      >
         <label className={cn('text-sm font-bold', styles.globalLabel)}>
           Global Category (if not in CSV):
         </label>
@@ -372,11 +391,12 @@ export default function CSVBulkUploader({
               onChange={(e) =>
                 setMapping({ ...mapping, [field.key]: e.target.value })
               }
-              className={cn('theme-field w-full font-medium', styles.selectField)}
+              className={cn(
+                'theme-field w-full font-medium',
+                styles.selectField
+              )}
             >
-              <option value="">
-                -- Ignore --
-              </option>
+              <option value="">-- Ignore --</option>
               {headers.map((h) => (
                 <option key={h} value={h}>
                   {h}

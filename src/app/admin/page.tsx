@@ -183,7 +183,7 @@ function AdminDashboardContent() {
 
   return (
     <div className="h-dvh overflow-y-auto p-4 md:p-6">
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
+      <div className="mx-auto flex w-full max-w-375 flex-col gap-4">
         <PageHeader
           title="Admin Control Center"
           subtitle="Operate the draft in real time and manage teams, players, and session rules."

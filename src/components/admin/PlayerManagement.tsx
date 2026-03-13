@@ -293,8 +293,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
     startIndex + itemsPerPage
   );
 
-  const draftedPlayersCount = players.filter((player) => Boolean(player.team))
-    .length;
+  const draftedPlayersCount = players.filter((player) =>
+    Boolean(player.team)
+  ).length;
   const availablePlayersCount = players.length - draftedPlayersCount;
   const preBoughtCount = players.filter((player) => player.isPreBought).length;
 
@@ -427,10 +428,17 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
             )}
           >
             <div>
-              <h3 className={cn('text-sm font-black uppercase tracking-wider', styles.sectionTitle)}>
+              <h3
+                className={cn(
+                  'text-sm font-black uppercase tracking-wider',
+                  styles.sectionTitle
+                )}
+              >
                 {editingPlayerId ? 'Edit Player' : 'Add New Player'}
               </h3>
-              <p className={cn('text-xs font-semibold', styles.sectionSubtitle)}>
+              <p
+                className={cn('text-xs font-semibold', styles.sectionSubtitle)}
+              >
                 {editingPlayerId
                   ? 'Editing selected player details'
                   : 'Create a new player entry'}
@@ -475,7 +483,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               className="grid grid-cols-1 gap-4 p-5 md:grid-cols-4"
             >
               <div>
-                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                <label
+                  className={cn('text-xs font-semibold', styles.fieldLabel)}
+                >
                   Name
                 </label>
                 <input
@@ -489,12 +499,16 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 />
               </div>
               <div>
-                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                <label
+                  className={cn('text-xs font-semibold', styles.fieldLabel)}
+                >
                   Category
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as PlayerCategory)}
+                  onChange={(e) =>
+                    setCategory(e.target.value as PlayerCategory)
+                  }
                   className={fieldClassName}
                 >
                   <option value="Oversea">Oversea</option>
@@ -502,7 +516,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 </select>
               </div>
               <div>
-                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                <label
+                  className={cn('text-xs font-semibold', styles.fieldLabel)}
+                >
                   Sub-Category
                 </label>
                 <select
@@ -518,7 +534,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 </select>
               </div>
               <div>
-                <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                <label
+                  className={cn('text-xs font-semibold', styles.fieldLabel)}
+                >
                   Position
                 </label>
                 <input
@@ -535,7 +553,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 <div className="grid grid-cols-2 gap-4">
                   {category === 'Local' ? (
                     <div>
-                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                      <label
+                        className={cn(
+                          'text-xs font-semibold',
+                          styles.fieldLabel
+                        )}
+                      >
                         Price (BDT)
                       </label>
                       <input
@@ -549,7 +572,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     </div>
                   ) : (
                     <div>
-                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                      <label
+                        className={cn(
+                          'text-xs font-semibold',
+                          styles.fieldLabel
+                        )}
+                      >
                         Price (USD)
                       </label>
                       <input
@@ -564,7 +592,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   )}
                   {category === 'Oversea' ? (
                     <div>
-                      <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                      <label
+                        className={cn(
+                          'text-xs font-semibold',
+                          styles.fieldLabel
+                        )}
+                      >
                         Country
                       </label>
                       <input
@@ -580,7 +613,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 </div>
                 {category === 'Oversea' ? (
                   <div>
-                    <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                    <label
+                      className={cn('text-xs font-semibold', styles.fieldLabel)}
+                    >
                       Availability
                     </label>
                     <select
@@ -598,7 +633,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
               <div className="space-y-4 md:col-span-2">
                 <div>
-                  <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                  <label
+                    className={cn('text-xs font-semibold', styles.fieldLabel)}
+                  >
                     Player Image
                   </label>
                   <div className="flex gap-2">
@@ -645,18 +682,29 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                 </div>
               </div>
 
-              <div className={cn('grid grid-cols-1 gap-6 p-4 md:col-span-4 md:grid-cols-2', styles.preBoughtPanel)}>
+              <div
+                className={cn(
+                  'grid grid-cols-1 gap-6 p-4 md:col-span-4 md:grid-cols-2',
+                  styles.preBoughtPanel
+                )}
+              >
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     id="preBought"
                     checked={isPreBought}
                     onChange={(e) => setIsPreBought(e.target.checked)}
-                    className={cn('h-5 w-5 rounded focus:ring-2', styles.checkboxInput)}
+                    className={cn(
+                      'h-5 w-5 rounded focus:ring-2',
+                      styles.checkboxInput
+                    )}
                   />
                   <label
                     htmlFor="preBought"
-                    className={cn('text-sm font-black uppercase tracking-tight', styles.checkboxLabel)}
+                    className={cn(
+                      'text-sm font-black uppercase tracking-tight',
+                      styles.checkboxLabel
+                    )}
                   >
                     Register as Pre-bought?
                   </label>
@@ -664,7 +712,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
                 {isPreBought || editingPlayerId ? (
                   <div className="flex-1">
-                    <label className={cn('text-xs font-semibold', styles.fieldLabel)}>
+                    <label
+                      className={cn('text-xs font-semibold', styles.fieldLabel)}
+                    >
                       {isPreBought
                         ? 'Assign To Team (Pre-bought)'
                         : 'Manually Assign/Re-assign To Team'}
@@ -683,8 +733,14 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         </option>
                       ))}
                     </select>
-                    <p className={cn('mt-1 text-[9px] font-bold uppercase tracking-tight', styles.helperText)}>
-                      * Changing this for a drafted player will auto-swap budgets and counts.
+                    <p
+                      className={cn(
+                        'mt-1 text-[9px] font-bold uppercase tracking-tight',
+                        styles.helperText
+                      )}
+                    >
+                      * Changing this for a drafted player will auto-swap
+                      budgets and counts.
                     </p>
                   </div>
                 ) : null}
@@ -727,9 +783,19 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
             </button>
           </div>
 
-          <div className={cn('grid grid-cols-1 items-end gap-4 p-4 md:grid-cols-3', styles.filterShell)}>
+          <div
+            className={cn(
+              'grid grid-cols-1 items-end gap-4 p-4 md:grid-cols-3',
+              styles.filterShell
+            )}
+          >
             <div className="flex-1">
-              <label className={cn('ml-1 text-[10px] font-black', styles.filterLabel)}>
+              <label
+                className={cn(
+                  'ml-1 text-[10px] font-black',
+                  styles.filterLabel
+                )}
+              >
                 Search Player
               </label>
               <div className={styles.searchWrap}>
@@ -756,7 +822,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               </div>
             </div>
             <div>
-              <label className={cn('ml-1 text-[10px] font-black', styles.filterLabel)}>
+              <label
+                className={cn(
+                  'ml-1 text-[10px] font-black',
+                  styles.filterLabel
+                )}
+              >
                 Sub-Category
               </label>
               <select
@@ -776,9 +847,14 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
               <div className={styles.filterMeta}>
                 Showing {paginatedPlayers.length} / {filteredPlayers.length}
               </div>
-              <div className={cn('mt-0.5 text-[10px]', styles.filterMetaSecondary)}>
+              <div
+                className={cn('mt-0.5 text-[10px]', styles.filterMetaSecondary)}
+              >
                 Total pool:{' '}
-                {players.filter((player) => player.category === listCategory).length}
+                {
+                  players.filter((player) => player.category === listCategory)
+                    .length
+                }
               </div>
             </div>
           </div>
@@ -786,15 +862,31 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
-            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
-            <div className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}></div>
+            <div
+              className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}
+            ></div>
+            <div
+              className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}
+            ></div>
+            <div
+              className={cn('h-10 w-full rounded-lg', styles.loadingSkeleton)}
+            ></div>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <div className={cn('hidden overflow-x-auto md:block', styles.tableShell)}>
+            <div
+              className={cn(
+                'hidden overflow-x-auto md:block',
+                styles.tableShell
+              )}
+            >
               <table className="w-full text-left text-sm">
-                <thead className={cn('text-[10px] font-black uppercase', styles.tableHead)}>
+                <thead
+                  className={cn(
+                    'text-[10px] font-black uppercase',
+                    styles.tableHead
+                  )}
+                >
                   <tr>
                     <th scope="col" className="px-6 py-4">
                       Player Details
@@ -810,7 +902,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     </th>
                   </tr>
                 </thead>
-                <tbody className={cn('divide-y divide-gray-50', styles.tableBody)}>
+                <tbody
+                  className={cn('divide-y divide-gray-50', styles.tableBody)}
+                >
                   {paginatedPlayers.map((player) => (
                     <tr key={player.id} className={styles.tableRow}>
                       <td className="px-6 py-4">
@@ -834,23 +928,43 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                             )}
                           </div>
                           <div>
-                            <div className={cn('leading-tight font-black', styles.playerName)}>
+                            <div
+                              className={cn(
+                                'leading-tight font-black',
+                                styles.playerName
+                              )}
+                            >
                               {player.name}
                             </div>
-                            <div className={cn('text-[10px] font-bold uppercase tracking-tight', styles.playerMeta)}>
+                            <div
+                              className={cn(
+                                'text-[10px] font-bold uppercase tracking-tight',
+                                styles.playerMeta
+                              )}
+                            >
                               {player.position} • Category {player.subCategory}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className={cn('font-mono font-black', styles.priceText)}>
+                        <div
+                          className={cn(
+                            'font-mono font-black',
+                            styles.priceText
+                          )}
+                        >
                           {player.category === 'Local'
                             ? `${formatMoney(player.priceBDT || 0)} BDT`
                             : `$${formatMoney(player.priceUSD || 0)}`}
                         </div>
                         {player.country ? (
-                          <div className={cn('text-[10px] font-bold uppercase', styles.infoText)}>
+                          <div
+                            className={cn(
+                              'text-[10px] font-bold uppercase',
+                              styles.infoText
+                            )}
+                          >
                             {player.country} • {player.availability}
                           </div>
                         ) : null}
@@ -869,7 +983,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => startEdit(player)}
-                            className={cn(styles.rowIconButton, styles.rowEditButton)}
+                            className={cn(
+                              styles.rowIconButton,
+                              styles.rowEditButton
+                            )}
                           >
                             <svg
                               className="h-4 w-4"
@@ -910,7 +1027,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => handleRowFileUpload(e, player.id)}
+                              onChange={(e) =>
+                                handleRowFileUpload(e, player.id)
+                              }
                             />
                           </label>
 
@@ -932,7 +1051,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                                 onChange={(e) =>
                                   handleManualAssign(player.id, e.target.value)
                                 }
-                                className={cn('theme-field', styles.assignSelect)}
+                                className={cn(
+                                  'theme-field',
+                                  styles.assignSelect
+                                )}
                               >
                                 <option value="">Assign To...</option>
                                 {teams.map((team) => (
@@ -970,10 +1092,16 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   ))}
                   {paginatedPlayers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className={cn('py-20 text-center', styles.emptyCell)}>
+                      <td
+                        colSpan={5}
+                        className={cn('py-20 text-center', styles.emptyCell)}
+                      >
                         <div className="flex flex-col items-center">
                           <svg
-                            className={cn('mb-2 h-12 w-12', styles.emptyStateIcon)}
+                            className={cn(
+                              'mb-2 h-12 w-12',
+                              styles.emptyStateIcon
+                            )}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -985,7 +1113,12 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                             ></path>
                           </svg>
-                          <span className={cn('text-sm font-bold italic', styles.emptyStateText)}>
+                          <span
+                            className={cn(
+                              'text-sm font-bold italic',
+                              styles.emptyStateText
+                            )}
+                          >
                             No players found match your current filters.
                           </span>
                         </div>
@@ -998,7 +1131,10 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
 
             <div className="space-y-3 md:hidden">
               {paginatedPlayers.map((player) => (
-                <article key={player.id} className={cn('p-3', styles.mobileCard)}>
+                <article
+                  key={player.id}
+                  className={cn('p-3', styles.mobileCard)}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div
@@ -1022,10 +1158,20 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                         )}
                       </div>
                       <div>
-                        <p className={cn('text-sm font-black', styles.playerName)}>
+                        <p
+                          className={cn(
+                            'text-sm font-black',
+                            styles.playerName
+                          )}
+                        >
                           {player.name}
                         </p>
-                        <p className={cn('text-[10px] font-bold uppercase', styles.playerMeta)}>
+                        <p
+                          className={cn(
+                            'text-[10px] font-bold uppercase',
+                            styles.playerMeta
+                          )}
+                        >
                           {player.position} • {player.subCategory}
                         </p>
                       </div>
@@ -1040,7 +1186,9 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                     )}
                   </div>
 
-                  <p className={cn('mt-2 text-xs font-bold', styles.mobilePrice)}>
+                  <p
+                    className={cn('mt-2 text-xs font-bold', styles.mobilePrice)}
+                  >
                     {player.category === 'Local'
                       ? `${formatMoney(player.priceBDT || 0)} BDT`
                       : `$${formatMoney(player.priceUSD || 0)}`}
@@ -1120,13 +1268,20 @@ export default function PlayerManagement({ teams }: { teams: ApiTeam[] }) {
                   styles.paginationShell
                 )}
               >
-                <div className={cn('text-xs font-black uppercase tracking-widest', styles.paginationText)}>
+                <div
+                  className={cn(
+                    'text-xs font-black uppercase tracking-widest',
+                    styles.paginationText
+                  )}
+                >
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
                   <button
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(1, page - 1))
+                    }
                     className={cn(
                       'theme-button theme-button-secondary',
                       styles.paginationButton

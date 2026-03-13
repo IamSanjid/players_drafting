@@ -9,13 +9,7 @@ type CardProps = {
 
 export function Card({ children, className }: CardProps) {
   return (
-    <section
-      className={cn(
-        'theme-card',
-        styles.card,
-        className
-      )}
-    >
+    <section className={cn('theme-card', styles.card, className)}>
       {children}
     </section>
   );
@@ -30,5 +24,7 @@ export function CardHeader({ children, className }: CardProps) {
 }
 
 export function CardBody({ children, className }: CardProps) {
-  return <div className={cn('px-5 py-4', styles.body, className)}>{children}</div>;
+  return (
+    <div className={cn('px-5 py-4', styles.body, className)}>{children}</div>
+  );
 }

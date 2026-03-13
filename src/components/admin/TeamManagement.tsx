@@ -419,7 +419,9 @@ export default function TeamManagement() {
               Showing {filteredTeams.length} / {teams.length}
             </p>
             {savingTeamId ? (
-              <p className={cn('mt-1 text-xs font-semibold', styles.savingText)}>
+              <p
+                className={cn('mt-1 text-xs font-semibold', styles.savingText)}
+              >
                 Saving team changes...
               </p>
             ) : null}
@@ -428,15 +430,31 @@ export default function TeamManagement() {
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
-            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
-            <div className={cn('h-12 w-full rounded-lg', styles.skeleton)}></div>
+            <div
+              className={cn('h-12 w-full rounded-lg', styles.skeleton)}
+            ></div>
+            <div
+              className={cn('h-12 w-full rounded-lg', styles.skeleton)}
+            ></div>
+            <div
+              className={cn('h-12 w-full rounded-lg', styles.skeleton)}
+            ></div>
           </div>
         ) : (
           <>
-            <div className={cn('hidden overflow-x-auto md:block', styles.tableShell)}>
+            <div
+              className={cn(
+                'hidden overflow-x-auto md:block',
+                styles.tableShell
+              )}
+            >
               <table className={cn('w-full text-left text-sm', styles.table)}>
-                <thead className={cn('rounded-t-lg text-xs uppercase', styles.tableHead)}>
+                <thead
+                  className={cn(
+                    'rounded-t-lg text-xs uppercase',
+                    styles.tableHead
+                  )}
+                >
                   <tr>
                     <th scope="col" className="px-4 py-3">
                       Serial
@@ -459,7 +477,10 @@ export default function TeamManagement() {
                   {filteredTeams.map((team) => (
                     <tr
                       key={team.id}
-                      className={cn('group border-b duration-150', styles.tableRow)}
+                      className={cn(
+                        'group border-b duration-150',
+                        styles.tableRow
+                      )}
                     >
                       <td className="px-4 py-4 font-medium">
                         <span
@@ -579,7 +600,12 @@ export default function TeamManagement() {
                           }
                           className={cn('theme-field', styles.budgetField)}
                         />
-                        <p className={cn('mt-1 text-[10px] font-semibold', styles.budgetText)}>
+                        <p
+                          className={cn(
+                            'mt-1 text-[10px] font-semibold',
+                            styles.budgetText
+                          )}
+                        >
                           {formatMoney(team.budgetBDT)} BDT left
                         </p>
                       </td>
@@ -594,7 +620,12 @@ export default function TeamManagement() {
                           }
                           className={cn('theme-field', styles.budgetField)}
                         />
-                        <p className={cn('mt-1 text-[10px] font-semibold', styles.budgetText)}>
+                        <p
+                          className={cn(
+                            'mt-1 text-[10px] font-semibold',
+                            styles.budgetText
+                          )}
+                        >
                           {formatMoney(team.budgetUSD)} USD left
                         </p>
                       </td>
@@ -636,10 +667,7 @@ export default function TeamManagement() {
 
             <div className="space-y-3 md:hidden">
               {filteredTeams.map((team) => (
-                <article
-                  key={team.id}
-                  className={cn('p-3', styles.mobileCard)}
-                >
+                <article key={team.id} className={cn('p-3', styles.mobileCard)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <div
@@ -668,7 +696,12 @@ export default function TeamManagement() {
                         )}
                       </div>
                       <div>
-                        <p className={cn('text-sm font-black', styles.headerTitle)}>
+                        <p
+                          className={cn(
+                            'text-sm font-black',
+                            styles.headerTitle
+                          )}
+                        >
                           {team.name}
                         </p>
                         <p
@@ -715,7 +748,12 @@ export default function TeamManagement() {
                     />
                   </div>
 
-                  <p className={cn('mt-2 text-[10px] font-semibold', styles.mobileMeta)}>
+                  <p
+                    className={cn(
+                      'mt-2 text-[10px] font-semibold',
+                      styles.mobileMeta
+                    )}
+                  >
                     Left: {formatMoney(team.budgetBDT)} BDT /{' '}
                     {formatMoney(team.budgetUSD)} USD
                   </p>

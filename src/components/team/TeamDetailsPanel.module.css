@@ -1,17 +1,28 @@
 .banner {
   border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 48%, var(--foreground) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-strong) 48%,
+    var(--foreground) 100%
+  );
   box-shadow: var(--shadow-md);
 }
 
 .bannerOverlay {
-  background: linear-gradient(to top, var(--overlay-strong), color-mix(in srgb, var(--foreground) 22%, transparent), transparent);
+  background: linear-gradient(
+    to top,
+    var(--overlay-strong),
+    color-mix(in srgb, var(--foreground) 22%, transparent),
+    transparent
+  );
 }
 
 .logoFrame {
   border: 2px solid color-mix(in srgb, var(--surface) 50%, transparent);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
-  box-shadow: 0 18px 32px color-mix(in srgb, var(--text-strong) 32%, transparent);
+  box-shadow: 0 18px 32px
+    color-mix(in srgb, var(--text-strong) 32%, transparent);
 }
 
 .logoPlaceholder {

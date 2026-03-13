@@ -1,18 +1,18 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f4f7fb;
-  --foreground: #0f172a;
+  --background: #fbf9fc;
+  --foreground: #231629;
   --surface: #ffffff;
-  --surface-muted: #eef3f9;
-  --surface-subtle: #f8fbff;
-  --surface-accent: #eff6ff;
-  --border: #d9e2ef;
-  --border-strong: #b8c8dc;
-  --primary: #0369a1;
-  --primary-strong: #075985;
-  --primary-soft: #e0f2fe;
-  --primary-ring: rgba(3, 105, 161, 0.18);
+  --surface-muted: #f5f0f8;
+  --surface-subtle: #fcf9fd;
+  --surface-accent: #f0e7f4;
+  --border: #e2d8e8;
+  --border-strong: #cdb8d7;
+  --primary: #692a7c;
+  --primary-strong: #4f1f5f;
+  --primary-soft: #f1e7f5;
+  --primary-ring: rgba(105, 42, 124, 0.2);
   --info: #4338ca;
   --info-soft: #eef2ff;
   --success: #047857;
@@ -21,16 +21,16 @@
   --warning-soft: #fffbeb;
   --danger: #be123c;
   --danger-soft: #fff1f2;
-  --text-muted: #64748b;
-  --text-soft: #94a3b8;
-  --text-strong: #020617;
+  --text-muted: #6d5f77;
+  --text-soft: #7f6a8d;
+  --text-strong: #1f1027;
   --text-light: #ffffff;
-  --overlay-strong: rgba(2, 6, 23, 0.8);
-  --overlay-soft: rgba(15, 23, 42, 0.6);
-  --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 18px 48px rgba(15, 23, 42, 0.08);
+  --overlay-strong: rgba(22, 10, 30, 0.78);
+  --overlay-soft: rgba(35, 22, 41, 0.56);
+  --shadow-sm: 0 8px 24px rgba(53, 29, 66, 0.06);
+  --shadow-md: 0 18px 48px rgba(53, 29, 66, 0.1);
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
-  --scrollbar-thumb: #a7b5c9;
+  --scrollbar-thumb: #baa6c5;
   --radius-card: 1.5rem;
   --radius-pill: 999px;
 }
@@ -46,6 +46,29 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--primary-strong);
+  transition: color 160ms ease;
+}
+
+a:hover {
+  color: var(--primary);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 26%, white);
+  color: var(--text-strong);
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--primary) 26%, white);
+  color: var(--text-strong);
 }
 
 h1,
@@ -86,7 +109,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
 .custom-scrollbar {
@@ -109,21 +132,28 @@ a:focus-visible {
 }
 
 .theme-card {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
 
 .theme-card-muted {
-  background: var(--surface-muted);
+  background: color-mix(in srgb, var(--surface-muted) 92%, transparent);
   border: 1px solid var(--border);
 }
 
 .theme-panel {
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background-color: var(--surface);
+  background: color-mix(in srgb, var(--surface) 94%, var(--primary-soft));
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(14px);
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
 }
 
 .theme-text-muted {
@@ -174,7 +204,7 @@ a:focus-visible {
 .theme-button-primary {
   background: var(--primary);
   color: var(--text-light);
-  box-shadow: 0 10px 24px rgba(3, 105, 161, 0.2);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 24%, transparent);
 }
 
 .theme-button-primary:hover:not(:disabled) {
@@ -255,21 +285,24 @@ a:focus-visible {
 .status-panel {
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
 }
 
 .app-shell {
   background:
-    radial-gradient(
-      circle at top right,
-      color-mix(in srgb, var(--primary) 10%, transparent),
-      transparent 42%
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.56) 52%,
+      rgba(255, 255, 255, 0.66) 100%
     ),
-    radial-gradient(
-      circle at 10% 10%,
-      color-mix(in srgb, var(--primary-strong) 7%, transparent),
-      transparent 38%
+    linear-gradient(
+      140deg,
+      color-mix(in srgb, var(--primary) 2%, transparent) 0%,
+      color-mix(in srgb, var(--primary-soft) 4%, transparent) 45%,
+      transparent 100%
     ),
+    url('/skin/1.png') center / 100% 100% no-repeat,
     var(--background);
 }
 

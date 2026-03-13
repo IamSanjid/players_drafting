@@ -3,6 +3,7 @@ import 'dotenv-flow/config';
 import { createServer } from 'http';
 import next from 'next';
 import { Server } from 'socket.io';
+import minimist from 'minimist';
 import type {
   ClientToServerEvents,
   InterServerEvents,
@@ -10,10 +11,15 @@ import type {
   SocketData,
 } from '@/lib/socketTypes';
 
+const argv = minimist(process.argv.slice(2));
 const dev = process.env.NODE_ENV !== 'production';
 const hostname =
-  process.env.HOST || process.env.NEXT_PUBLIC_SITE_HOSTNAME || 'localhost';
-const port = parseInt(process.env.PORT || '3000', 10);
+  argv.host ||
+  argv.H ||
+  process.env.HOST ||
+  process.env.NEXT_PUBLIC_SITE_HOSTNAME ||
+  'localhost';
+const port = parseInt(argv.port || argv.p || process.env.PORT || '3000', 10);
 
 // Initialize Next.js app
 const app = next({ dev, hostname, port });

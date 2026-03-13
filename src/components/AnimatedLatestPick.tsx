@@ -157,7 +157,10 @@ export default function AnimatedLatestPick() {
                       alt={`${pick.team.name} logo`}
                       width={80}
                       height={80}
-                      className={cn('h-20 w-20 object-contain', styles.teamLogoFilter)}
+                      className={cn(
+                        'h-20 w-20 object-contain',
+                        styles.teamLogoFilter
+                      )}
                     />
                   )}
                   <div>
@@ -225,7 +228,9 @@ export default function AnimatedLatestPick() {
                       >
                         Position
                       </p>
-                      <p className={cn('text-lg font-black', styles.detailValue)}>
+                      <p
+                        className={cn('text-lg font-black', styles.detailValue)}
+                      >
                         {pick.player.position}
                       </p>
                     </div>
@@ -244,7 +249,12 @@ export default function AnimatedLatestPick() {
                         >
                           Nationality
                         </p>
-                        <p className={cn('text-lg font-black', styles.detailValue)}>
+                        <p
+                          className={cn(
+                            'text-lg font-black',
+                            styles.detailValue
+                          )}
+                        >
                           {pick.player.country}
                         </p>
                       </div>

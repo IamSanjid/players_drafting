@@ -91,15 +91,27 @@ export default function AdminAuthWrapper({
             </div>
           </div>
 
-          <h2 className={cn('mb-1 text-center text-2xl font-black', styles.title)}>
+          <h2
+            className={cn('mb-1 text-center text-2xl font-black', styles.title)}
+          >
             Admin Portal
           </h2>
-          <p className={cn('mb-6 text-center text-sm font-medium', styles.subtitle)}>
+          <p
+            className={cn(
+              'mb-6 text-center text-sm font-medium',
+              styles.subtitle
+            )}
+          >
             Restricted Access
           </p>
 
           {error ? (
-            <div className={cn('mb-4 rounded-lg p-3 text-center text-sm font-medium', styles.errorPanel)}>
+            <div
+              className={cn(
+                'mb-4 rounded-lg p-3 text-center text-sm font-medium',
+                styles.errorPanel
+              )}
+            >
               {error}
             </div>
           ) : null}
@@ -108,7 +120,10 @@ export default function AdminAuthWrapper({
             <div>
               <label
                 htmlFor="adminPassword"
-                className={cn('mb-1 block text-sm font-semibold', styles.fieldLabel)}
+                className={cn(
+                  'mb-1 block text-sm font-semibold',
+                  styles.fieldLabel
+                )}
               >
                 Admin Password
               </label>

@@ -32,9 +32,7 @@ export function Tabs<T extends string>({
           className={cn(
             'rounded-2xl px-4 py-2 text-sm font-semibold transition focus-visible:outline-none',
             styles.tab,
-            value === option.value
-              ? styles.tabActive
-              : styles.tabIdle
+            value === option.value ? styles.tabActive : styles.tabIdle
           )}
         >
           {option.label}
