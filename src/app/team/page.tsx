@@ -40,6 +40,13 @@ export default function TeamView() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('Pick Board');
+  // for resetting some child components...
+  const [resetKey, setResetKey] = useState<number>(0);
+
+  // reset only when allowed-categories is changed..
+  useEffect(() => {
+    setResetKey((prev) => prev + 1);
+  }, [allowedCategories]);
 
   useDraftStateSync({ fetchAll });
 
@@ -110,9 +117,13 @@ export default function TeamView() {
           logoAlt="Logo"
         />
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          <p className={cn('text-lg font-bold', styles.loadingMessage)}>
-            Loading draft state...
-          </p>
+          <Card className="w-full max-w-sm">
+            <CardBody className="p-8 text-center">
+              <p className={cn('text-sm font-semibold', styles.loadingMessage)}>
+                Loading draft state...
+              </p>
+            </CardBody>
+          </Card>
         </div>
         <BrandFooter compact />
       </div>
@@ -278,6 +289,7 @@ export default function TeamView() {
               currentTurnTeamId={currentTurnTeam?.id}
               draftStatus={draftStatus}
               teams={teams}
+              key={resetKey}
             />
           </Card>
         </div>

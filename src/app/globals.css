@@ -1,18 +1,18 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f7fb;
+  --foreground: #171b26;
   --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --surface-subtle: #f8fafc;
-  --surface-accent: #e2e8f0;
-  --border: #d8e0ea;
-  --border-strong: #b8c4d4;
-  --primary: #475569;
-  --primary-strong: #334155;
-  --primary-soft: #e2e8f0;
-  --primary-ring: rgba(71, 85, 105, 0.22);
+  --surface-muted: #f1f3f9;
+  --surface-subtle: #f8f9fd;
+  --surface-accent: #e4e7f1;
+  --border: #d5d9e6;
+  --border-strong: #b8c0d3;
+  --primary: #4b5570;
+  --primary-strong: #373f57;
+  --primary-soft: #e8ebf4;
+  --primary-ring: rgba(75, 85, 112, 0.24);
   --info: #4338ca;
   --info-soft: #eef2ff;
   --success: #047857;
@@ -21,16 +21,16 @@
   --warning-soft: #fffbeb;
   --danger: #be123c;
   --danger-soft: #fff1f2;
-  --text-muted: #526071;
-  --text-soft: #708094;
-  --text-strong: #0f172a;
+  --text-muted: #525d72;
+  --text-soft: #6e788f;
+  --text-strong: #141b2b;
   --text-light: #ffffff;
   --overlay-strong: rgba(15, 23, 42, 0.72);
   --overlay-soft: rgba(30, 41, 59, 0.5);
   --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 18px 48px rgba(15, 23, 42, 0.1);
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
-  --scrollbar-thumb: #c3cedc;
+  --scrollbar-thumb: #c2c9db;
   --radius-card: 1.5rem;
   --radius-pill: 999px;
 }
@@ -139,19 +139,19 @@ a:focus-visible {
 }
 
 .theme-card {
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
 
 .theme-card-muted {
-  background: color-mix(in srgb, var(--surface-muted) 95%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 96%, transparent);
   border: 1px solid var(--border);
 }
 
 .theme-panel {
   background-color: var(--surface);
-  background: color-mix(in srgb, var(--surface) 96%, var(--primary-soft));
+  background: color-mix(in srgb, var(--surface) 98%, var(--primary-soft));
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(14px);
@@ -294,23 +294,11 @@ iframe {
 .status-panel {
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
 }
 
 .app-shell {
   background:
-    linear-gradient(
-      165deg,
-      rgba(255, 255, 255, 0.66) 0%,
-      rgba(255, 255, 255, 0.6) 52%,
-      rgba(255, 255, 255, 0.7) 100%
-    ),
-    linear-gradient(
-      140deg,
-      color-mix(in srgb, var(--primary) 2%, transparent) 0%,
-      color-mix(in srgb, var(--primary-soft) 4%, transparent) 45%,
-      transparent 100%
-    ),
     url('/skin/1.png') center / 100% 100% no-repeat,
     var(--background);
 }

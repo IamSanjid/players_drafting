@@ -98,10 +98,11 @@ export default function PublicDashboard() {
         }
       />
 
-      <div>
+      <div className="flex justify-center overflow-x-auto px-1">
         <Tabs<PublicTab>
           value={activeTab}
           onChange={setActiveTab}
+          className="shrink-0"
           options={[
             { value: 'Session', label: 'Draft Session' },
             { value: 'Players', label: 'Players' },
@@ -192,11 +193,6 @@ export default function PublicDashboard() {
                         {team.name}
                       </p>
                     </div>
-                    {/* <StatusBadge
-                      label={`#${team.serialNumber}`}
-                      tone="active"
-                      className="font-black"
-                    /> */}
                     <StatusBadge
                       label={
                         expandedProfileTeamId === team.id ? 'Open' : 'Expand'

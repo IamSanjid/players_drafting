@@ -10,7 +10,15 @@ import type { ApiPlayer, ApiTeam } from '@/types/domain';
 
 import styles from './TeamDetailsPanel.module.css';
 
-export function TeamProfile({ team }: { team: ApiTeam }) {
+type TeamProfileLayout = 'auto' | 'stacked';
+
+export function TeamProfile({
+  team,
+  layout = 'auto',
+}: {
+  team: ApiTeam;
+  layout?: TeamProfileLayout;
+}) {
   const [tab, setTab] = useState<'Local' | 'Oversea'>('Local');
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
@@ -36,209 +44,233 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
     setPage(1);
   };
 
+  const shouldUseSplitLayout = layout === 'auto';
+
   return (
-    <div className="flex h-full flex-col">
-      <header
-        className={cn(
-          styles.banner,
-          'relative mb-4 h-32 shrink-0 overflow-hidden rounded-xl'
-        )}
-      >
-        {team.bannerUrl ? (
-          <Image
-            src={team.bannerUrl}
-            alt=""
-            fill
-            quality={95}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, (max-width: 1536px) 70vw, (max-width: 1920px) 75vw, 1200px"
-            className="object-cover opacity-90"
-          />
-        ) : null}
-
-        <div className={cn(styles.bannerOverlay, 'absolute inset-0')} />
-
-        <div className="absolute bottom-3 left-3 flex items-center gap-3">
-          <div
-            className={cn(
-              styles.logoFrame,
-              'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1.5'
-            )}
-          >
-            {team.logoUrl ? (
-              <div className="relative h-full w-full">
-                <Image
-                  src={team.logoUrl}
-                  alt={`${team.name} logo`}
-                  fill
-                  sizes="56px"
-                  className="object-contain"
-                />
-              </div>
-            ) : (
-              <span
-                className={cn(styles.logoPlaceholder, 'text-lg font-black')}
-              >
-                {team.name.charAt(0)}
-              </span>
-            )}
-          </div>
-
-          <div>
-            <h3
-              className={cn(
-                styles.bannerTitle,
-                'text-lg font-black leading-none'
-              )}
-            >
-              {team.name}
-            </h3>
-            <p
-              className={cn(
-                styles.bannerMeta,
-                'mt-1 text-[10px] font-bold uppercase tracking-widest'
-              )}
-            >
-              Serial #{team.serialNumber}
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <MetricCard
-          title="BDT"
-          spent={`৳${spentBDT.toLocaleString()}`}
-          available={`৳${toBigIntSafe(team.budgetBDT).toLocaleString()}`}
-        />
-        <MetricCard
-          title="USD"
-          spent={`$${spentUSD.toLocaleString()}`}
-          available={`$${toBigIntSafe(team.budgetUSD).toLocaleString()}`}
-        />
-      </div>
-
-      <Tabs<'Local' | 'Oversea'>
-        value={tab}
-        onChange={handleTabChange}
-        className="mb-3 w-full"
-        options={[
-          { value: 'Local', label: `Local (${localPlayers.length})` },
-          { value: 'Oversea', label: `Oversea (${overseaPlayers.length})` },
-        ]}
-      />
-
+    <div className={shouldUseSplitLayout ? styles.profileContainer : undefined}>
       <div
         className={cn(
-          styles.tableShell,
-          'flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl'
+          shouldUseSplitLayout && styles.profileLayoutAuto,
+          'flex h-full flex-col gap-3'
         )}
       >
-        <div className="custom-scrollbar overflow-x-auto overflow-y-auto">
-          <table className="w-full text-left text-xs">
-            <thead className={cn(styles.tableHead, 'text-[10px] uppercase')}>
-              <tr>
-                <th className="px-3 py-2.5 font-black">Player</th>
-                <th className="px-3 py-2.5 font-black">Pos</th>
-                <th className="px-3 py-2.5 text-right font-black">Price</th>
-              </tr>
-            </thead>
-            <tbody className={cn(styles.tableBody, 'divide-y')}>
-              {currentPlayers.map((player: ApiPlayer) => (
-                <tr
-                  key={player.id}
-                  className={cn(styles.tableRow, 'transition-colors')}
-                >
-                  <td className="px-3 py-2.5">
-                    <p className={cn(styles.playerName, 'font-bold')}>
-                      {player.name}
-                    </p>
-                    <p
-                      className={cn(
-                        styles.playerMeta,
-                        'text-[10px] font-semibold uppercase tracking-wider'
-                      )}
-                    >
-                      Category {player.subCategory}
-                    </p>
-                    {player.category === 'Oversea' && player.country ? (
-                      <p
-                        className={cn(
-                          styles.playerMeta,
-                          'text-[10px] font-semibold uppercase'
-                        )}
-                      >
-                        {player.country}
-                      </p>
-                    ) : null}
-                  </td>
-                  <td className={cn(styles.position, 'px-3 py-2.5')}>
-                    {player.position}
-                  </td>
-                  <td
-                    className={cn(
-                      styles.price,
-                      'px-3 py-2.5 text-right font-mono font-bold'
-                    )}
-                  >
-                    {player.isPreBought
-                      ? 'Pre-Bought'
-                      : tab === 'Local'
-                        ? `৳${formatMoney(player.priceBDT)}`
-                        : `$${formatMoney(player.priceUSD)}`}
-                  </td>
-                </tr>
-              ))}
-              {displayPlayers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className={cn(styles.emptyState, 'px-3 py-8 text-center')}
-                  >
-                    No players drafted yet.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-
-        {totalPages > 1 ? (
-          <div
+        <div className={cn(styles.profileAside, 'flex flex-col gap-3')}>
+          <header
             className={cn(
-              styles.pagination,
-              'flex items-center justify-between px-2 py-2'
+              styles.banner,
+              'relative h-32 shrink-0 overflow-hidden rounded-xl'
             )}
           >
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              className={cn(
-                styles.paginationButton,
-                'rounded px-2 py-1 text-[10px] font-bold'
-              )}
-            >
-              Prev
-            </button>
-            <span
-              className={cn(
-                styles.paginationMeta,
-                'text-[10px] font-bold uppercase tracking-wider'
-              )}
-            >
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-              className={cn(
-                styles.paginationButton,
-                'rounded px-2 py-1 text-[10px] font-bold'
-              )}
-            >
-              Next
-            </button>
+            {team.bannerUrl ? (
+              <Image
+                src={team.bannerUrl}
+                alt=""
+                fill
+                quality={95}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, (max-width: 1536px) 70vw, (max-width: 1920px) 75vw, 1200px"
+                loading="eager"
+                className="object-cover opacity-90"
+              />
+            ) : null}
+
+            <div className={cn(styles.bannerOverlay, 'absolute inset-0')} />
+
+            <div className="absolute bottom-3 left-3 flex items-center gap-3">
+              <div
+                className={cn(
+                  styles.logoFrame,
+                  'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1.5'
+                )}
+              >
+                {team.logoUrl ? (
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={team.logoUrl}
+                      alt={`${team.name} logo`}
+                      fill
+                      sizes="56px"
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <span
+                    className={cn(styles.logoPlaceholder, 'text-lg font-black')}
+                  >
+                    {team.name.charAt(0)}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h3
+                  className={cn(
+                    styles.bannerTitle,
+                    'text-lg font-black leading-none'
+                  )}
+                >
+                  {team.name}
+                </h3>
+                <p
+                  className={cn(
+                    styles.bannerMeta,
+                    'mt-1 text-[10px] font-bold uppercase tracking-widest'
+                  )}
+                >
+                  Serial #{team.serialNumber}
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <div className="grid grid-cols-2 gap-2">
+            <MetricCard
+              title="BDT"
+              spent={`৳${spentBDT.toLocaleString()}`}
+              available={`৳${toBigIntSafe(team.budgetBDT).toLocaleString()}`}
+            />
+            <MetricCard
+              title="USD"
+              spent={`$${spentUSD.toLocaleString()}`}
+              available={`$${toBigIntSafe(team.budgetUSD).toLocaleString()}`}
+            />
           </div>
-        ) : null}
+        </div>
+
+        <div
+          className={cn(
+            styles.profileMain,
+            'flex min-h-0 flex-1 flex-col gap-3 min-w-0'
+          )}
+        >
+          <Tabs<'Local' | 'Oversea'>
+            value={tab}
+            onChange={handleTabChange}
+            className="w-full"
+            options={[
+              { value: 'Local', label: `Local (${localPlayers.length})` },
+              { value: 'Oversea', label: `Oversea (${overseaPlayers.length})` },
+            ]}
+          />
+
+          <div
+            className={cn(
+              styles.tableShell,
+              'flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl'
+            )}
+          >
+            <div className="custom-scrollbar overflow-x-auto overflow-y-auto">
+              <table className="w-full text-left text-xs">
+                <thead
+                  className={cn(styles.tableHead, 'text-[10px] uppercase')}
+                >
+                  <tr>
+                    <th className="px-3 py-2.5 font-black">Player</th>
+                    <th className="px-3 py-2.5 font-black">Pos</th>
+                    <th className="px-3 py-2.5 text-right font-black">Price</th>
+                  </tr>
+                </thead>
+                <tbody className={cn(styles.tableBody, 'divide-y')}>
+                  {currentPlayers.map((player: ApiPlayer) => (
+                    <tr
+                      key={player.id}
+                      className={cn(styles.tableRow, 'transition-colors')}
+                    >
+                      <td className="px-3 py-2.5">
+                        <p className={cn(styles.playerName, 'font-bold')}>
+                          {player.name}
+                        </p>
+                        <p
+                          className={cn(
+                            styles.playerMeta,
+                            'text-[10px] font-semibold uppercase tracking-wider'
+                          )}
+                        >
+                          Category {player.subCategory}
+                        </p>
+                        {player.category === 'Oversea' && player.country ? (
+                          <p
+                            className={cn(
+                              styles.playerMeta,
+                              'text-[10px] font-semibold uppercase'
+                            )}
+                          >
+                            {player.country}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className={cn(styles.position, 'px-3 py-2.5')}>
+                        {player.position}
+                      </td>
+                      <td
+                        className={cn(
+                          styles.price,
+                          'px-3 py-2.5 text-right font-mono font-bold'
+                        )}
+                      >
+                        {player.isPreBought
+                          ? 'Pre-Bought'
+                          : tab === 'Local'
+                            ? `৳${formatMoney(player.priceBDT)}`
+                            : `$${formatMoney(player.priceUSD)}`}
+                      </td>
+                    </tr>
+                  ))}
+                  {displayPlayers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className={cn(
+                          styles.emptyState,
+                          'px-3 py-8 text-center'
+                        )}
+                      >
+                        No players drafted yet.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 ? (
+              <div
+                className={cn(
+                  styles.pagination,
+                  'flex items-center justify-between px-2 py-2'
+                )}
+              >
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                  className={cn(
+                    styles.paginationButton,
+                    'rounded px-2 py-1 text-[10px] font-bold'
+                  )}
+                >
+                  Prev
+                </button>
+                <span
+                  className={cn(
+                    styles.paginationMeta,
+                    'text-[10px] font-bold uppercase tracking-wider'
+                  )}
+                >
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                  className={cn(
+                    styles.paginationButton,
+                    'rounded px-2 py-1 text-[10px] font-bold'
+                  )}
+                >
+                  Next
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -271,7 +303,9 @@ export default function TeamDetailsPanel({
         />
 
         {activeTab === 'Team' && currentTeam ? (
-          <TeamProfile team={currentTeam} />
+          <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto pr-1 pb-2">
+            <TeamProfile team={currentTeam} layout="stacked" />
+          </div>
         ) : null}
 
         {activeTab === 'Others' ? (
@@ -300,7 +334,7 @@ export default function TeamDetailsPanel({
                 </button>
                 {expandedTeamId === team.id ? (
                   <div className={cn(styles.othersBody, 'p-3')}>
-                    <TeamProfile team={team} />
+                    <TeamProfile team={team} layout="stacked" />
                   </div>
                 ) : null}
               </article>

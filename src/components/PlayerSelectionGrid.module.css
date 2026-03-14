@@ -204,3 +204,64 @@
 .ellipsis {
   color: var(--text-soft);
 }
+
+.compactList {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: max-content;
+}
+
+.compactCard {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  flex: 0 0 15.5rem;
+  min-width: 15.5rem;
+  scroll-snap-align: always;
+}
+
+.compactHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+}
+
+.compactAvatar {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.compactMeta {
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, var(--surface));
+  padding-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+}
+
+.compactAction {
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, var(--surface));
+  padding-top: 0.55rem;
+  display: flex;
+  justify-content: center;
+}
+
+.teamIconShell {
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--surface));
+  background: color-mix(in srgb, var(--surface-muted) 72%, var(--surface));
+}
+
+.teamIconFallback {
+  color: var(--text-soft);
+}

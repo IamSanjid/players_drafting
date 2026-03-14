@@ -62,7 +62,7 @@ export default function AnimatedLatestPick() {
           exit={{ opacity: 0 }}
           onClick={handleManualClose}
           className={cn(
-            'fixed inset-0 z-[100] flex items-center justify-center p-4 transition-cursor',
+            'fixed inset-0 z-100 flex items-center justify-center p-4 transition-cursor',
             styles.overlay,
             canClose ? 'cursor-pointer' : 'cursor-wait'
           )}
@@ -103,7 +103,7 @@ export default function AnimatedLatestPick() {
 
             <div
               className={cn(
-                'relative z-30 flex min-h-[400px] w-full items-center justify-center overflow-hidden md:min-h-[600px] md:w-5/12',
+                'relative z-30 flex min-h-100 w-full items-center justify-center overflow-hidden md:min-h-150 md:w-5/12',
                 styles.imagePanel
               )}
             >
@@ -206,7 +206,7 @@ export default function AnimatedLatestPick() {
                   </p>
                   <h3
                     className={cn(
-                      'break-words text-5xl font-black leading-none tracking-tight md:text-7xl',
+                      'wrap-break-word text-5xl font-black leading-none tracking-tight md:text-7xl',
                       styles.playerName
                     )}
                   >
@@ -279,9 +279,11 @@ export default function AnimatedLatestPick() {
                           styles.valueAmount
                         )}
                       >
-                        {pick.player.category === 'Local'
-                          ? `৳${Number(pick.player.priceBDT || 0).toLocaleString()}`
-                          : `$${Number(pick.player.priceUSD || 0).toLocaleString()}`}
+                        {pick.player.isPreBought
+                          ? 'Pre-Bought'
+                          : pick.player.category === 'Local'
+                            ? `৳${Number(pick.player.priceBDT || 0).toLocaleString()}`
+                            : `$${Number(pick.player.priceUSD || 0).toLocaleString()}`}
                       </p>
                     </div>
                   </div>

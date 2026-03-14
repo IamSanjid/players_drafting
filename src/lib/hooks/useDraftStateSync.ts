@@ -1,12 +1,9 @@
 import { useCallback, useEffect } from 'react';
 
+import type { FetchAllFn } from '@/lib/draftStore';
 import { getSocket } from '@/lib/socketClient';
 import type { ServerToClientEvents } from '@/lib/socketTypes';
 
-type FetchAllFn = (options?: {
-  silent?: boolean;
-  force?: boolean;
-}) => Promise<void>;
 type DraftSocketEvent = keyof ServerToClientEvents;
 
 export function useDraftStateSync({

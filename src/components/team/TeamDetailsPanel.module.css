@@ -9,6 +9,53 @@
   box-shadow: var(--shadow-md);
 }
 
+.profileContainer {
+  container-type: inline-size;
+}
+
+.profileAside {
+  width: 100%;
+  min-width: 0;
+}
+
+.profileMain {
+  min-width: 0;
+}
+
+@container (min-width: 620px) {
+  .profileLayoutAuto {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .profileLayoutAuto .profileAside {
+    width: min(38%, 20rem);
+    flex-shrink: 0;
+  }
+
+  .profileLayoutAuto .profileMain {
+    flex: 1;
+  }
+}
+
+@media (min-width: 640px) {
+  .profileLayoutAuto {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .profileLayoutAuto .profileAside {
+    width: min(38%, 20rem);
+    flex-shrink: 0;
+  }
+
+  .profileLayoutAuto .profileMain {
+    flex: 1;
+  }
+}
+
 .bannerOverlay {
   background: linear-gradient(
     to top,
@@ -55,6 +102,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
 }
 
 .tableHead {

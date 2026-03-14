@@ -5,10 +5,12 @@ import { create } from 'zustand';
 import { draftApi, playersApi, teamsApi } from '@/lib/api';
 import type { ApiDraftSession, ApiPlayer, ApiTeam } from '@/types/domain';
 
-type FetchAllOptions = {
+export type FetchAllOptions = {
   silent?: boolean;
   force?: boolean;
 };
+
+export type FetchAllFn = (options?: FetchAllOptions) => Promise<void>;
 
 let inFlightFetch: Promise<void> | null = null;
 let lastSuccessfulFetchAt = 0;
