@@ -28,6 +28,17 @@ type PlayerSelectionGridProps = {
   showAllCategories?: boolean;
 };
 
+function bannerBackgroundStyle(bannerUrl: string, backgroundRepeat?: string) {
+  const style = `linear-gradient(to right, color-mix(in srgb, var(--surface) 90%, var(--primary-soft)), color-mix(in srgb, var(--surface) 20%, transparent)), url(${bannerUrl})`;
+
+  return {
+    backgroundImage: style,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: backgroundRepeat,
+  };
+}
+
 export default function PlayerSelectionGrid({
   players,
   allowedCategories,
@@ -279,12 +290,16 @@ export default function PlayerSelectionGrid({
                 let bgInlineStyle = {};
 
                 if (isDrafted && draftingTeam?.bannerUrl) {
-                  bgInlineStyle = {
-                    backgroundImage: `linear-gradient(to right, color-mix(in srgb, var(--surface) 88%, var(--primary-soft)), color-mix(in srgb, var(--surface) 70%, transparent)), url(${draftingTeam.bannerUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  };
+                  bgInlineStyle = bannerBackgroundStyle(
+                    draftingTeam.bannerUrl,
+                    'no-repeat'
+                  );
+                  // {
+                  //   backgroundImage: bannerBackgroundStyle(draftingTeam.bannerUrl),
+                  //   backgroundSize: 'cover',
+                  //   backgroundPosition: 'center',
+                  //   backgroundRepeat: 'no-repeat',
+                  // };
                 }
 
                 return (
@@ -500,11 +515,14 @@ export default function PlayerSelectionGrid({
                     let bgInlineStyle = {};
 
                     if (isDrafted && draftingTeam?.bannerUrl) {
-                      bgInlineStyle = {
-                        backgroundImage: `linear-gradient(to right, color-mix(in srgb, var(--surface) 88%, var(--primary-soft)), color-mix(in srgb, var(--surface) 70%, transparent)), url(${draftingTeam.bannerUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      };
+                      bgInlineStyle = bannerBackgroundStyle(
+                        draftingTeam.bannerUrl
+                      );
+                      // {
+                      //   backgroundImage: bannerBackgroundStyle(draftingTeam.bannerUrl),
+                      //   backgroundSize: 'cover',
+                      //   backgroundPosition: 'center',
+                      // };
                     }
 
                     return (

@@ -43,11 +43,6 @@ export default function TeamView() {
   // for resetting some child components...
   const [resetKey, setResetKey] = useState<number>(0);
 
-  // reset only when allowed-categories is changed..
-  useEffect(() => {
-    setResetKey((prev) => prev + 1);
-  }, [allowedCategories]);
-
   useDraftStateSync({ fetchAll });
 
   useEffect(() => {
@@ -80,6 +75,14 @@ export default function TeamView() {
 
   const liveTeamData =
     teams.find((team) => team.id === loggedInTeam?.id) ?? null;
+
+  // reset only when allowed-categories is changed..
+  useEffect(() => {
+    if (!currentTurnTeam || !liveTeamData) return;
+    if (draftStatus === 'active' && currentTurnTeam?.id === liveTeamData?.id) {
+      setResetKey((prev) => prev + 1);
+    }
+  }, [allowedCategories, draftStatus, currentTurnTeam, liveTeamData]);
 
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();

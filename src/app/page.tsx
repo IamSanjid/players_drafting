@@ -112,106 +112,113 @@ export default function PublicDashboard() {
       </div>
 
       <main className="min-h-0 flex-1">
-        {activeTab === 'Session' && (
-          <section className="mx-auto flex h-full min-h-0 max-w-5xl flex-col space-y-3">
-            {draftStatus === 'idle' || draftStatus === 'ended' ? (
-              <div className="theme-empty-state flex h-full min-h-70 flex-col items-center justify-center rounded-2xl p-8 text-center">
-                <div
-                  className={cn(
-                    'flex h-14 w-14 items-center justify-center rounded-full text-2xl',
-                    styles.emptyStateIcon
-                  )}
-                >
-                  ⏳
-                </div>
-                <p
-                  className={cn('text-base font-bold', styles.emptyStateTitle)}
-                >
-                  {draftStatus === 'ended'
-                    ? 'This draft session has ended.'
-                    : 'Waiting for the draft session to start.'}
-                </p>
-                <p className={cn('mt-1 text-sm', styles.emptyStateText)}>
-                  {draftStatus === 'ended'
-                    ? 'The admin may start a new round any time.'
-                    : 'The admin will kick things off shortly.'}
-                </p>
+        <section
+          className={cn(
+            'mx-auto flex h-full min-h-0 max-w-5xl flex-col space-y-3',
+            activeTab !== 'Session' && 'hidden'
+          )}
+        >
+          {draftStatus === 'idle' || draftStatus === 'ended' ? (
+            <div className="theme-empty-state flex h-full min-h-70 flex-col items-center justify-center rounded-2xl p-8 text-center">
+              <div
+                className={cn(
+                  'flex h-14 w-14 items-center justify-center rounded-full text-2xl',
+                  styles.emptyStateIcon
+                )}
+              >
+                ⏳
               </div>
-            ) : (
-              <div className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto pr-2 pb-6">
-                {sortedTeams.map((team) => (
-                  <SessionTeamRow
-                    key={team.id}
-                    team={team}
-                    isDraftRunning={isDraftRunning}
-                    activeSerial={activeSerial}
-                    currentTurnTeamId={currentTurnTeam?.id || null}
-                    expanded={expandedTeamId === team.id}
-                    onToggle={() =>
-                      setExpandedTeamId(
-                        expandedTeamId === team.id ? null : team.id
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeTab === 'Players' && (
-          <Card className="mx-auto h-full max-w-7xl overflow-hidden">
-            <PlayerSelectionGrid
-              players={players}
-              currentTeamId={null}
-              teams={teams}
-              readOnly
-              showAllCategories
-            />
-          </Card>
-        )}
-
-        {activeTab === 'Teams' && (
-          <section className="mx-auto flex h-full min-h-0 max-w-6xl flex-col space-y-3">
+              <p className={cn('text-base font-bold', styles.emptyStateTitle)}>
+                {draftStatus === 'ended'
+                  ? 'This draft session has ended.'
+                  : 'Waiting for the draft session to start.'}
+              </p>
+              <p className={cn('mt-1 text-sm', styles.emptyStateText)}>
+                {draftStatus === 'ended'
+                  ? 'The admin may start a new round any time.'
+                  : 'The admin will kick things off shortly.'}
+              </p>
+            </div>
+          ) : (
             <div className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto pr-2 pb-6">
               {sortedTeams.map((team) => (
-                <Card key={team.id} className="overflow-hidden">
-                  <button
-                    onClick={() =>
-                      setExpandedProfileTeamId(
-                        expandedProfileTeamId === team.id ? null : team.id
-                      )
-                    }
-                    className={cn(
-                      'flex w-full items-center justify-between gap-4 px-4 py-3 text-left',
-                      styles.teamRowButton
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <TeamLogo team={team} />
-                      <p className={cn('text-lg font-black', styles.teamName)}>
-                        {team.name}
-                      </p>
-                    </div>
-                    <StatusBadge
-                      label={
-                        expandedProfileTeamId === team.id ? 'Open' : 'Expand'
-                      }
-                      tone={
-                        expandedProfileTeamId === team.id ? 'active' : 'neutral'
-                      }
-                    />
-                  </button>
-                  {expandedProfileTeamId === team.id ? (
-                    <CardBody className={styles.expandedBody}>
-                      <TeamProfile team={team} />
-                    </CardBody>
-                  ) : null}
-                </Card>
+                <SessionTeamRow
+                  key={team.id}
+                  team={team}
+                  isDraftRunning={isDraftRunning}
+                  activeSerial={activeSerial}
+                  currentTurnTeamId={currentTurnTeam?.id || null}
+                  expanded={expandedTeamId === team.id}
+                  onToggle={() =>
+                    setExpandedTeamId(
+                      expandedTeamId === team.id ? null : team.id
+                    )
+                  }
+                />
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
+
+        <Card
+          className={cn(
+            'mx-auto h-full max-w-7xl overflow-hidden',
+            activeTab !== 'Players' && 'hidden'
+          )}
+        >
+          <PlayerSelectionGrid
+            players={players}
+            currentTeamId={null}
+            teams={teams}
+            readOnly
+            showAllCategories
+          />
+        </Card>
+
+        <section
+          className={cn(
+            'mx-auto flex h-full min-h-0 max-w-6xl flex-col space-y-3',
+            activeTab !== 'Teams' && 'hidden'
+          )}
+        >
+          <div className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto pr-2 pb-6">
+            {sortedTeams.map((team) => (
+              <Card key={team.id} className="overflow-hidden">
+                <button
+                  onClick={() =>
+                    setExpandedProfileTeamId(
+                      expandedProfileTeamId === team.id ? null : team.id
+                    )
+                  }
+                  className={cn(
+                    'flex w-full items-center justify-between gap-4 px-4 py-3 text-left',
+                    styles.teamRowButton
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <TeamLogo team={team} />
+                    <p className={cn('text-lg font-black', styles.teamName)}>
+                      {team.name}
+                    </p>
+                  </div>
+                  <StatusBadge
+                    label={
+                      expandedProfileTeamId === team.id ? 'Open' : 'Expand'
+                    }
+                    tone={
+                      expandedProfileTeamId === team.id ? 'active' : 'neutral'
+                    }
+                  />
+                </button>
+                {expandedProfileTeamId === team.id ? (
+                  <CardBody className={styles.expandedBody}>
+                    <TeamProfile team={team} />
+                  </CardBody>
+                ) : null}
+              </Card>
+            ))}
+          </div>
+        </section>
       </main>
 
       <BrandFooter />
