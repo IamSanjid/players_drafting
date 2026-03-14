@@ -49,7 +49,8 @@ export function TeamProfile({ team }: { team: ApiTeam }) {
             src={team.bannerUrl}
             alt=""
             fill
-            sizes="(max-width: 768px) 100vw, 28rem"
+            quality={95}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, (max-width: 1536px) 70vw, (max-width: 1920px) 75vw, 1200px"
             className="object-cover opacity-90"
           />
         ) : null}

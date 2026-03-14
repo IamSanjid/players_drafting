@@ -68,7 +68,7 @@
 }
 
 .tableRow:hover {
-  background: color-mix(in srgb, var(--primary-soft) 38%, var(--surface));
+  background: color-mix(in srgb, var(--primary-soft) 50%, var(--surface));
 }
 
 .playerName {

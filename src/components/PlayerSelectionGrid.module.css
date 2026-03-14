@@ -45,7 +45,7 @@
 }
 
 .subcategoryPill:hover {
-  background: color-mix(in srgb, var(--surface-muted) 80%, var(--surface));
+  background: color-mix(in srgb, var(--surface-muted) 66%, var(--surface));
 }
 
 .subcategoryPillActive {

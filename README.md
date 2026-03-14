@@ -49,6 +49,11 @@ npm run build
 npm run start
 ```
 
+Available command line arguments:
+
+- `--port`/`-p`: Port
+- `--host`/`-H`: Hostname
+
 After schema changes, regenerate Prisma Client explicitly:
 
 ```bash

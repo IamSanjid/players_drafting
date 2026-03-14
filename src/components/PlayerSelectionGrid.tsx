@@ -130,7 +130,10 @@ export default function PlayerSelectionGrid({
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           {/* Category Tabs */}
           <div
-            className={cn(styles.categoryTabs, 'flex space-x-1 rounded-lg p-1')}
+            className={cn(
+              styles.categoryTabs,
+              'flex space-x-1 overflow-visible rounded-lg p-1'
+            )}
           >
             <button
               disabled={lockedCategory === 'Local'}
@@ -198,14 +201,14 @@ export default function PlayerSelectionGrid({
         </div>
 
         {/* Sub Category A-Z Tabs */}
-        <div className="flex overflow-x-auto pb-1 gap-2 custom-scrollbar">
+        <div className="custom-scrollbar flex gap-2 overflow-x-auto overflow-y-visible px-1 py-1">
           <button
             onClick={() => setActiveSubCategory('All')}
             className={cn(
               styles.subcategoryPill,
               activeSubCategory === 'All' && styles.subcategoryPillActive,
               'whitespace-nowrap rounded-full px-5 py-1.5 text-sm font-bold transition-all',
-              activeSubCategory === 'All' && 'scale-105'
+              activeSubCategory === 'All' && 'scale-[1.02]'
             )}
           >
             All Category
@@ -219,7 +222,7 @@ export default function PlayerSelectionGrid({
                 styles.subcategoryPill,
                 activeSubCategory === cat && styles.subcategoryPillInfo,
                 'whitespace-nowrap rounded-full px-5 py-1.5 text-sm font-bold transition-all',
-                activeSubCategory === cat && 'scale-105'
+                activeSubCategory === cat && 'scale-[1.02]'
               )}
             >
               Category {cat}

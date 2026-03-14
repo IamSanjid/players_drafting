@@ -1,18 +1,18 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #fbf9fc;
-  --foreground: #231629;
+  --background: #f8fafc;
+  --foreground: #0f172a;
   --surface: #ffffff;
-  --surface-muted: #f5f0f8;
-  --surface-subtle: #fcf9fd;
-  --surface-accent: #f0e7f4;
-  --border: #e2d8e8;
-  --border-strong: #cdb8d7;
-  --primary: #692a7c;
-  --primary-strong: #4f1f5f;
-  --primary-soft: #f1e7f5;
-  --primary-ring: rgba(105, 42, 124, 0.2);
+  --surface-muted: #f1f5f9;
+  --surface-subtle: #f8fafc;
+  --surface-accent: #e2e8f0;
+  --border: #d8e0ea;
+  --border-strong: #b8c4d4;
+  --primary: #475569;
+  --primary-strong: #334155;
+  --primary-soft: #e2e8f0;
+  --primary-ring: rgba(71, 85, 105, 0.22);
   --info: #4338ca;
   --info-soft: #eef2ff;
   --success: #047857;
@@ -21,16 +21,16 @@
   --warning-soft: #fffbeb;
   --danger: #be123c;
   --danger-soft: #fff1f2;
-  --text-muted: #6d5f77;
-  --text-soft: #7f6a8d;
-  --text-strong: #1f1027;
+  --text-muted: #526071;
+  --text-soft: #708094;
+  --text-strong: #0f172a;
   --text-light: #ffffff;
-  --overlay-strong: rgba(22, 10, 30, 0.78);
-  --overlay-soft: rgba(35, 22, 41, 0.56);
-  --shadow-sm: 0 8px 24px rgba(53, 29, 66, 0.06);
-  --shadow-md: 0 18px 48px rgba(53, 29, 66, 0.1);
+  --overlay-strong: rgba(15, 23, 42, 0.72);
+  --overlay-soft: rgba(30, 41, 59, 0.5);
+  --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 18px 48px rgba(15, 23, 42, 0.1);
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
-  --scrollbar-thumb: #baa6c5;
+  --scrollbar-thumb: #c3cedc;
   --radius-card: 1.5rem;
   --radius-pill: 999px;
 }
@@ -54,11 +54,18 @@ body {
 
 a {
   color: var(--primary-strong);
-  transition: color 160ms ease;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--primary) 18%, transparent);
+  text-underline-offset: 0.15em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
 a:hover {
   color: var(--primary);
+  text-decoration-color: color-mix(in srgb, var(--primary) 42%, transparent);
 }
 
 ::selection {
@@ -132,19 +139,19 @@ a:focus-visible {
 }
 
 .theme-card {
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
 
 .theme-card-muted {
-  background: color-mix(in srgb, var(--surface-muted) 92%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 95%, transparent);
   border: 1px solid var(--border);
 }
 
 .theme-panel {
   background-color: var(--surface);
-  background: color-mix(in srgb, var(--surface) 94%, var(--primary-soft));
+  background: color-mix(in srgb, var(--surface) 96%, var(--primary-soft));
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(14px);
@@ -218,7 +225,9 @@ iframe {
 }
 
 .theme-button-secondary:hover:not(:disabled) {
-  background: var(--surface-muted);
+  background: color-mix(in srgb, var(--surface-muted) 82%, var(--surface));
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--foreground) 6%, transparent);
 }
 
 .theme-button-danger {
@@ -285,16 +294,16 @@ iframe {
 .status-panel {
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
 }
 
 .app-shell {
   background:
     linear-gradient(
       165deg,
-      rgba(255, 255, 255, 0.62) 0%,
-      rgba(255, 255, 255, 0.56) 52%,
-      rgba(255, 255, 255, 0.66) 100%
+      rgba(255, 255, 255, 0.66) 0%,
+      rgba(255, 255, 255, 0.6) 52%,
+      rgba(255, 255, 255, 0.7) 100%
     ),
     linear-gradient(
       140deg,
